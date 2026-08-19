@@ -1,0 +1,8 @@
+:root{
+--space-0:0;--space-1:2px;--space-2:4px;--space-3:8px;--space-4:12px;--space-5:16px;
+--space-6:20px;--space-7:24px;--space-8:32px;--space-9:40px;--space-10:56px;--space-11:80px;
+--gutter:16px;--page-max:80%;--page-max-px:1120px;
+--radius-none:0;--radius-xs:2px;--radius-sm:5px;--radius-md:10px;--radius-lg:18px;--radius-pill:2rem;
+--border-1:1px;--border-2:2px;--border-3:3px;
+--titlebar-h:22px;--control-h-sm:24px;--control-h-md:32px;--control-h-lg:44px;
+}
