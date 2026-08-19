@@ -6,6 +6,7 @@
 --dur-base:250ms;
 --dur-slow:450ms;
 --dur-marquee:18s;
+--dur-spin:4s;
 --transition-card:all var(--dur-base) var(--ease-bounce);
 --press-scale:.97;
 --hover-lift:-2px;
@@ -15,3 +16,9 @@
 @keyframes jk-flicker{0%,96%{opacity:1}97%{opacity:.55}98%{opacity:1}99%{opacity:.7}100%{opacity:1}}
 @keyframes jk-hazard{from{background-position:0 0}to{background-position:28px 0}}
 @keyframes jk-sheen{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes jk-spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
+/* A cover that spins forever is exactly what this setting exists to stop. */
+@media (prefers-reduced-motion: reduce){
+[data-spin]{animation:none !important}
+}
