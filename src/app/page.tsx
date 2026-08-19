@@ -11,6 +11,7 @@ import { Hero } from "@/design-system/portfolio/Hero";
 import { Icon } from "@/design-system/Icon";
 import { ProjectCard } from "@/design-system/portfolio/ProjectCard";
 import { ContactRow } from "@/design-system/portfolio/ContactRow";
+import { NowPlaying } from "@/design-system/portfolio/NowPlaying";
 import { Field } from "@/design-system/forms/Field";
 import { Input } from "@/design-system/forms/Input";
 import { TextArea } from "@/design-system/forms/TextArea";
@@ -30,12 +31,6 @@ const TECH_STACK: { key: TechName; label: string }[] = [
   { key: "docker", label: "Docker" },
   { key: "firebase", label: "Firebase" },
   { key: "gcp", label: "Google Cloud Platform" },
-];
-
-const NOW_PLAYING = [
-  ["disc", "boards of canada — dayvan cowboy"],
-  ["disc", "cornelius — point"],
-  ["disc", "daft punk — discovery"],
 ];
 
 const GUESTBOOK: { who: string; msg: string; status: "online" | "offline" }[] = [
@@ -83,23 +78,7 @@ export default function Home() {
           </Window>
           <div style={{ display: "grid", gap: "var(--space-6)" }}>
             <Window title="now_playing" tone="void" rivets={false} footer="scrobbling since forever">
-              <div style={{ display: "grid", gap: "var(--space-3)" }}>
-                {NOW_PLAYING.map(([g, t]) => (
-                  <div
-                    key={t}
-                    style={{
-                      display: "flex",
-                      gap: "var(--space-3)",
-                      alignItems: "center",
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "var(--text-xs)",
-                    }}
-                  >
-                    <Icon name={g} />
-                    <span>{t}</span>
-                  </div>
-                ))}
-              </div>
+              <NowPlaying />
             </Window>
             <Window title="guestbook.cgi" rivets={false} footer="3 entries">
               <div style={{ display: "grid", gap: "var(--space-4)" }}>
