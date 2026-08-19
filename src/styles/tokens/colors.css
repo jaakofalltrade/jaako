@@ -1,0 +1,26 @@
+:root{
+/* --- Piss filter: desaturated yellow-green wash. The brand's defining hue. --- */
+--piss-050:#efecc9;--piss-100:#dcd8a6;--piss-200:#c2bd83;--piss-300:#a29d63;
+--piss-400:#807b48;--piss-500:#5f5b34;--piss-600:#454226;--piss-700:#2f2d1a;
+
+/* --- Steel: olive-tinted metal greys. All structure is built from these. --- */
+--steel-050:#d6d8cf;--steel-100:#b4b7ad;--steel-200:#8e9188;--steel-300:#6b6f66;
+--steel-400:#4d5049;--steel-500:#383a34;--steel-600:#26281f;--steel-700:#1a1c17;
+--void:#0d0e0b;
+
+/* --- Accents --- */
+--xgreen:#7ab800;--xgreen-dim:#5c8c00;--xgreen-lit:#a3e62a;
+--psblue:#0a6cff;--psblue-dim:#0a4fbb;--psblue-lit:#5b9bff;
+--hazard:#ffd400;--alert:#c0261f;--rust:#a8410f;
+
+/* --- Semantic aliases --- */
+--text-body:#ded9b8;--text-muted:var(--piss-300);--text-strong:var(--piss-050);
+--text-inverse:var(--void);--text-link:var(--xgreen-lit);--text-link-hover:var(--hazard);
+--surface-page:var(--steel-700);--surface-panel:var(--steel-500);
+--surface-panel-dark:var(--steel-600);--surface-well:var(--void);
+--surface-glass:rgba(13,14,11,.55);--surface-field:#15170f;
+--border-hairline:rgba(222,217,184,.16);--border-metal:var(--steel-300);
+--border-ink:var(--void);--focus-ring:var(--psblue);
+--accent-primary:var(--xgreen);--accent-secondary:var(--psblue);
+--status-ok:var(--xgreen);--status-warn:var(--hazard);--status-error:var(--alert);
+}

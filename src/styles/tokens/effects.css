@@ -1,0 +1,34 @@
+:root{
+/* --- Dark metal plate: brushed grain + piss wash over a steel gradient --- */
+--brushed:repeating-linear-gradient(90deg,rgba(255,255,255,.035) 0 1px,rgba(0,0,0,.05) 1px 3px);
+--scratches:repeating-linear-gradient(74deg,transparent 0 37px,rgba(255,255,255,.055) 37px 38px,transparent 38px 96px),repeating-linear-gradient(101deg,transparent 0 61px,rgba(255,255,255,.04) 61px 62px,transparent 62px 143px),repeating-linear-gradient(66deg,transparent 0 113px,rgba(0,0,0,.22) 113px 114px,transparent 114px 251px),repeating-linear-gradient(96deg,transparent 0 173px,rgba(255,255,255,.03) 173px 175px,transparent 175px 397px);
+--piss-wash:linear-gradient(180deg,rgba(194,189,131,.16) 0%,rgba(128,123,72,.10) 55%,rgba(13,14,11,.35) 100%);
+--plate-gradient:linear-gradient(180deg,#3a3d34 0%,#26281f 42%,#15170f 100%);
+--bg-page:var(--scratches),var(--brushed),var(--piss-wash),var(--plate-gradient);
+--panel-gradient:linear-gradient(180deg,#42453b 0%,#2c2e26 100%);
+--panel-gradient-dark:linear-gradient(180deg,#26281f 0%,#15170f 100%);
+--seam:linear-gradient(90deg,rgba(0,0,0,.65) 0 1px,rgba(255,255,255,.07) 1px 2px,transparent 2px);
+--rivet:radial-gradient(circle at 42% 35%,#a6a99f 0 30%,#6b6f66 55%,#1a1c17 100%);
+--hazard-stripes:repeating-linear-gradient(45deg,var(--hazard) 0 7px,var(--void) 7px 14px);
+--hazard-stripes-green:repeating-linear-gradient(45deg,var(--xgreen) 0 7px,var(--void) 7px 14px);
+--scanlines:repeating-linear-gradient(0deg,rgba(0,0,0,.22) 0 1px,transparent 1px 3px);
+--vignette:radial-gradient(120% 90% at 50% 20%,transparent 40%,rgba(0,0,0,.55) 100%);
+
+/* --- Smoked glass (the only survivor of the old glass system) --- */
+--blur-glass:blur(8px);
+--glass-tint:rgba(13,14,11,.55);
+--glass-highlight:rgba(222,217,184,.22);
+
+--bevel-metal:inset 1px 1px 0 rgba(255,255,255,.14),inset -1px -1px 0 rgba(0,0,0,.65);
+--bevel-metal-active:inset -1px -1px 0 rgba(255,255,255,.10),inset 1px 1px 0 rgba(0,0,0,.7);
+--inset-well:inset 0 1px 3px rgba(0,0,0,.8),inset 0 -1px 0 rgba(255,255,255,.06);
+--inset-specular:inset 1px 1px 0 var(--glass-highlight);
+--shadow-plate:0 2px 0 rgba(0,0,0,.65),0 8px 18px rgba(0,0,0,.45);
+--shadow-float:0 6px 16px rgba(0,0,0,.55);
+--shadow-hud:0 1px 0 rgba(255,255,255,.08),0 6px 14px rgba(0,0,0,.6);
+--glow-green:0 0 10px rgba(122,184,0,.65);
+--glow-blue:0 0 12px rgba(10,108,255,.6);
+--glow-hazard:0 0 10px rgba(255,212,0,.6);
+--text-shadow-hud:0 1px 0 rgba(0,0,0,.85);
+--text-shadow-stamp:2px 2px 0 rgba(0,0,0,.75);
+}
