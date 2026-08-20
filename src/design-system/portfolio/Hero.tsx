@@ -19,6 +19,9 @@ export function Hero() {
       <div className="jk-hero__badges">
         <Badge tone="green">online</Badge>
         <Badge tone="void">est. 2026</Badge>
+        <Badge tone="void">
+          <s className="jk-hero__struck">for hire</s> employed
+        </Badge>
       </div>
       <h1 className="jk-hero__title">JAAKO ANDES</h1>
       <p className="jk-hero__blurb">
@@ -33,7 +36,7 @@ export function Hero() {
         </Link>
         <Link href="/#contact" onClick={(e) => handleClick(e, "contact")} className="jk-hero__link">
           <Button as="span" variant="hud" size="lg">
-            hire me
+            <s className="jk-hero__struck">hire me</s> say hi
           </Button>
         </Link>
       </div>

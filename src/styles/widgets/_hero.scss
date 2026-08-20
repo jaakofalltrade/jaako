@@ -57,3 +57,11 @@
 .jk-hero__link {
   text-decoration: none;
 }
+
+/* "no longer for hire" — the copy stays, struck out and dimmed rather than
+   deleted, so the joke reads. Used inside a badge and a button label. */
+.jk-hero__struck {
+  color: var(--text-muted);
+  opacity: 0.7;
+  text-decoration-thickness: var(--border-1);
+}

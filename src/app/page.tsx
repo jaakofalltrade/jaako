@@ -23,6 +23,7 @@ import { scrollToSection } from "@/design-system/scrollToSection";
 import { TechLogo, type TechName } from "@/design-system/TechLogo";
 import { PROJECTS } from "@/data/projects";
 import { EXPERIENCE } from "@/data/experience";
+import { CONTACT_REASONS } from "@/data/contact";
 
 const TECH_STACK: { key: TechName; label: string }[] = [
   { key: "nextjs", label: "Next.js" },
@@ -41,10 +42,62 @@ const GUESTBOOK: { who: string; msg: string; status: "online" | "offline" }[] = 
   { who: "kaaayels", msg: "ship the portfolio already", status: "online" },
 ];
 
+/** Blank form. Kept out of the component so "write another" can reset to it. */
+const EMPTY_FORM = {
+  name: "",
+  email: "",
+  reason: CONTACT_REASONS[0] as string,
+  message: "",
+  /** Honeypot — rendered off-screen, never filled by a human. See src/lib/contact.ts. */
+  website: "",
+};
+
 export default function Home() {
-  const [sent, setSent] = React.useState(false);
+  const [form, setForm] = React.useState(EMPTY_FORM);
+  const [status, setStatus] = React.useState<"idle" | "sending" | "sent">("idle");
+  const [error, setError] = React.useState<string | null>(null);
   const [cc, setCc] = React.useState(true);
   const [how, setHow] = React.useState("email");
+
+  const sent = status === "sent";
+
+  function set<K extends keyof typeof EMPTY_FORM>(key: K, value: string) {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (status === "sending") return;
+
+    setStatus("sending");
+    setError(null);
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, how, cc }),
+      });
+      const data: { ok: boolean; error?: string } = await res.json();
+
+      if (!data.ok) {
+        setError(data.error ?? "Something went wrong.");
+        setStatus("idle");
+        return;
+      }
+      setStatus("sent");
+    } catch {
+      // Network-level failure — the request never reached the route.
+      setError("Couldn't reach the server. Try the e-mail link instead.");
+      setStatus("idle");
+    }
+  }
+
+  function reset() {
+    setForm(EMPTY_FORM);
+    setError(null);
+    setStatus("idle");
+  }
 
   return (
     <>
@@ -152,37 +205,89 @@ export default function Home() {
         <div className="jk-contact__grid">
           <Window
             title="contact_form.html"
-            footer={sent ? "queued, nothing actually sends" : "all fields optional, like everything"}
+            footer={sent ? "delivered — check your inbox if you ticked cc" : "starred fields, please"}
           >
             <SectionHeading kicker="04 / contact">Contact me</SectionHeading>
             {sent ? (
               <div className="jk-contact__sent">
                 <Badge tone="green">sent</Badge>
                 <p className="jk-contact__sent-text">Thanks. I&apos;ll get back to you eventually.</p>
-                <Button variant="metal" onClick={() => setSent(false)}>
+                <Button variant="metal" onClick={reset}>
                   write another
                 </Button>
               </div>
             ) : (
-              <div className="jk-contact__form">
+              <form className="jk-contact__form" onSubmit={handleSubmit} noValidate>
                 <Field label="name" required>
-                  <Input placeholder="your name" />
+                  <Input
+                    name="name"
+                    placeholder="your name"
+                    autoComplete="name"
+                    value={form.name}
+                    onChange={(e) => set("name", e.target.value)}
+                  />
                 </Field>
-                <Field label="e-mail" hint="i reply within a week, probably">
-                  <Input placeholder="you@somewhere.net" />
+                <Field label="e-mail" required hint="i reply within a week, probably">
+                  <Input
+                    name="email"
+                    type="email"
+                    placeholder="you@somewhere.net"
+                    autoComplete="email"
+                    value={form.email}
+                    onChange={(e) => set("email", e.target.value)}
+                  />
                 </Field>
                 <Field label="reason">
-                  <Select options={["freelance", "full-time", "just saying hi"]} />
+                  <Select
+                    name="reason"
+                    options={[...CONTACT_REASONS]}
+                    value={form.reason}
+                    onChange={(e) => set("reason", e.target.value)}
+                  />
                 </Field>
-                <Field label="message">
-                  <TextArea rows={5} placeholder="what do you need built?" />
+                <Field label="message" required>
+                  <TextArea
+                    name="message"
+                    rows={5}
+                    placeholder="what do you need built?"
+                    value={form.message}
+                    onChange={(e) => set("message", e.target.value)}
+                  />
                 </Field>
+
+                {/* Honeypot. Hidden from sight and from the tab order, so only a
+                    bot filling every input it finds will ever put something here. */}
+                <div className="jk-contact__honeypot" aria-hidden="true">
+                  <label>
+                    website
+                    <input
+                      name="website"
+                      type="text"
+                      tabIndex={-1}
+                      autoComplete="off"
+                      value={form.website}
+                      onChange={(e) => set("website", e.target.value)}
+                    />
+                  </label>
+                </div>
+
                 <Radio options={["email", "dm"]} value={how} onChange={setHow} />
                 <Checkbox label="cc me on this" checked={cc} onChange={setCc} />
-                <Button variant="hazard" fullWidth onClick={() => setSent(true)}>
-                  send it
+                {error ? (
+                  <p role="alert" className="jk-contact__error">
+                    {error}
+                  </p>
+                ) : null}
+                <Button
+                  type="submit"
+                  variant="hazard"
+                  fullWidth
+                  disabled={status === "sending"}
+                  aria-busy={status === "sending"}
+                >
+                  {status === "sending" ? "sending…" : "send it"}
                 </Button>
-              </div>
+              </form>
             )}
           </Window>
           <div className="jk-contact__aside">
