@@ -1,40 +1,20 @@
-"use client";
-
 import { Badge } from "../core/Badge";
 import type { ExperienceItem } from "@/data/experience";
 
-export function ExperienceEntry({ company, location, totalTenure, roles, bullets, stack, current }: ExperienceItem) {
+export function ExperienceEntry({
+  company,
+  location,
+  totalTenure,
+  roles,
+  bullets,
+  stack,
+  current,
+}: ExperienceItem) {
   return (
-    <div
-      style={{
-        display: "grid",
-        gap: "var(--space-4)",
-        padding: "var(--space-6) 0",
-        borderBottom: "var(--border-1) solid var(--steel-400)",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "baseline",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: "var(--space-3)",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
-          <h3
-            style={{
-              margin: 0,
-              fontFamily: "var(--font-headline)",
-              fontSize: "var(--text-lg)",
-              textTransform: "uppercase",
-              letterSpacing: "var(--tracking-wide)",
-              color: "var(--text-strong)",
-            }}
-          >
-            {company}
-          </h3>
+    <div className="jk-experience">
+      <div className="jk-experience__head">
+        <div className="jk-experience__company">
+          <h3 className="jk-experience__name">{company}</h3>
           {current ? (
             <Badge tone="green" blink>
               active
@@ -43,65 +23,31 @@ export function ExperienceEntry({ company, location, totalTenure, roles, bullets
             <Badge tone="steel">archived</Badge>
           )}
         </div>
-        <span
-          style={{
-            fontFamily: "var(--font-pixel-micro)",
-            fontSize: "var(--text-xs)",
-            color: "var(--text-muted)",
-            letterSpacing: "var(--tracking-wide)",
-            textAlign: "right",
-          }}
-        >
+        <span className="jk-experience__where">
           {location}
           <br />
           {totalTenure}
         </span>
       </div>
 
-      <div style={{ display: "grid", gap: "var(--space-2)" }}>
+      <div className="jk-experience__roles">
         {roles.map((r) => (
-          <div
-            key={r.title}
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              gap: "var(--space-4)",
-              fontFamily: "var(--font-body)",
-              fontSize: "var(--text-md)",
-            }}
-          >
-            <span style={{ color: "var(--text-body)" }}>{r.title}</span>
-            <span
-              style={{
-                color: "var(--text-muted)",
-                fontFamily: "var(--font-pixel-micro)",
-                fontSize: "var(--text-xs)",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {r.period}
-            </span>
+          <div key={r.title} className="jk-experience__role">
+            <span className="jk-experience__role-title">{r.title}</span>
+            <span className="jk-experience__role-period">{r.period}</span>
           </div>
         ))}
       </div>
 
-      <ul style={{ margin: 0, paddingLeft: "1.1em", display: "grid", gap: "var(--space-2)" }}>
+      <ul className="jk-experience__bullets">
         {bullets.map((b) => (
-          <li
-            key={b}
-            style={{
-              fontFamily: "var(--font-body)",
-              fontSize: "var(--text-md)",
-              lineHeight: "var(--leading-normal)",
-              color: "var(--text-body)",
-            }}
-          >
+          <li key={b} className="jk-experience__bullet">
             {b}
           </li>
         ))}
       </ul>
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)" }}>
+      <div className="jk-experience__stack">
         {stack.map((s) => (
           <Badge key={s} tone="steel">
             {s}

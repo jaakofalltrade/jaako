@@ -1,38 +1,71 @@
-@import "./tokens/fonts.css";
-@import "./tokens/colors.css";
-@import "./tokens/typography.css";
-@import "./tokens/spacing.css";
-@import "./tokens/effects.css";
-@import "./tokens/motion.css";
+// =============================================================================
+// The single stylesheet the app imports (src/app/layout.tsx).
+//
+// Every rule in the site is reachable from this file. Components and widgets own
+// no styles of their own — they carry class names that are defined in the partial
+// listed against them below.
+//
+// The order of these @use rules IS the cascade: Sass emits each partial's CSS at
+// the point it is loaded, so a later layer can override an earlier one without a
+// specificity fight. Keep the layers in this order:
+//
+//   tokens      custom properties only, no rules — must come first
+//   base        element defaults and shared mixins
+//   layout      the page frame: shell, nav, footer
+//   components  reusable design-system primitives
+//   forms       form controls
+//   widgets     composed, single-purpose blocks
+//   sections    the page's own sections — last, so they can nudge what's inside them
+//
+// Partials read tokens as CSS custom properties (var(--…)), so none of them need to
+// @use anything. The one exception is base/mixins, which a partial pulls in
+// explicitly when it needs a shared declaration cluster.
+// =============================================================================
 
-* {
-  box-sizing: border-box;
-}
+// --- tokens ------------------------------------------------------------------
+@use "tokens/fonts";
+@use "tokens/colors";
+@use "tokens/typography";
+@use "tokens/spacing";
+@use "tokens/effects";
+@use "tokens/motion";
 
-html {
-  scroll-behavior: smooth;
-}
+// --- base --------------------------------------------------------------------
+@use "base/reset";
 
-html,
-body {
-  margin: 0;
-  padding: 0;
-}
+// --- layout ------------------------------------------------------------------
+@use "layout/shell"; // PageShell
+@use "layout/navbar"; // NavBar
+@use "layout/footer"; // SiteFooter
 
-body {
-  min-height: 100vh;
-  background: var(--bg-page);
-  background-attachment: fixed;
-  color: var(--text-body);
-  font-family: var(--font-body);
-  font-size: var(--text-md);
-  line-height: var(--leading-normal);
-}
+// --- components --------------------------------------------------------------
+@use "components/button"; // Button
+@use "components/window"; // Window
+@use "components/badge"; // Badge
+@use "components/glass-panel"; // GlassPanel
+@use "components/marquee"; // Marquee
+@use "components/section-heading"; // SectionHeading
+@use "components/icon"; // Icon, TechLogo
 
-a {
-  color: var(--text-link);
-}
+// --- forms -------------------------------------------------------------------
+@use "forms/field"; // Field
+@use "forms/input"; // Input
+@use "forms/textarea"; // TextArea
+@use "forms/select"; // Select
+@use "forms/checkbox"; // Checkbox
+@use "forms/radio"; // Radio
 
-a:hover {
-  color: var(--text-link-hover);
-}
+// --- widgets -----------------------------------------------------------------
+@use "widgets/hero"; // Hero
+@use "widgets/now-playing"; // NowPlaying
+@use "widgets/project-card"; // ProjectCard
+@use "widgets/contact-row"; // ContactRow
+@use "widgets/experience-entry"; // ExperienceEntry
+@use "widgets/hit-counter"; // HitCounter
+
+// --- sections ----------------------------------------------------------------
+@use "sections/about"; // #about  — hero, about_me, now_playing, guestbook, stack
+@use "sections/experience"; // #experience
+@use "sections/projects"; // #projects
+@use "sections/contact"; // #contact
+@use "sections/project-detail"; // /projects/[slug]

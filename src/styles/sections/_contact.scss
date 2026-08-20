@@ -1,0 +1,60 @@
+/* #contact — the form, the links panel, and the availability card. */
+
+.jk-contact {
+  display: grid;
+  gap: var(--space-8);
+  scroll-margin-top: var(--space-8);
+}
+
+.jk-contact__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-7);
+  align-items: start;
+}
+
+.jk-contact__form {
+  display: grid;
+  gap: var(--space-5);
+  margin-top: var(--space-5);
+}
+
+/* --- post-submit confirmation --- */
+.jk-contact__sent {
+  display: grid;
+  gap: var(--space-5);
+  padding: var(--space-7) 0;
+}
+
+.jk-contact__sent-text {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+}
+
+/* --- aside --- */
+.jk-contact__aside {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.jk-contact__list {
+  padding: var(--space-3);
+}
+
+.jk-contact__availability {
+  padding: var(--space-6);
+}
+
+.jk-contact__availability-title {
+  font-family: var(--font-headline);
+  font-size: var(--text-xl);
+  text-transform: uppercase;
+  color: var(--text-strong);
+}
+
+.jk-contact__availability-text {
+  margin: var(--space-3) 0 0;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+}

@@ -1,0 +1,15 @@
+/* Webfont faces that aren't loaded through next/font.
+   The five Google families — Rubik Glitch, Teko, Silkscreen, Tiny5, Geist Mono — are
+   self-hosted by next/font/google in src/app/layout.tsx, which exposes each one as a
+   CSS custom property that _typography.scss reads. Nothing is fetched from Google at
+   runtime, so no @import url() belongs in this file.
+
+   Osaka and Hiragino Kaku Gothic Pro W3 are the classic Japanese-web faces in the body
+   stack. No webfont binary exists for either; declare Osaka as a locally-installed face
+   and let Verdana carry the rendering everywhere else. */
+@font-face {
+  font-family: "Osaka";
+  font-style: normal;
+  font-weight: 400;
+  src: local("Osaka");
+}

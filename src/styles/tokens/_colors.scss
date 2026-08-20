@@ -23,4 +23,8 @@
 --border-ink:var(--void);--focus-ring:var(--psblue);
 --accent-primary:var(--xgreen);--accent-secondary:var(--psblue);
 --status-ok:var(--xgreen);--status-warn:var(--hazard);--status-error:var(--alert);
+
+/* --- Recolours a black Lucide SVG to sit in the piss-filter palette. Applied to
+       <img> icons, which can't be filled with currentColor. --- */
+--icon-tint:invert(84%) sepia(18%) saturate(320%) hue-rotate(20deg) brightness(95%);
 }

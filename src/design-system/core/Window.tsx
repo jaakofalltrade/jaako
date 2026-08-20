@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 
 export interface WindowProps {
   title?: string;
@@ -7,26 +7,11 @@ export interface WindowProps {
   tone?: "plate" | "void";
   padded?: boolean;
   rivets?: boolean;
-  style?: CSSProperties;
+  className?: string;
   children?: ReactNode;
 }
 
-function Rivet({ pos }: { pos: CSSProperties }) {
-  return (
-    <span
-      aria-hidden="true"
-      style={{
-        position: "absolute",
-        width: 7,
-        height: 7,
-        borderRadius: "50%",
-        background: "var(--rivet)",
-        boxShadow: "0 1px 0 rgba(255,255,255,.12)",
-        ...pos,
-      }}
-    />
-  );
-}
+const RIVETS = ["tl", "tr", "bl", "br"] as const;
 
 export function Window({
   title = "untitled",
@@ -35,98 +20,34 @@ export function Window({
   tone = "plate",
   padded = true,
   rivets = true,
-  style,
+  className,
   children,
 }: WindowProps) {
-  const body = tone === "void" ? "var(--panel-gradient-dark)" : "var(--panel-gradient)";
+  const classes = ["jk-window", tone === "void" ? "jk-window--void" : null, className]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <div
-      style={{
-        position: "relative",
-        background: body,
-        border: "var(--border-1) solid var(--steel-300)",
-        borderRadius: 0,
-        boxShadow: "var(--bevel-metal), var(--shadow-plate)",
-        ...style,
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          height: "var(--titlebar-h)",
-          padding: "0 var(--space-3)",
-          background: "linear-gradient(180deg,#1f2119 0%,#0d0e0b 100%)",
-          borderBottom: "var(--border-1) solid var(--steel-400)",
-        }}
-      >
-        <span
-          style={{
-            fontFamily: "var(--font-pixel)",
-            fontSize: "var(--text-2xs)",
-            color: "var(--text-link)",
-            letterSpacing: "var(--tracking-wide)",
-            textShadow: "var(--glow-green)",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-        >
-          {title}
-        </span>
+    <div className={classes}>
+      <div className="jk-window__titlebar">
+        <span className="jk-window__title">{title}</span>
         {controls ? (
-          <div style={{ display: "flex", gap: "var(--space-2)" }}>
+          <div className="jk-window__controls">
             {["_", "□", "×"].map((g) => (
-              <span
-                key={g}
-                style={{
-                  width: 15,
-                  height: 13,
-                  display: "grid",
-                  placeItems: "center",
-                  background: "var(--panel-gradient)",
-                  border: "var(--border-1) solid var(--steel-400)",
-                  boxShadow: "var(--bevel-metal)",
-                  fontFamily: "var(--font-pixel-micro)",
-                  fontSize: "var(--text-3xs)",
-                  color: "var(--text-muted)",
-                  lineHeight: 1,
-                }}
-              >
+              <span key={g} className="jk-window__control">
                 {g}
               </span>
             ))}
           </div>
         ) : null}
       </div>
-      {rivets ? (
-        <>
-          <Rivet pos={{ left: 5, top: 27 }} />
-          <Rivet pos={{ right: 5, top: 27 }} />
-          <Rivet pos={{ left: 5, bottom: 5 }} />
-          <Rivet pos={{ right: 5, bottom: 5 }} />
-        </>
-      ) : null}
-      <div style={{ padding: padded ? "var(--space-6) var(--space-7)" : 0, color: "var(--text-body)" }}>
-        {children}
-      </div>
-      {footer ? (
-        <div
-          style={{
-            borderTop: "var(--border-1) solid var(--steel-400)",
-            padding: "var(--space-2) var(--space-5)",
-            background: "var(--void)",
-            boxShadow: "var(--inset-well)",
-            fontFamily: "var(--font-pixel-micro)",
-            fontSize: "var(--text-2xs)",
-            color: "var(--text-muted)",
-            letterSpacing: "var(--tracking-wide)",
-          }}
-        >
-          {footer}
-        </div>
-      ) : null}
+      {rivets
+        ? RIVETS.map((pos) => (
+            <span key={pos} aria-hidden="true" className={`jk-window__rivet jk-window__rivet--${pos}`} />
+          ))
+        : null}
+      <div className={`jk-window__body${padded ? "" : " jk-window__body--flush"}`}>{children}</div>
+      {footer ? <div className="jk-window__footer">{footer}</div> : null}
     </div>
   );
 }

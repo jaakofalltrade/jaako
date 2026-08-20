@@ -1,0 +1,55 @@
+@use "../base/mixins" as *;
+
+/* Badge — small status pill. Six tones, each supplying the three colour slots. */
+
+.jk-badge {
+  @include label($family: var(--font-pixel-micro), $tracking: var(--tracking-wide));
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 var(--space-3);
+  border: var(--border-1) solid var(--badge-border);
+  border-radius: 0;
+  background: var(--badge-bg);
+  color: var(--badge-fg);
+}
+
+.jk-badge--green {
+  --badge-bg: var(--xgreen);
+  --badge-fg: var(--void);
+  --badge-border: var(--void);
+}
+
+.jk-badge--blue {
+  --badge-bg: var(--psblue);
+  --badge-fg: #fff;
+  --badge-border: var(--void);
+}
+
+.jk-badge--hazard {
+  --badge-bg: var(--hazard);
+  --badge-fg: var(--void);
+  --badge-border: var(--void);
+}
+
+.jk-badge--steel {
+  --badge-bg: var(--steel-500);
+  --badge-fg: var(--text-body);
+  --badge-border: var(--steel-300);
+}
+
+.jk-badge--void {
+  --badge-bg: var(--void);
+  --badge-fg: var(--xgreen-lit);
+  --badge-border: var(--steel-400);
+}
+
+.jk-badge--alert {
+  --badge-bg: var(--alert);
+  --badge-fg: #fff;
+  --badge-border: var(--void);
+}
+
+.jk-badge--blink {
+  animation: jk-blink 1s steps(1, end) infinite;
+}

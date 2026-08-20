@@ -1,0 +1,27 @@
+/* Shared declaration clusters.
+   These are mixins rather than utility classes on purpose: every element that needs
+   them already carries its own component class, so folding the declarations into that
+   class keeps the markup holding exactly one class per element — which is the whole
+   point of the refactor. */
+
+/* The pixel/uppercase/tracked label treatment. Written out by hand in eleven places
+   before this existed. Colour is deliberately left to the caller: it varies. */
+@mixin label($family: var(--font-pixel), $size: var(--text-2xs), $tracking: var(--tracking-caps)) {
+  font-family: $family;
+  font-size: $size;
+  letter-spacing: $tracking;
+  text-transform: uppercase;
+}
+
+/* Single-line ellipsis. Needs an explicit min-width:0 on flex/grid children to
+   actually engage — see .jk-now-playing__meta. */
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Recolours a black Lucide <img> SVG into the palette. */
+@mixin icon-tint {
+  filter: var(--icon-tint);
+}

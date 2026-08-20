@@ -1,0 +1,19 @@
+/* Each --font-* below resolves to a self-hosted face declared by next/font/google in
+   src/app/layout.tsx. The fallback stack for each one is the `fallback` array in that
+   file, not a list repeated here — see the comment there for why it has to live at the
+   call site. --font-body is the only stack defined in CSS, because it loads no webfont. */
+:root{
+--font-display:var(--font-rubik-glitch);
+--font-headline:var(--font-teko);
+--font-pixel:var(--font-silkscreen);
+--font-pixel-micro:var(--font-tiny5);
+--font-body:Verdana,Osaka,"ヒラギノ角ゴ Pro W3",Geneva,Helvetica,Arial,sans-serif;
+--font-mono:var(--font-geist-mono);
+
+--text-3xs:9px;--text-2xs:10px;--text-xs:11px;--text-sm:12px;--text-md:14px;
+--text-lg:16px;--text-xl:20px;--text-2xl:26px;--text-3xl:34px;--text-4xl:48px;--text-5xl:68px;
+
+--leading-tight:1;--leading-snug:1.2;--leading-normal:1.5;--leading-loose:1.7;
+--tracking-tight:-0.01em;--tracking-normal:0;--tracking-wide:.06em;--tracking-caps:.14em;
+--weight-regular:400;--weight-medium:500;--weight-bold:700;
+}

@@ -1,0 +1,39 @@
+/* /projects/[slug] — the single-project page. */
+
+.jk-project-detail__blurb {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  max-width: 62ch;
+}
+
+.jk-project-detail__shot {
+  display: grid;
+  place-items: center;
+  height: 220px;
+  margin: var(--space-5) 0;
+  background: var(--panel-gradient-dark);
+  background-image: var(--scanlines), var(--panel-gradient-dark);
+  border: var(--border-1) solid var(--steel-400);
+  box-shadow: var(--inset-well);
+  font-family: var(--font-pixel-micro);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-caps);
+  color: var(--piss-300);
+}
+
+.jk-project-detail__stack {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-6);
+}
+
+.jk-project-detail__actions {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.jk-project-detail__link {
+  text-decoration: none;
+}

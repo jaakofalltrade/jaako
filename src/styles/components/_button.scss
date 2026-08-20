@@ -1,0 +1,167 @@
+/* Button
+   ---------------------------------------------------------------------------
+   Variants set --btn-shadow to their resting elevation; the shared :active rule
+   reads it back so a press drops the hover glow without each variant needing its
+   own :active block. */
+
+.jk-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  cursor: pointer;
+  white-space: nowrap;
+  border-radius: 0;
+  font-family: var(--font-pixel);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  transition: var(--transition-card);
+  box-shadow: var(--btn-shadow, none);
+
+  &:hover:not(:disabled):not(.jk-btn--disabled) {
+    filter: brightness(1.12);
+    box-shadow: var(--glow-green), var(--shadow-plate);
+  }
+
+  &:active:not(:disabled):not(.jk-btn--disabled) {
+    filter: brightness(1.12);
+    transform: translateY(1px);
+    box-shadow: var(--btn-shadow, none);
+  }
+
+  &:focus-visible {
+    outline: var(--border-2) solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+.jk-btn__icon {
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+}
+
+/* --- sizes. --btn-pad-x is read back by the filled variants below, which need
+       room on the right for the stripe edge. --- */
+.jk-btn--sm {
+  --btn-pad-x: var(--space-5);
+  height: var(--control-h-sm);
+  padding: 0 var(--btn-pad-x);
+  font-size: var(--text-2xs);
+}
+
+.jk-btn--md {
+  --btn-pad-x: var(--space-7);
+  height: var(--control-h-md);
+  padding: 0 var(--btn-pad-x);
+  font-size: var(--text-xs);
+}
+
+.jk-btn--lg {
+  --btn-pad-x: var(--space-9);
+  height: var(--control-h-lg);
+  padding: 0 var(--btn-pad-x);
+  font-size: var(--text-sm);
+}
+
+/* --- variants --- */
+.jk-btn--hazard {
+  --btn-shadow: var(--shadow-plate);
+  background: var(--xgreen);
+  color: var(--void);
+  border: var(--border-2) solid var(--void);
+  text-shadow: none;
+}
+
+.jk-btn--blue {
+  --btn-shadow: var(--shadow-plate);
+  background: var(--psblue);
+  color: #fff;
+  border: var(--border-2) solid var(--void);
+  text-shadow: var(--text-shadow-hud);
+
+  &:hover:not(:disabled):not(.jk-btn--disabled) {
+    box-shadow: var(--glow-blue), var(--shadow-plate);
+  }
+}
+
+.jk-btn--metal {
+  --btn-shadow: var(--bevel-metal), var(--shadow-plate);
+  background: var(--panel-gradient);
+  color: var(--text-body);
+  border: var(--border-1) solid var(--steel-300);
+  text-shadow: var(--text-shadow-hud);
+
+  &:active:not(:disabled):not(.jk-btn--disabled) {
+    background: var(--panel-gradient-dark);
+    box-shadow: var(--bevel-metal-active);
+  }
+}
+
+.jk-btn--hud {
+  --btn-shadow: var(--shadow-hud);
+  background: var(--glass-tint);
+  color: var(--text-link);
+  border: var(--border-1) solid var(--border-hairline);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
+  text-shadow: var(--text-shadow-hud);
+
+  /* Replaces the two bracket spans the component used to render. */
+  &::before,
+  &::after {
+    opacity: 0.6;
+  }
+
+  &::before {
+    content: "[";
+  }
+
+  &::after {
+    content: "]";
+  }
+}
+
+.jk-btn--ghost {
+  background: transparent;
+  color: var(--text-muted);
+  border: var(--border-1) dashed var(--steel-300);
+}
+
+/* --- filled variants: diagonal hazard-stripe edge, replacing <StripeEdge/> --- */
+.jk-btn--hazard,
+.jk-btn--blue {
+  padding-right: calc(var(--btn-pad-x) + 18px);
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 14px;
+    border-left: var(--border-2) solid var(--void);
+    opacity: 0.95;
+  }
+}
+
+.jk-btn--hazard::after {
+  background: var(--hazard-stripes);
+}
+
+.jk-btn--blue::after {
+  background: repeating-linear-gradient(45deg, var(--psblue-dim) 0 6px, var(--void) 6px 12px);
+}
+
+/* --- flags --- */
+.jk-btn--full {
+  width: 100%;
+}
+
+/* `as="span"` can't carry the disabled attribute, so the flag doubles as a class. */
+.jk-btn--disabled,
+.jk-btn:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}

@@ -1,0 +1,83 @@
+/* ExperienceEntry — one company in career.log, with its roles and bullets. */
+
+.jk-experience {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-6) 0;
+  border-bottom: var(--border-1) solid var(--steel-400);
+}
+
+.jk-experience__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.jk-experience__company {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.jk-experience__name {
+  margin: 0;
+  font-family: var(--font-headline);
+  font-size: var(--text-lg);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-strong);
+}
+
+.jk-experience__where {
+  font-family: var(--font-pixel-micro);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-muted);
+  text-align: right;
+}
+
+.jk-experience__roles {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.jk-experience__role {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+}
+
+.jk-experience__role-title {
+  color: var(--text-body);
+}
+
+.jk-experience__role-period {
+  font-family: var(--font-pixel-micro);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.jk-experience__bullets {
+  margin: 0;
+  padding-left: 1.1em;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.jk-experience__bullet {
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  line-height: var(--leading-normal);
+  color: var(--text-body);
+}
+
+.jk-experience__stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}

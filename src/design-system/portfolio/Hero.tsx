@@ -14,50 +14,24 @@ export function Hero() {
   }
 
   return (
-    <GlassPanel hazardEdge style={{ padding: "var(--space-10) var(--space-8) var(--space-9)" }}>
-      <span
-        aria-hidden="true"
-        style={{ position: "absolute", inset: 0, background: "var(--scanlines)", opacity: 0.4, pointerEvents: "none" }}
-      />
-      <div style={{ position: "relative", display: "flex", gap: "var(--space-3)", marginBottom: "var(--space-5)" }}>
+    <GlassPanel hazardEdge className="jk-hero">
+      <span aria-hidden="true" className="jk-hero__scanlines" />
+      <div className="jk-hero__badges">
         <Badge tone="green">online</Badge>
         <Badge tone="void">est. 2026</Badge>
       </div>
-      <h1
-        style={{
-          position: "relative",
-          margin: 0,
-          fontFamily: "var(--font-display)",
-          fontSize: "var(--text-5xl)",
-          lineHeight: "var(--leading-tight)",
-          textTransform: "uppercase",
-          color: "var(--text-strong)",
-          textShadow: "4px 4px 0 rgba(0,0,0,.7)",
-        }}
-      >
-        JAAKO ANDES
-      </h1>
-      <p
-        style={{
-          position: "relative",
-          margin: "var(--space-5) 0 var(--space-7)",
-          maxWidth: "48ch",
-          fontFamily: "var(--font-body)",
-          fontSize: "var(--text-md)",
-          lineHeight: "var(--leading-normal)",
-          color: "var(--text-body)",
-        }}
-      >
+      <h1 className="jk-hero__title">JAAKO ANDES</h1>
+      <p className="jk-hero__blurb">
         I think therefore I am. Full-stack odd jobs: Next.js, Django, Discord bots, and whatever else the week
         needs.
       </p>
-      <div style={{ position: "relative", display: "flex", gap: "var(--space-4)", flexWrap: "wrap" }}>
-        <Link href="/#projects" onClick={(e) => handleClick(e, "projects")} style={{ textDecoration: "none" }}>
+      <div className="jk-hero__actions">
+        <Link href="/#projects" onClick={(e) => handleClick(e, "projects")} className="jk-hero__link">
           <Button as="span" variant="hazard" size="lg">
             see projects
           </Button>
         </Link>
-        <Link href="/#contact" onClick={(e) => handleClick(e, "contact")} style={{ textDecoration: "none" }}>
+        <Link href="/#contact" onClick={(e) => handleClick(e, "contact")} className="jk-hero__link">
           <Button as="span" variant="hud" size="lg">
             hire me
           </Button>

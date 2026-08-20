@@ -48,28 +48,28 @@ export default function Home() {
 
   return (
     <>
-      <section id="about" style={{ display: "grid", gap: "var(--space-8)", scrollMarginTop: "var(--space-8)" }}>
+      <section id="about" className="jk-about">
         <Hero />
-        <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: "var(--space-7)", alignItems: "start" }}>
+        <div className="jk-about__grid">
           <Window title="about_me.txt" footer="last modified 08/20/2026">
             <SectionHeading kicker="01 / about">About me</SectionHeading>
-            <p style={{ fontFamily: "var(--font-body)", fontSize: "var(--text-sm)", lineHeight: "var(--leading-normal)" }}>
+            <p className="jk-about__text">
               These days I&apos;m Technical Lead at Restoplus. Six years in, four job titles deep, promoted from
               junior dev without ever sharing a timezone with the office. Most of what I know came from breaking
               other people&apos;s repos and reading the stack traces.
             </p>
-            <p style={{ fontFamily: "var(--font-body)", fontSize: "var(--text-sm)", lineHeight: "var(--leading-normal)" }}>
+            <p className="jk-about__text">
               Frontend and backend, whichever&apos;s on fire. React, TypeScript, and Node.js by day, Python when
               something needs automating.
             </p>
-            <div style={{ display: "flex", gap: "var(--space-4)", marginTop: "var(--space-6)" }}>
+            <div className="jk-about__actions">
               <Link
                 href="/#projects"
                 onClick={(e) => {
                   e.preventDefault();
                   scrollToSection("projects");
                 }}
-                style={{ textDecoration: "none" }}
+                className="jk-about__link"
               >
                 <Button as="span" variant="hazard">
                   see projects
@@ -80,41 +80,25 @@ export default function Home() {
               </Button>
             </div>
           </Window>
-          <div style={{ display: "grid", gap: "var(--space-6)" }}>
+          <div className="jk-about__aside">
             <Window title="now_playing" tone="void" rivets={false} footer="scrobbling since forever">
               <NowPlaying />
             </Window>
             <Window title="guestbook.cgi" rivets={false} footer="3 entries">
-              <div style={{ display: "grid", gap: "var(--space-4)" }}>
+              <div className="jk-guestbook">
                 {GUESTBOOK.map(({ who, msg, status }) => (
                   <div key={who}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
-                      <span
-                        style={{
-                          fontFamily: "var(--font-pixel)",
-                          fontSize: "var(--text-2xs)",
-                          textTransform: "uppercase",
-                          color: "var(--xgreen-lit)",
-                        }}
-                      >
-                        {who}
-                      </span>
+                    <div className="jk-guestbook__head">
+                      <span className="jk-guestbook__who">{who}</span>
                       <span
                         aria-hidden="true"
                         title={status}
-                        style={{
-                          width: 7,
-                          height: 7,
-                          display: "inline-block",
-                          background: status === "online" ? "var(--xgreen)" : "var(--steel-400)",
-                          boxShadow: status === "online" ? "var(--glow-green)" : "none",
-                          animation: status === "online" ? "jk-blink 1s steps(1,end) infinite" : "none",
-                        }}
+                        className={`jk-guestbook__status${
+                          status === "online" ? " jk-guestbook__status--online" : ""
+                        }`}
                       />
                     </div>
-                    <div style={{ fontFamily: "var(--font-body)", fontSize: "var(--text-sm)", marginTop: "var(--space-1)" }}>
-                      {msg}
-                    </div>
+                    <div className="jk-guestbook__msg">{msg}</div>
                   </div>
                 ))}
               </div>
@@ -125,51 +109,23 @@ export default function Home() {
           <SectionHeading kicker="tech stack" rule={false}>
             What I build with
           </SectionHeading>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
-              gap: "var(--space-4)",
-              marginTop: "var(--space-5)",
-            }}
-          >
+          <div className="jk-stack">
             {TECH_STACK.map((t) => (
-              <div
-                key={t.key}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "var(--space-3)",
-                  padding: "var(--space-3) var(--space-4)",
-                  background: "var(--panel-gradient)",
-                  border: "var(--border-1) solid var(--steel-300)",
-                  boxShadow: "var(--bevel-metal)",
-                }}
-              >
+              <div key={t.key} className="jk-stack__item">
                 <TechLogo name={t.key} size={22} />
-                <span
-                  style={{
-                    fontFamily: "var(--font-pixel)",
-                    fontSize: "var(--text-sm)",
-                    textTransform: "uppercase",
-                    letterSpacing: "var(--tracking-wide)",
-                    color: "var(--text-body)",
-                  }}
-                >
-                  {t.label}
-                </span>
+                <span className="jk-stack__label">{t.label}</span>
               </div>
             ))}
           </div>
         </Window>
       </section>
 
-      <section id="experience" style={{ scrollMarginTop: "var(--space-8)" }}>
+      <section id="experience" className="jk-experience-section">
         <Window title="career.log" tone="void" controls={false} footer="promoted 3x, still answers to the printers">
           <SectionHeading kicker="02 / experience" rule={false}>
             Where I&apos;ve worked
           </SectionHeading>
-          <div style={{ marginTop: "var(--space-5)" }}>
+          <div className="jk-experience-section__list">
             {EXPERIENCE.map((e) => (
               <ExperienceEntry key={e.company} {...e} />
             ))}
@@ -177,23 +133,14 @@ export default function Home() {
         </Window>
       </section>
 
-      <section id="projects" style={{ scrollMarginTop: "var(--space-8)" }}>
-        <div
-          style={{
-            display: "grid",
-            gap: "var(--space-8)",
-            background: "var(--panel-gradient)",
-            border: "var(--border-1) solid var(--steel-300)",
-            boxShadow: "var(--bevel-metal), var(--shadow-plate)",
-            padding: "var(--space-8) var(--space-7)",
-          }}
-        >
+      <section id="projects" className="jk-projects">
+        <div className="jk-projects__panel">
           <SectionHeading kicker="03 / projects" rule={false}>
             Projects
           </SectionHeading>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "var(--space-7)", alignItems: "start" }}>
+          <div className="jk-projects__grid">
             {PROJECTS.map((p) => (
-              <Link key={p.slug} href={`/projects/${p.slug}`} style={{ textDecoration: "none", color: "inherit" }}>
+              <Link key={p.slug} href={`/projects/${p.slug}`} className="jk-projects__link">
                 <ProjectCard {...p} />
               </Link>
             ))}
@@ -201,25 +148,23 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="contact" style={{ display: "grid", gap: "var(--space-8)", scrollMarginTop: "var(--space-8)" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-7)", alignItems: "start" }}>
+      <section id="contact" className="jk-contact">
+        <div className="jk-contact__grid">
           <Window
             title="contact_form.html"
             footer={sent ? "queued, nothing actually sends" : "all fields optional, like everything"}
           >
             <SectionHeading kicker="04 / contact">Contact me</SectionHeading>
             {sent ? (
-              <div style={{ display: "grid", gap: "var(--space-5)", padding: "var(--space-7) 0" }}>
+              <div className="jk-contact__sent">
                 <Badge tone="green">sent</Badge>
-                <p style={{ fontFamily: "var(--font-body)", fontSize: "var(--text-sm)", margin: 0 }}>
-                  Thanks. I&apos;ll get back to you eventually.
-                </p>
+                <p className="jk-contact__sent-text">Thanks. I&apos;ll get back to you eventually.</p>
                 <Button variant="metal" onClick={() => setSent(false)}>
                   write another
                 </Button>
               </div>
             ) : (
-              <div style={{ display: "grid", gap: "var(--space-5)", marginTop: "var(--space-5)" }}>
+              <div className="jk-contact__form">
                 <Field label="name" required>
                   <Input placeholder="your name" />
                 </Field>
@@ -240,9 +185,9 @@ export default function Home() {
               </div>
             )}
           </Window>
-          <div style={{ display: "grid", gap: "var(--space-6)" }}>
+          <div className="jk-contact__aside">
             <Window title="where_to_find_me" padded={false} rivets={false} footer="response time: variable">
-              <div style={{ padding: "var(--space-3)" }}>
+              <div className="jk-contact__list">
                 <ContactRow
                   label="email"
                   value="jaakoaandes@gmail.com"
@@ -264,18 +209,9 @@ export default function Home() {
                 />
               </div>
             </Window>
-            <GlassPanel style={{ padding: "var(--space-6)" }}>
-              <div
-                style={{
-                  fontFamily: "var(--font-headline)",
-                  fontSize: "var(--text-xl)",
-                  textTransform: "uppercase",
-                  color: "var(--text-strong)",
-                }}
-              >
-                availability
-              </div>
-              <p style={{ fontFamily: "var(--font-body)", fontSize: "var(--text-sm)", margin: "var(--space-3) 0 0" }}>
+            <GlassPanel className="jk-contact__availability">
+              <div className="jk-contact__availability-title">availability</div>
+              <p className="jk-contact__availability-text">
                 Two evenings a week, plus weekends if the project is interesting.
               </p>
             </GlassPanel>

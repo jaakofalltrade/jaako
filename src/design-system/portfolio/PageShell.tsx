@@ -11,18 +11,12 @@ const NAV_ITEMS: NavItem[] = [
 
 export function PageShell({ children }: { children: ReactNode }) {
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg-page)", backgroundAttachment: "fixed" }}>
+    <div className="jk-shell">
       <NavBar brand="JAAKO" items={NAV_ITEMS} status="ONLINE" />
-      <div style={{ position: "relative", margin: "0 auto", maxWidth: 1120, padding: "0 var(--space-8)" }}>
-        <span
-          aria-hidden="true"
-          style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 2, background: "var(--seam)" }}
-        />
-        <span
-          aria-hidden="true"
-          style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: 2, background: "var(--seam)" }}
-        />
-        <div style={{ display: "grid", gap: "var(--space-8)", padding: "var(--space-9) 0" }}>{children}</div>
+      <div className="jk-shell__container">
+        <span aria-hidden="true" className="jk-shell__seam jk-shell__seam--left" />
+        <span aria-hidden="true" className="jk-shell__seam jk-shell__seam--right" />
+        <div className="jk-shell__main">{children}</div>
         <SiteFooter />
       </div>
     </div>

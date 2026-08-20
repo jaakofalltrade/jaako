@@ -1,0 +1,109 @@
+@use "../base/mixins" as *;
+
+/* Window
+   ---------------------------------------------------------------------------
+   The chrome every panel on the site sits in: titlebar, optional fake controls,
+   optional corner rivets, body, optional footer. */
+
+.jk-window {
+  position: relative;
+  background: var(--panel-gradient);
+  border: var(--border-1) solid var(--steel-300);
+  border-radius: 0;
+  box-shadow: var(--bevel-metal), var(--shadow-plate);
+}
+
+.jk-window--void {
+  background: var(--panel-gradient-dark);
+}
+
+/* --- titlebar --- */
+.jk-window__titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--titlebar-h);
+  padding: 0 var(--space-3);
+  background: linear-gradient(180deg, #1f2119 0%, #0d0e0b 100%);
+  border-bottom: var(--border-1) solid var(--steel-400);
+}
+
+.jk-window__title {
+  @include truncate;
+  font-family: var(--font-pixel);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-link);
+  text-shadow: var(--glow-green);
+}
+
+.jk-window__controls {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.jk-window__control {
+  display: grid;
+  place-items: center;
+  width: 15px;
+  height: 13px;
+  background: var(--panel-gradient);
+  border: var(--border-1) solid var(--steel-400);
+  box-shadow: var(--bevel-metal);
+  font-family: var(--font-pixel-micro);
+  font-size: var(--text-3xs);
+  line-height: 1;
+  color: var(--text-muted);
+}
+
+/* --- rivets. Four decorative corner studs; positions come from the modifier. --- */
+.jk-window__rivet {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--rivet);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.jk-window__rivet--tl {
+  left: 5px;
+  top: 27px;
+}
+
+.jk-window__rivet--tr {
+  right: 5px;
+  top: 27px;
+}
+
+.jk-window__rivet--bl {
+  left: 5px;
+  bottom: 5px;
+}
+
+.jk-window__rivet--br {
+  right: 5px;
+  bottom: 5px;
+}
+
+/* --- body --- */
+.jk-window__body {
+  padding: var(--space-6) var(--space-7);
+  color: var(--text-body);
+}
+
+.jk-window__body--flush {
+  padding: 0;
+}
+
+/* --- footer --- */
+.jk-window__footer {
+  padding: var(--space-2) var(--space-5);
+  border-top: var(--border-1) solid var(--steel-400);
+  background: var(--void);
+  box-shadow: var(--inset-well);
+  font-family: var(--font-pixel-micro);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-muted);
+}
