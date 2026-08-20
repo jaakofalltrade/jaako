@@ -1,9 +1,0 @@
-/* Webfonts, all Google-hosted (the source repo loads its type the same way).
-   Rubik Glitch = distressed display, Teko = condensed headline, Silkscreen = pixel UI,
-   Tiny5 = micro pixel, Geist Mono = code. Body type is the period system stack. */
-@import url("https://fonts.googleapis.com/css2?family=Rubik+Glitch&family=Teko:wght@300..700&family=Silkscreen:wght@400;700&family=Tiny5&family=Geist+Mono:wght@400;500;700&display=swap");
-
-/* Osaka and Hiragino Kaku Gothic Pro W3 are the classic Japanese-web faces in the body stack
-   (inherited from src/styles/globals.scss). No webfont binary exists for either; declare Osaka
-   as a locally-installed face and let Verdana carry the rendering everywhere else. */
-@font-face{font-family:"Osaka";font-style:normal;font-weight:400;src:local("Osaka");}

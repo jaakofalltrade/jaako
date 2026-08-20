@@ -1,0 +1,18 @@
+/* The --font-* families below resolve to the self-hosted faces next/font/google
+   declares in src/app/layout.tsx. Each fallback stack is kept intact so the page
+   still reads correctly if a face fails to load. */
+:root{
+--font-display:var(--font-rubik-glitch),Impact,"Arial Black",sans-serif;
+--font-headline:var(--font-teko),Impact,"Haettenschweiler",sans-serif;
+--font-pixel:var(--font-silkscreen),"Courier New",monospace;
+--font-pixel-micro:var(--font-tiny5),var(--font-silkscreen),monospace;
+--font-body:Verdana,Osaka,"ヒラギノ角ゴ Pro W3",Geneva,Helvetica,Arial,sans-serif;
+--font-mono:var(--font-geist-mono),ui-monospace,"Courier New",monospace;
+
+--text-3xs:9px;--text-2xs:10px;--text-xs:11px;--text-sm:12px;--text-md:14px;
+--text-lg:16px;--text-xl:20px;--text-2xl:26px;--text-3xl:34px;--text-4xl:48px;--text-5xl:68px;
+
+--leading-tight:1;--leading-snug:1.2;--leading-normal:1.5;--leading-loose:1.7;
+--tracking-tight:-0.01em;--tracking-normal:0;--tracking-wide:.06em;--tracking-caps:.14em;
+--weight-regular:400;--weight-medium:500;--weight-bold:700;
+}

@@ -1,0 +1,35 @@
+/* Global element defaults. Everything here is deliberately low-specificity —
+   element and universal selectors only — so any component class overrides it
+   without needing !important. */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--bg-page);
+  background-attachment: fixed;
+  color: var(--text-body);
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  line-height: var(--leading-normal);
+}
+
+a {
+  color: var(--text-link);
+
+  &:hover {
+    color: var(--text-link-hover);
+  }
+}
