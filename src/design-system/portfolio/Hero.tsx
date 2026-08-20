@@ -48,7 +48,7 @@ export function Hero() {
           color: "var(--text-body)",
         }}
       >
-        I think therefore I am. Full-stack odd jobs — Next.js, Django, Discord bots, and whatever else the week
+        I think therefore I am. Full-stack odd jobs: Next.js, Django, Discord bots, and whatever else the week
         needs.
       </p>
       <div style={{ position: "relative", display: "flex", gap: "var(--space-4)", flexWrap: "wrap" }}>

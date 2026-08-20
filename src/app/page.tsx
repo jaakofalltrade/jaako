@@ -12,6 +12,7 @@ import { Icon } from "@/design-system/Icon";
 import { ProjectCard } from "@/design-system/portfolio/ProjectCard";
 import { ContactRow } from "@/design-system/portfolio/ContactRow";
 import { NowPlaying } from "@/design-system/portfolio/NowPlaying";
+import { ExperienceEntry } from "@/design-system/portfolio/ExperienceEntry";
 import { Field } from "@/design-system/forms/Field";
 import { Input } from "@/design-system/forms/Input";
 import { TextArea } from "@/design-system/forms/TextArea";
@@ -21,6 +22,7 @@ import { Checkbox } from "@/design-system/forms/Checkbox";
 import { scrollToSection } from "@/design-system/scrollToSection";
 import { TechLogo, type TechName } from "@/design-system/TechLogo";
 import { PROJECTS } from "@/data/projects";
+import { EXPERIENCE } from "@/data/experience";
 
 const TECH_STACK: { key: TechName; label: string }[] = [
   { key: "nextjs", label: "Next.js" },
@@ -49,14 +51,16 @@ export default function Home() {
       <section id="about" style={{ display: "grid", gap: "var(--space-8)", scrollMarginTop: "var(--space-8)" }}>
         <Hero />
         <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: "var(--space-7)", alignItems: "start" }}>
-          <Window title="about_me.txt" footer="last modified 08/17/2026">
+          <Window title="about_me.txt" footer="last modified 08/20/2026">
             <SectionHeading kicker="01 / about">About me</SectionHeading>
             <p style={{ fontFamily: "var(--font-body)", fontSize: "var(--text-sm)", lineHeight: "var(--leading-normal)" }}>
-              I build small web things and occasionally finish them. Most of what I know came from breaking other
-              people&apos;s repos and reading the stack traces.
+              These days I&apos;m Technical Lead at Restoplus. Six years in, four job titles deep, promoted from
+              junior dev without ever sharing a timezone with the office. Most of what I know came from breaking
+              other people&apos;s repos and reading the stack traces.
             </p>
             <p style={{ fontFamily: "var(--font-body)", fontSize: "var(--text-sm)", lineHeight: "var(--leading-normal)" }}>
-              Currently: Next.js and TypeScript by day, Python when something needs automating.
+              Frontend and backend, whichever&apos;s on fire. React, TypeScript, and Node.js by day, Python when
+              something needs automating.
             </p>
             <div style={{ display: "flex", gap: "var(--space-4)", marginTop: "var(--space-6)" }}>
               <Link
@@ -160,6 +164,19 @@ export default function Home() {
         </Window>
       </section>
 
+      <section id="experience" style={{ scrollMarginTop: "var(--space-8)" }}>
+        <Window title="career.log" tone="void" controls={false} footer="promoted 3x, still answers to the printers">
+          <SectionHeading kicker="02 / experience" rule={false}>
+            Where I&apos;ve worked
+          </SectionHeading>
+          <div style={{ marginTop: "var(--space-5)" }}>
+            {EXPERIENCE.map((e) => (
+              <ExperienceEntry key={e.company} {...e} />
+            ))}
+          </div>
+        </Window>
+      </section>
+
       <section id="projects" style={{ scrollMarginTop: "var(--space-8)" }}>
         <div
           style={{
@@ -171,7 +188,7 @@ export default function Home() {
             padding: "var(--space-8) var(--space-7)",
           }}
         >
-          <SectionHeading kicker="02 / projects" rule={false}>
+          <SectionHeading kicker="03 / projects" rule={false}>
             Projects
           </SectionHeading>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "var(--space-7)", alignItems: "start" }}>
@@ -188,9 +205,9 @@ export default function Home() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-7)", alignItems: "start" }}>
           <Window
             title="contact_form.html"
-            footer={sent ? "queued — nothing actually sends" : "all fields optional, like everything"}
+            footer={sent ? "queued, nothing actually sends" : "all fields optional, like everything"}
           >
-            <SectionHeading kicker="03 / contact">Contact me</SectionHeading>
+            <SectionHeading kicker="04 / contact">Contact me</SectionHeading>
             {sent ? (
               <div style={{ display: "grid", gap: "var(--space-5)", padding: "var(--space-7) 0" }}>
                 <Badge tone="green">sent</Badge>

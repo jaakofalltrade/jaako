@@ -28,7 +28,7 @@ export function SiteFooter() {
             textTransform: "uppercase",
           }}
         >
-          jaako.xyz — built by hand, mostly
+          jaako.xyz · built by hand, mostly
         </span>
         <HitCounter count={1985057} label="visitors" />
       </div>

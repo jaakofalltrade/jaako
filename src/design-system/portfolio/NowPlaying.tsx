@@ -236,7 +236,7 @@ export function NowPlaying() {
             >
               <Icon name="disc" />
               <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {t.artist} — {t.title}
+                {t.artist} · {t.title}
               </span>
             </a>
           ))}
