@@ -1,1 +1,101 @@
-﻿/* placeholder */
+/* #about — hero, about_me.txt, the now_playing and guestbook aside, and the
+   tech-stack panel. */
+
+.jk-about {
+  display: grid;
+  gap: var(--space-8);
+  scroll-margin-top: var(--space-8);
+}
+
+.jk-about__grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: var(--space-7);
+  align-items: start;
+}
+
+.jk-about__text {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+}
+
+.jk-about__actions {
+  display: flex;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+}
+
+.jk-about__link {
+  text-decoration: none;
+}
+
+.jk-about__aside {
+  display: grid;
+  gap: var(--space-6);
+}
+
+/* --- guestbook.cgi --- */
+.jk-guestbook {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.jk-guestbook__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* No letter-spacing here on purpose — this one label in the design isn't tracked. */
+.jk-guestbook__who {
+  font-family: var(--font-pixel);
+  font-size: var(--text-2xs);
+  text-transform: uppercase;
+  color: var(--xgreen-lit);
+}
+
+.jk-guestbook__status {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  background: var(--steel-400);
+}
+
+.jk-guestbook__status--online {
+  background: var(--xgreen);
+  box-shadow: var(--glow-green);
+  animation: jk-blink 1s steps(1, end) infinite;
+}
+
+.jk-guestbook__msg {
+  margin-top: var(--space-1);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+}
+
+/* --- stack.json --- */
+.jk-stack {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+}
+
+.jk-stack__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--panel-gradient);
+  border: var(--border-1) solid var(--steel-300);
+  box-shadow: var(--bevel-metal);
+}
+
+.jk-stack__label {
+  font-family: var(--font-pixel);
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-body);
+}

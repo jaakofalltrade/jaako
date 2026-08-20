@@ -1,1 +1,48 @@
-﻿/* placeholder */
+/* Select — native <select> with the arrow suppressed and a fake chevron plate
+   drawn over the right edge. */
+
+.jk-select {
+  position: relative;
+}
+
+.jk-select__control {
+  width: 100%;
+  height: var(--control-h-md);
+  padding: 0 var(--space-9) 0 var(--space-4);
+  appearance: none;
+  border: var(--border-1) solid var(--steel-300);
+  border-radius: 0;
+  background: var(--panel-gradient);
+  color: var(--text-body);
+  box-shadow: var(--bevel-metal);
+  font-family: var(--font-pixel);
+  font-size: var(--text-2xs);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  outline: none;
+
+  &:focus-visible {
+    outline: var(--border-2) solid var(--focus-ring);
+  }
+}
+
+/* The dropdown list is OS-rendered; this is the one property that reliably lands. */
+.jk-select__option {
+  background: var(--steel-600);
+}
+
+.jk-select__chevron {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 22px;
+  background: var(--void);
+  border: var(--border-1) solid var(--steel-400);
+  color: var(--xgreen-lit);
+  font-family: var(--font-pixel-micro);
+  font-size: var(--text-3xs);
+  pointer-events: none;
+}

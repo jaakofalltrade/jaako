@@ -1,1 +1,26 @@
-﻿/* placeholder */
+/* #projects — the card grid on its own metal plate. */
+
+.jk-projects {
+  scroll-margin-top: var(--space-8);
+}
+
+.jk-projects__panel {
+  display: grid;
+  gap: var(--space-8);
+  padding: var(--space-8) var(--space-7);
+  background: var(--panel-gradient);
+  border: var(--border-1) solid var(--steel-300);
+  box-shadow: var(--bevel-metal), var(--shadow-plate);
+}
+
+.jk-projects__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-7);
+  align-items: start;
+}
+
+.jk-projects__link {
+  text-decoration: none;
+  color: inherit;
+}

@@ -1,1 +1,26 @@
-﻿/* placeholder */
+/* Input — recessed text field.
+   Focus is :focus-visible rather than :focus, so the ring appears on keyboard
+   navigation but not on a mouse click. */
+
+.jk-input {
+  width: 100%;
+  height: var(--control-h-md);
+  padding: 0 var(--space-4);
+  border: var(--border-1) solid var(--steel-400);
+  border-radius: 0;
+  background: var(--surface-field);
+  color: var(--text-body);
+  box-shadow: var(--inset-well);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  outline: none;
+
+  &[aria-invalid="true"] {
+    border-color: var(--alert);
+  }
+
+  &:focus-visible {
+    outline: var(--border-2) solid var(--focus-ring);
+    outline-offset: 0;
+  }
+}

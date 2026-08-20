@@ -1,1 +1,22 @@
-﻿/* placeholder */
+@use "../base/mixins" as *;
+
+/* SiteFooter — ticker plus the credit line and hit counter. */
+
+.jk-footer {
+  display: grid;
+  gap: var(--space-5);
+  padding: var(--space-7) 0 var(--space-10);
+}
+
+.jk-footer__bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+}
+
+.jk-footer__credit {
+  @include label($family: var(--font-pixel-micro));
+  color: var(--text-muted);
+}

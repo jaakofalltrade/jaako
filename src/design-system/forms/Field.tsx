@@ -1,34 +1,22 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 
 export interface FieldProps {
   label: ReactNode;
   hint?: ReactNode;
   required?: boolean;
   children?: ReactNode;
-  style?: CSSProperties;
+  className?: string;
 }
 
-export function Field({ label, hint, required = false, children, style }: FieldProps) {
+export function Field({ label, hint, required = false, children, className }: FieldProps) {
   return (
-    <label style={{ display: "grid", gap: "var(--space-2)", ...style }}>
-      <span
-        style={{
-          fontFamily: "var(--font-pixel)",
-          fontSize: "var(--text-2xs)",
-          letterSpacing: "var(--tracking-caps)",
-          textTransform: "uppercase",
-          color: "var(--text-muted)",
-        }}
-      >
+    <label className={["jk-field", className].filter(Boolean).join(" ")}>
+      <span className="jk-field__label">
         {label}
-        {required ? <span style={{ color: "var(--hazard)" }}> *</span> : null}
+        {required ? <span className="jk-field__required"> *</span> : null}
       </span>
       {children}
-      {hint ? (
-        <span style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-2xs)", color: "var(--piss-400)" }}>
-          {hint}
-        </span>
-      ) : null}
+      {hint ? <span className="jk-field__hint">{hint}</span> : null}
     </label>
   );
 }

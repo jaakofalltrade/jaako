@@ -1,1 +1,49 @@
-﻿/* placeholder */
+@use "../base/mixins" as *;
+
+/* Marquee — the scrolling ticker in the site footer. The track is duplicated in
+   the markup so the -50% keyframe loops seamlessly. */
+
+.jk-marquee {
+  overflow: hidden;
+  padding: var(--space-2) 0;
+  border: var(--border-1) solid var(--marquee-border);
+  border-radius: 0;
+  background: var(--marquee-bg);
+  color: var(--marquee-fg);
+  box-shadow: var(--inset-well);
+}
+
+.jk-marquee--void {
+  --marquee-bg: var(--void);
+  --marquee-fg: var(--xgreen-lit);
+  --marquee-border: var(--steel-400);
+}
+
+.jk-marquee--hazard {
+  --marquee-bg: var(--hazard);
+  --marquee-fg: var(--void);
+  --marquee-border: var(--void);
+}
+
+.jk-marquee__track {
+  @include label;
+  display: inline-flex;
+  gap: var(--space-9);
+  white-space: nowrap;
+  animation: jk-marquee var(--marquee-dur, var(--dur-marquee)) linear infinite;
+}
+
+.jk-marquee--void .jk-marquee__track {
+  text-shadow: var(--glow-green);
+}
+
+.jk-marquee__group {
+  display: inline-flex;
+  gap: var(--space-9);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jk-marquee__track {
+    animation: none;
+  }
+}

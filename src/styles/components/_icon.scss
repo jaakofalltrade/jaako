@@ -1,1 +1,17 @@
-﻿/* placeholder */
+/* Icon and TechLogo
+   ---------------------------------------------------------------------------
+   Icon renders a black Lucide SVG through an <img>, which can't be filled with
+   currentColor — hence the tint filter. `size` is continuous, so it arrives
+   inline as --icon-size. */
+
+.jk-icon {
+  width: var(--icon-size, 18px);
+  height: var(--icon-size, 18px);
+  filter: var(--icon-tint);
+}
+
+/* TechLogo ships real brand colours in the SVG markup, so it takes no tint. */
+.jk-tech-logo {
+  display: block;
+  flex-shrink: 0;
+}

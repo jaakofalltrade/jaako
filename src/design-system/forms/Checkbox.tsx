@@ -1,47 +1,40 @@
 "use client";
 
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 
 export interface CheckboxProps {
   label?: ReactNode;
   checked?: boolean;
   onChange?: (checked: boolean) => void;
   disabled?: boolean;
-  style?: CSSProperties;
+  className?: string;
 }
 
-export function Checkbox({ label, checked = false, onChange, disabled = false, style }: CheckboxProps) {
+export function Checkbox({
+  label,
+  checked = false,
+  onChange,
+  disabled = false,
+  className,
+}: CheckboxProps) {
+  const classes = ["jk-checkbox", disabled ? "jk-checkbox--disabled" : null, className]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <label
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "var(--space-3)",
-        cursor: disabled ? "default" : "pointer",
-        opacity: disabled ? 0.4 : 1,
-        fontFamily: "var(--font-body)",
-        fontSize: "var(--text-sm)",
-        color: "var(--text-body)",
-        ...style,
-      }}
-    >
+    <label className={classes}>
       <span
         role="checkbox"
         aria-checked={checked}
-        onClick={() => !disabled && onChange && onChange(!checked)}
-        style={{
-          width: 16,
-          height: 16,
-          display: "grid",
-          placeItems: "center",
-          background: "var(--surface-field)",
-          border: "var(--border-1) solid var(--steel-400)",
-          boxShadow: "var(--inset-well)",
-          fontFamily: "var(--font-pixel-micro)",
-          fontSize: "var(--text-2xs)",
-          color: "var(--xgreen-lit)",
-          lineHeight: 1,
-          textShadow: checked ? "var(--glow-green)" : "none",
+        tabIndex={disabled ? -1 : 0}
+        className="jk-checkbox__box"
+        onClick={() => !disabled && onChange?.(!checked)}
+        onKeyDown={(e) => {
+          if (disabled) return;
+          if (e.key === " " || e.key === "Enter") {
+            e.preventDefault();
+            onChange?.(!checked);
+          }
         }}
       >
         {checked ? "×" : ""}

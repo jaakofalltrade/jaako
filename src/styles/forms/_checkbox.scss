@@ -1,1 +1,40 @@
-﻿/* placeholder */
+/* Checkbox — the glow keys off aria-checked, so the checked look is driven by the
+   same attribute assistive tech reads rather than by a second source of truth. */
+
+.jk-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--text-body);
+}
+
+.jk-checkbox--disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.jk-checkbox__box {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  background: var(--surface-field);
+  border: var(--border-1) solid var(--steel-400);
+  box-shadow: var(--inset-well);
+  font-family: var(--font-pixel-micro);
+  font-size: var(--text-2xs);
+  line-height: 1;
+  color: var(--xgreen-lit);
+
+  &[aria-checked="true"] {
+    text-shadow: var(--glow-green);
+  }
+
+  &:focus-visible {
+    outline: var(--border-2) solid var(--focus-ring);
+    outline-offset: 1px;
+  }
+}

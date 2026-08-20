@@ -1,45 +1,24 @@
 import type { CSSProperties, ReactNode } from "react";
 
 export interface MarqueeProps {
+  /** Scroll duration, e.g. "18s". Continuous, so it rides in as a custom property. */
   speed?: string;
   tone?: "void" | "hazard";
-  style?: CSSProperties;
+  className?: string;
   children?: ReactNode;
 }
 
-export function Marquee({ speed = "var(--dur-marquee)", tone = "void", style, children }: MarqueeProps) {
-  const skin =
-    tone === "hazard"
-      ? { background: "var(--hazard)", color: "var(--void)", border: "var(--void)" }
-      : { background: "var(--void)", color: "var(--xgreen-lit)", border: "var(--steel-400)" };
+export function Marquee({ speed, tone = "void", className, children }: MarqueeProps) {
+  const classes = ["jk-marquee", `jk-marquee--${tone}`, className].filter(Boolean).join(" ");
+
   return (
-    <div
-      style={{
-        overflow: "hidden",
-        background: skin.background,
-        color: skin.color,
-        borderRadius: 0,
-        border: `var(--border-1) solid ${skin.border}`,
-        boxShadow: "var(--inset-well)",
-        padding: "var(--space-2) 0",
-        ...style,
-      }}
-    >
+    <div className={classes}>
       <div
-        style={{
-          display: "inline-flex",
-          gap: "var(--space-9)",
-          whiteSpace: "nowrap",
-          animation: `jk-marquee ${speed} linear infinite`,
-          fontFamily: "var(--font-pixel)",
-          fontSize: "var(--text-2xs)",
-          letterSpacing: "var(--tracking-caps)",
-          textTransform: "uppercase",
-          textShadow: tone === "hazard" ? "none" : "var(--glow-green)",
-        }}
+        className="jk-marquee__track"
+        style={speed === undefined ? undefined : ({ "--marquee-dur": speed } as CSSProperties)}
       >
-        <span style={{ display: "inline-flex", gap: "var(--space-9)" }}>{children}</span>
-        <span style={{ display: "inline-flex", gap: "var(--space-9)" }} aria-hidden="true">
+        <span className="jk-marquee__group">{children}</span>
+        <span className="jk-marquee__group" aria-hidden="true">
           {children}
         </span>
       </div>

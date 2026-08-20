@@ -1,1 +1,25 @@
-﻿/* placeholder */
+/* TextArea — same recessed treatment as .jk-input, vertically resizable. */
+
+.jk-textarea {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  resize: vertical;
+  border: var(--border-1) solid var(--steel-400);
+  border-radius: 0;
+  background: var(--surface-field);
+  color: var(--text-body);
+  box-shadow: var(--inset-well);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  outline: none;
+
+  &[aria-invalid="true"] {
+    border-color: var(--alert);
+  }
+
+  &:focus-visible {
+    outline: var(--border-2) solid var(--focus-ring);
+    outline-offset: 0;
+  }
+}

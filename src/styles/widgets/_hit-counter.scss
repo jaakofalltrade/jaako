@@ -1,1 +1,36 @@
-﻿/* placeholder */
+@use "../base/mixins" as *;
+
+/* HitCounter — the odometer in the footer. */
+
+.jk-hit-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.jk-hit-counter__display {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--void);
+  border: var(--border-1) solid var(--steel-400);
+  box-shadow: var(--inset-well);
+}
+
+.jk-hit-counter__digit {
+  display: grid;
+  place-items: center;
+  width: 14px;
+  height: 20px;
+  background: linear-gradient(180deg, #1f2119 0%, #0d0e0b 100%);
+  color: var(--xgreen-lit);
+  font-family: var(--font-pixel-micro);
+  font-size: var(--text-sm);
+  text-shadow: var(--glow-green);
+  font-variant-numeric: tabular-nums;
+}
+
+.jk-hit-counter__label {
+  @include label($family: var(--font-pixel-micro));
+  color: var(--text-muted);
+}

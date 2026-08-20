@@ -1,12 +1,13 @@
 "use client";
 
-import React from "react";
+import React, { type CSSProperties } from "react";
 import { Badge, type BadgeTone } from "@/design-system/core/Badge";
 import { Icon } from "@/design-system/Icon";
 // Type-only import: erased at compile time, so no server code reaches the bundle.
 import type { NowPlayingPayload, NowPlayingStatus, NowPlayingTrack } from "@/lib/spotify";
 
-const ART = 76;
+/** Matches .jk-now-playing__cover in src/styles/widgets/_now-playing.scss. */
+const ART_INNER = 68;
 
 const STATUS: Record<NowPlayingStatus | "loading", { label: string; tone: BadgeTone; blink: boolean }> = {
   playing: { label: "now playing", tone: "green", blink: true },
@@ -27,52 +28,22 @@ function clock(ms: number) {
  */
 function Art({ track, spinning }: { track: NowPlayingTrack | null; spinning: boolean }) {
   return (
-    <div
-      style={{
-        position: "relative",
-        width: ART,
-        height: ART,
-        flexShrink: 0,
-        display: "grid",
-        placeItems: "center",
-        background: "var(--void)",
-        border: "var(--border-1) solid var(--steel-400)",
-        boxShadow: "var(--inset-well)",
-      }}
-    >
+    <div className="jk-now-playing__art">
       {track?.albumArt ? (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={track.albumArt}
             alt={track.album ? `${track.album} album cover` : ""}
-            width={ART - 8}
-            height={ART - 8}
+            width={ART_INNER}
+            height={ART_INNER}
             data-spin={spinning ? "" : undefined}
-            style={{
-              width: ART - 8,
-              height: ART - 8,
-              borderRadius: "50%",
-              objectFit: "cover",
-              animation: spinning ? "jk-spin var(--dur-spin) linear infinite" : "none",
-              filter: spinning ? "none" : "grayscale(1) brightness(.65)",
-            }}
+            className="jk-now-playing__cover"
           />
-          {/* Record label. Sits outside the spinning element so it stays crisp. */}
-          <span
-            aria-hidden="true"
-            style={{
-              position: "absolute",
-              width: 12,
-              height: 12,
-              borderRadius: "50%",
-              background: "var(--void)",
-              border: "var(--border-1) solid var(--steel-400)",
-            }}
-          />
+          <span aria-hidden="true" className="jk-now-playing__spindle" />
         </>
       ) : (
-        <Icon name="disc" size={30} style={{ opacity: 0.45 }} />
+        <Icon name="disc" size={30} className="jk-now-playing__disc" />
       )}
     </div>
   );
@@ -118,85 +89,39 @@ export function NowPlaying() {
   const progress = track ? Math.min(track.progressMs + elapsed, track.durationMs) : 0;
 
   return (
-    <div style={{ display: "grid", gap: "var(--space-4)" }}>
-      <div style={{ display: "flex", gap: "var(--space-4)", alignItems: "center" }}>
+    <div className="jk-now-playing">
+      <div className="jk-now-playing__head">
         <Art track={track} spinning={playing} />
 
-        {/* minWidth:0 lets the ellipsis actually kick in inside a flex row. */}
-        <div style={{ display: "grid", gap: "var(--space-2)", minWidth: 0, flex: 1 }}>
-          {/* justifySelf keeps the badge hugging its text — as a grid item it
-              would otherwise stretch across the whole column. */}
-          <Badge tone={badge.tone} blink={badge.blink} style={{ justifySelf: "start" }}>
+        <div className="jk-now-playing__meta">
+          <Badge tone={badge.tone} blink={badge.blink} className="jk-now-playing__badge">
             {badge.label}
           </Badge>
 
           {track ? (
-            <a
-              href={track.url}
-              target="_blank"
-              rel="noreferrer"
-              style={{ textDecoration: "none", color: "inherit", display: "grid", gap: "var(--space-1)", minWidth: 0 }}
-            >
-              <span
-                style={{
-                  fontFamily: "var(--font-body)",
-                  fontSize: "var(--text-sm)",
-                  color: "var(--text-strong)",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {track.title}
-              </span>
-              <span
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "var(--text-xs)",
-                  color: "var(--text-muted)",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {track.artist}
-              </span>
+            <a href={track.url} target="_blank" rel="noreferrer" className="jk-now-playing__track">
+              <span className="jk-now-playing__title">{track.title}</span>
+              <span className="jk-now-playing__artist">{track.artist}</span>
             </a>
           ) : (
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-xs)", color: "var(--text-muted)" }}>
+            <span className="jk-now-playing__idle">
               {status === "loading" ? "reading the turntable…" : "nothing on the decks"}
             </span>
           )}
 
           {playing && track && track.durationMs > 0 ? (
-            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
-              <div
-                style={{
-                  flex: 1,
-                  height: 4,
-                  minWidth: 0,
-                  background: "var(--void)",
-                  boxShadow: "var(--inset-well)",
-                  border: "var(--border-1) solid var(--steel-400)",
-                }}
-              >
+            <div className="jk-now-playing__progress">
+              <div className="jk-now-playing__bar">
                 <div
-                  style={{
-                    width: `${Math.min(100, (progress / track.durationMs) * 100)}%`,
-                    height: "100%",
-                    background: "var(--xgreen)",
-                    boxShadow: "var(--glow-green)",
-                  }}
+                  className="jk-now-playing__bar-fill"
+                  style={
+                    {
+                      "--np-progress": `${Math.min(100, (progress / track.durationMs) * 100)}%`,
+                    } as CSSProperties
+                  }
                 />
               </div>
-              <span
-                style={{
-                  fontFamily: "var(--font-pixel-micro)",
-                  fontSize: "var(--text-2xs)",
-                  color: "var(--text-muted)",
-                  whiteSpace: "nowrap",
-                }}
-              >
+              <span className="jk-now-playing__clock">
                 {clock(progress)} / {clock(track.durationMs)}
               </span>
             </div>
@@ -205,37 +130,18 @@ export function NowPlaying() {
       </div>
 
       {data?.recent.length ? (
-        <div style={{ display: "grid", gap: "var(--space-3)", borderTop: "var(--border-1) solid var(--steel-400)", paddingTop: "var(--space-4)" }}>
-          <span
-            style={{
-              fontFamily: "var(--font-pixel-micro)",
-              fontSize: "var(--text-2xs)",
-              textTransform: "uppercase",
-              letterSpacing: "var(--tracking-caps)",
-              color: "var(--text-muted)",
-            }}
-          >
-            recently
-          </span>
+        <div className="jk-now-playing__recent">
+          <span className="jk-now-playing__recent-label">recently</span>
           {data.recent.map((t, i) => (
             <a
               key={`${t.url}-${i}`}
               href={t.url}
               target="_blank"
               rel="noreferrer"
-              style={{
-                display: "flex",
-                gap: "var(--space-3)",
-                alignItems: "center",
-                fontFamily: "var(--font-mono)",
-                fontSize: "var(--text-xs)",
-                color: "inherit",
-                textDecoration: "none",
-                minWidth: 0,
-              }}
+              className="jk-now-playing__recent-item"
             >
               <Icon name="disc" />
-              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <span className="jk-now-playing__recent-name">
                 {t.artist} · {t.title}
               </span>
             </a>
