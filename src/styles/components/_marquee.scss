@@ -42,6 +42,12 @@
   gap: var(--space-9);
 }
 
+/* Retired ticker copy — struck out in place instead of removed. */
+.jk-marquee__struck {
+  opacity: 0.55;
+  text-decoration-thickness: var(--border-1);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .jk-marquee__track {
     animation: none;

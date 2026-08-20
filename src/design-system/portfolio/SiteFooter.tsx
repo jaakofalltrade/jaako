@@ -5,8 +5,10 @@ export function SiteFooter() {
   return (
     <footer className="jk-footer">
       <Marquee tone="void">
-        <span>open for work</span>
-        <span>manila, ph</span>
+        <span>
+          <s className="jk-marquee__struck">open for work</s> happily employed
+        </span>
+        <span>sorsogon, ph</span>
         <span>best viewed in 1024×768</span>
         <span>no cookies, no newsletter</span>
       </Marquee>

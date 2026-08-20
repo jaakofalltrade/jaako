@@ -19,6 +19,24 @@
   margin-top: var(--space-5);
 }
 
+/* Honeypot wrapper. Pulled out of the flow rather than `display: none` —
+   some bots skip inputs that are outright hidden, and this one wants to be
+   found and filled. Never announced: the markup carries aria-hidden. */
+.jk-contact__honeypot {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.jk-contact__error {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--status-error);
+}
+
 /* --- post-submit confirmation --- */
 .jk-contact__sent {
   display: grid;
