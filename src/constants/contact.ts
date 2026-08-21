@@ -49,7 +49,12 @@ export const VALIDATION_MESSAGE: Record<ValidationFailure, string> = {
 /** Field limits. Generous for humans, tight enough that nobody pastes a novel. */
 export const FIELD_LIMITS = { name: 80, email: 160, message: 4000 } as const;
 
-/** Hard cap on the request body, checked before it's read. Comfortably above FIELD_LIMITS. */
+/**
+ * Hard cap on the request body. Comfortably above FIELD_LIMITS.
+ *
+ * Enforced on the received body, with content-length used only as a fast reject —
+ * that header is absent on chunked requests and unverified when present.
+ */
 export const MAX_BODY_BYTES = 16_000;
 
 /**

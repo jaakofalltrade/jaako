@@ -42,18 +42,22 @@ export const POST = async (request: Request) => {
     });
   }
 
-  // Checked before the body is read, so an oversized payload costs a header
-  // lookup rather than a parse.
-  if (Number(request.headers.get("content-length") ?? 0) > MAX_BODY_BYTES) {
-    return json({
+  const tooLong = () =>
+    json({
       body: { ok: false, error: VALIDATION_MESSAGE[ValidationFailure.MessageTooLong] },
       status: HttpStatus.BadRequest,
     });
-  }
+
+  // content-length is a fast reject only — it's absent on a chunked request and
+  // can be any garbage the sender likes, and both cases compare false here. The
+  // cap that actually holds is measured on the body we received.
+  if (Number(request.headers.get("content-length")) > MAX_BODY_BYTES) return tooLong();
 
   let body: unknown;
   try {
-    body = await request.json();
+    const raw = await request.text();
+    if (Buffer.byteLength(raw, "utf8") > MAX_BODY_BYTES) return tooLong();
+    body = JSON.parse(raw);
   } catch {
     return json({
       body: { ok: false, error: VALIDATION_MESSAGE[ValidationFailure.Malformed] },

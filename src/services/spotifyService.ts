@@ -155,9 +155,11 @@ const toTrack = (args: {
  * wrong degrades to the offline shape so the homepage renders cleanly.
  */
 const getNowPlaying = async (): Promise<Spotify.NowPlayingResponse> => {
-  if (!hasCredentials()) return OFFLINE_RESPONSE;
-
   try {
+    // Inside the try, not before it: the route handler has no catch of its own,
+    // so anything that escapes here is a 500 rather than the offline panel.
+    if (!hasCredentials()) return OFFLINE_RESPONSE;
+
     const token = await getAccessToken();
 
     const [current, history] = await Promise.all([
@@ -190,7 +192,8 @@ const getNowPlaying = async (): Promise<Spotify.NowPlayingResponse> => {
       return {
         status: Spotify.PlaybackStatus.Recent,
         track: recent[0],
-        recent: recent.slice(1, RECENT_LIMIT),
+        // Offset by one because the hero track was taken from the front.
+        recent: recent.slice(1, RECENT_SHOWN + 1),
       };
     }
 

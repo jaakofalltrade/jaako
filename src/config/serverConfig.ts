@@ -17,8 +17,16 @@ const SPOTIFY_API_URL = "https://api.spotify.com/v1";
 /**
  * Anything missing or unrecognised resolves to Local. A deployment that behaves
  * like local is usually an ENV that never got set.
+ *
+ * Checked for membership rather than cast: `as Env` would let ENV=production or
+ * a blank ENV= through, and then configByEnv[env] is undefined while the type
+ * still claims a ServerConfig — which surfaces as a 500 on the first property
+ * read, not as a config error.
  */
-const env: Env = (process.env.ENV as Env) ?? Env.Local;
+const toEnv = (value: string | undefined): Env =>
+  (Object.values(Env) as string[]).includes(value ?? "") ? (value as Env) : Env.Local;
+
+const env: Env = toEnv(process.env.ENV);
 
 const localConfig: ServerConfig = {
   env: Env.Local,
