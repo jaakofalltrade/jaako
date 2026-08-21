@@ -1,16 +1,15 @@
 import type { TextareaHTMLAttributes } from "react";
+import { cx } from "@/utils/cx";
 
-export interface TextAreaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
+export type TextAreaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
   invalid?: boolean;
-}
+};
 
-export function TextArea({ rows = 5, invalid = false, className, ...rest }: TextAreaProps) {
-  return (
-    <textarea
-      rows={rows}
-      className={["jk-textarea", className].filter(Boolean).join(" ")}
-      aria-invalid={invalid || undefined}
-      {...rest}
-    />
-  );
-}
+export const TextArea = ({ rows = 5, invalid = false, className, ...rest }: TextAreaProps) => (
+  <textarea
+    rows={rows}
+    className={cx("jk-textarea", className)}
+    aria-invalid={invalid || undefined}
+    {...rest}
+  />
+);

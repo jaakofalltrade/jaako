@@ -1,53 +1,56 @@
 import type { ReactNode } from "react";
+import { PANEL_TONE_CLASS } from "@/constants/ui";
+import { PanelTone } from "@/models";
+import { cx } from "@/utils/cx";
 
-export interface WindowProps {
+export type WindowProps = {
   title?: string;
   controls?: boolean;
   footer?: ReactNode;
-  tone?: "plate" | "void";
+  tone?: PanelTone;
   padded?: boolean;
   rivets?: boolean;
   className?: string;
   children?: ReactNode;
-}
+};
 
 const RIVETS = ["tl", "tr", "bl", "br"] as const;
 
-export function Window({
+const CONTROL_GLYPHS = ["_", "□", "×"] as const;
+
+export const Window = ({
   title = "untitled",
   controls = true,
   footer,
-  tone = "plate",
+  tone = PanelTone.Plate,
   padded = true,
   rivets = true,
   className,
   children,
-}: WindowProps) {
-  const classes = ["jk-window", tone === "void" ? "jk-window--void" : null, className]
-    .filter(Boolean)
-    .join(" ");
-
-  return (
-    <div className={classes}>
-      <div className="jk-window__titlebar">
-        <span className="jk-window__title">{title}</span>
-        {controls ? (
-          <div className="jk-window__controls">
-            {["_", "□", "×"].map((g) => (
-              <span key={g} className="jk-window__control">
-                {g}
-              </span>
-            ))}
-          </div>
-        ) : null}
-      </div>
-      {rivets
-        ? RIVETS.map((pos) => (
-            <span key={pos} aria-hidden="true" className={`jk-window__rivet jk-window__rivet--${pos}`} />
-          ))
-        : null}
-      <div className={`jk-window__body${padded ? "" : " jk-window__body--flush"}`}>{children}</div>
-      {footer ? <div className="jk-window__footer">{footer}</div> : null}
+}: WindowProps) => (
+  <div className={cx("jk-window", PANEL_TONE_CLASS[tone], className)}>
+    <div className="jk-window__titlebar">
+      <span className="jk-window__title">{title}</span>
+      {controls ? (
+        <div className="jk-window__controls">
+          {CONTROL_GLYPHS.map((glyph) => (
+            <span key={glyph} className="jk-window__control">
+              {glyph}
+            </span>
+          ))}
+        </div>
+      ) : null}
     </div>
-  );
-}
+    {rivets
+      ? RIVETS.map((position) => (
+          <span
+            key={position}
+            aria-hidden="true"
+            className={cx("jk-window__rivet", `jk-window__rivet--${position}`)}
+          />
+        ))
+      : null}
+    <div className={cx("jk-window__body", !padded && "jk-window__body--flush")}>{children}</div>
+    {footer ? <div className="jk-window__footer">{footer}</div> : null}
+  </div>
+);

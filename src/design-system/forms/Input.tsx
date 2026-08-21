@@ -1,15 +1,10 @@
 import type { InputHTMLAttributes } from "react";
+import { cx } from "@/utils/cx";
 
-export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+export type InputProps = InputHTMLAttributes<HTMLInputElement> & {
   invalid?: boolean;
-}
+};
 
-export function Input({ invalid = false, className, ...rest }: InputProps) {
-  return (
-    <input
-      className={["jk-input", className].filter(Boolean).join(" ")}
-      aria-invalid={invalid || undefined}
-      {...rest}
-    />
-  );
-}
+export const Input = ({ invalid = false, className, ...rest }: InputProps) => (
+  <input className={cx("jk-input", className)} aria-invalid={invalid || undefined} {...rest} />
+);
