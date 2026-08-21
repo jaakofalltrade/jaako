@@ -10,6 +10,10 @@
   filter: var(--icon-tint);
 }
 
+.jk-icon[data-spin] {
+  animation: jk-spin var(--dur-spin) linear infinite;
+}
+
 /* TechLogo ships real brand colours in the SVG markup, so it takes no tint. */
 .jk-tech-logo {
   display: block;

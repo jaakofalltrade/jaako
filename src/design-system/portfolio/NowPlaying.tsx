@@ -9,11 +9,11 @@ import type { NowPlayingPayload, NowPlayingStatus, NowPlayingTrack } from "@/lib
 /** Matches .jk-now-playing__cover in src/styles/widgets/_now-playing.scss. */
 const ART_INNER = 68;
 
-const STATUS: Record<NowPlayingStatus | "loading", { label: string; tone: BadgeTone; blink: boolean }> = {
-  playing: { label: "now playing", tone: "green", blink: true },
-  recent: { label: "last played", tone: "void", blink: false },
-  offline: { label: "offline", tone: "void", blink: false },
-  loading: { label: "tuning in", tone: "steel", blink: false },
+const STATUS: Record<NowPlayingStatus | "loading", { label: string; tone: BadgeTone }> = {
+  playing: { label: "now playing", tone: "green" },
+  recent: { label: "last played", tone: "void" },
+  offline: { label: "offline", tone: "void" },
+  loading: { label: "tuning in", tone: "steel" },
 };
 
 function clock(ms: number) {
@@ -53,8 +53,9 @@ export function NowPlaying() {
   const [data, setData] = React.useState<NowPlayingPayload | null>(null);
   /** Milliseconds since the payload landed. Drives the progress bar; see below. */
   const [elapsed, setElapsed] = React.useState(0);
+  const [refreshing, setRefreshing] = React.useState(false);
 
-  // One fetch on mount — deliberately no polling.
+  // One fetch on mount — deliberately no polling; the refresh button covers the rest.
   React.useEffect(() => {
     let ignore = false;
     fetch("/api/spotify/now-playing")
@@ -69,6 +70,21 @@ export function NowPlaying() {
       ignore = true;
     };
   }, []);
+
+  async function refresh() {
+    if (refreshing) return;
+    setRefreshing(true);
+    try {
+      const r = await fetch("/api/spotify/now-playing", { cache: "no-store" });
+      const payload: NowPlayingPayload = await r.json();
+      setData(payload);
+      setElapsed(0);
+    } catch {
+      setData({ status: "offline", track: null, recent: [] });
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
   // Advance the progress bar locally so it isn't frozen at the load-time value.
   // Costs no network. Only the interval writes state — the position itself is
@@ -90,11 +106,22 @@ export function NowPlaying() {
 
   return (
     <div className="jk-now-playing">
+      <button
+        type="button"
+        onClick={refresh}
+        disabled={refreshing}
+        aria-label="Refresh now playing"
+        title="Refresh now playing"
+        className="jk-now-playing__refresh"
+      >
+        <Icon name="refresh-cw" size={12} spin={refreshing} />
+      </button>
+
       <div className="jk-now-playing__head">
         <Art track={track} spinning={playing} />
 
         <div className="jk-now-playing__meta">
-          <Badge tone={badge.tone} blink={badge.blink} className="jk-now-playing__badge">
+          <Badge tone={badge.tone} className="jk-now-playing__badge">
             {badge.label}
           </Badge>
 

@@ -6,8 +6,39 @@
    keys the reduced-motion override off. */
 
 .jk-now-playing {
+  position: relative;
   display: grid;
   gap: var(--space-4);
+}
+
+/* --- refresh --- */
+.jk-now-playing__refresh {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background: var(--panel-gradient);
+  border: var(--border-1) solid var(--steel-400);
+  box-shadow: var(--bevel-metal);
+  cursor: pointer;
+
+  &:hover {
+    filter: brightness(1.15);
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.7;
+  }
+
+  /* Faster than the record's own spin — this one's a spinner, not a turntable. */
+  .jk-icon[data-spin] {
+    animation-duration: 0.7s;
+  }
 }
 
 .jk-now-playing__head {
