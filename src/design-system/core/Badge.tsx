@@ -1,18 +1,22 @@
 import type { ReactNode } from "react";
+import { BADGE_TONE_CLASS } from "@/constants/ui";
+import { BadgeTone } from "@/models";
+import { cx } from "@/utils/cx";
 
-export type BadgeTone = "green" | "blue" | "hazard" | "steel" | "void" | "alert";
-
-export interface BadgeProps {
+export type BadgeProps = {
   tone?: BadgeTone;
   blink?: boolean;
   className?: string;
   children?: ReactNode;
-}
+};
 
-export function Badge({ tone = "steel", blink = false, className, children }: BadgeProps) {
-  const classes = ["jk-badge", `jk-badge--${tone}`, blink ? "jk-badge--blink" : null, className]
-    .filter(Boolean)
-    .join(" ");
-
-  return <span className={classes}>{children}</span>;
-}
+export const Badge = ({
+  tone = BadgeTone.Steel,
+  blink = false,
+  className,
+  children,
+}: BadgeProps) => (
+  <span className={cx("jk-badge", BADGE_TONE_CLASS[tone], blink && "jk-badge--blink", className)}>
+    {children}
+  </span>
+);

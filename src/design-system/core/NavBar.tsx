@@ -3,62 +3,69 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
+import { PresenceStatus } from "@/models";
+import type { NavItem } from "@/models";
+import { PRESENCE_LABEL } from "@/constants/ui";
+import { cx } from "@/utils/cx";
 import { scrollToSection } from "../scrollToSection";
 
-export interface NavItem {
-  label: string;
-  href: string;
-  /** id of the on-page section this item scrolls to, for scroll-spy active state. */
-  id: string;
-}
-
-export interface NavBarProps {
+export type NavBarProps = {
   brand?: string;
   items: NavItem[];
-  status?: string;
+  status?: PresenceStatus;
   className?: string;
-}
+};
 
-export function NavBar({ brand = "JAAKO", items, status = "ONLINE", className }: NavBarProps) {
+export const NavBar = ({
+  brand = "JAAKO",
+  items,
+  status = PresenceStatus.Online,
+  className,
+}: NavBarProps) => {
   const pathname = usePathname();
   const [activeId, setActiveId] = React.useState(items[0]?.id);
 
   React.useEffect(() => {
     if (pathname !== "/") return;
+
     const sections = items
       .map((item) => document.getElementById(item.id))
-      .filter((el): el is HTMLElement => el !== null);
+      .filter((element): element is HTMLElement => element !== null);
     if (sections.length === 0) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
-        const visible = entries.filter((e) => e.isIntersecting);
-        if (visible.length > 0) {
-          setActiveId(visible[0].target.id);
-        }
+        const visible = entries.filter((entry) => entry.isIntersecting);
+        if (visible.length > 0) setActiveId(visible[0].target.id);
       },
-      { rootMargin: "-45% 0px -50% 0px", threshold: 0 }
+      { rootMargin: "-45% 0px -50% 0px", threshold: 0 },
     );
-    sections.forEach((el) => observer.observe(el));
+
+    sections.forEach((element) => observer.observe(element));
     return () => observer.disconnect();
   }, [pathname, items]);
 
-  function isActive(item: NavItem) {
-    if (pathname !== "/") return pathname.startsWith("/" + item.id);
-    return activeId === item.id;
-  }
+  /**
+   * Off the homepage, only an item that declares its own route can be active —
+   * which is how /projects/some-slug keeps PROJECTS lit without building a path
+   * out of the item's id.
+   */
+  const isActive = (item: NavItem): boolean =>
+    pathname === "/"
+      ? activeId === item.id
+      : item.route !== undefined && pathname.startsWith(item.route);
 
-  function handleClick(e: React.MouseEvent, item: NavItem) {
+  const handleClick = (event: React.MouseEvent, item: NavItem) => {
     // Next's Link only updates the URL on a same-page hash change — it doesn't
     // scroll. Scroll manually when we're already on the page the section lives on.
     if (pathname !== "/") return;
-    e.preventDefault();
-    scrollToSection(item.id);
+    event.preventDefault();
+    scrollToSection({ id: item.id });
     setActiveId(item.id);
-  }
+  };
 
   return (
-    <nav className={["jk-navbar", className].filter(Boolean).join(" ")}>
+    <nav className={cx("jk-navbar", className)}>
       <div className="jk-navbar__inner">
         <Link href="/" className="jk-navbar__brand">
           {brand}
@@ -68,7 +75,7 @@ export function NavBar({ brand = "JAAKO", items, status = "ONLINE", className }:
             <li key={item.href} className="jk-navbar__item">
               <Link
                 href={item.href}
-                onClick={(e) => handleClick(e, item)}
+                onClick={(event) => handleClick(event, item)}
                 className="jk-navbar__link"
                 aria-current={isActive(item) ? "page" : undefined}
               >
@@ -79,9 +86,9 @@ export function NavBar({ brand = "JAAKO", items, status = "ONLINE", className }:
         </ul>
         <span className="jk-navbar__status">
           <span aria-hidden="true" className="jk-navbar__led" />
-          {status}
+          {PRESENCE_LABEL[status]}
         </span>
       </div>
     </nav>
   );
-}
+};

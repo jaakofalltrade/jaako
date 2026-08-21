@@ -1,48 +1,57 @@
-import type { ElementType, MouseEventHandler, ReactNode } from "react";
+import type { ComponentPropsWithoutRef, ElementType, ReactNode } from "react";
+import { BUTTON_SIZE_CLASS, BUTTON_VARIANT_CLASS } from "@/constants/ui";
+import { ButtonSize, ButtonVariant } from "@/models";
+import { cx } from "@/utils/cx";
 
-export type ButtonVariant = "hazard" | "blue" | "metal" | "hud" | "ghost";
-export type ButtonSize = "sm" | "md" | "lg";
-
-export interface ButtonProps {
+type ButtonOwnProps = {
   variant?: ButtonVariant;
   size?: ButtonSize;
   icon?: ReactNode;
   disabled?: boolean;
   fullWidth?: boolean;
-  as?: ElementType;
   className?: string;
   children?: ReactNode;
-  onClick?: MouseEventHandler;
-  [key: string]: unknown;
-}
+};
 
-export function Button({
-  variant = "hazard",
-  size = "md",
+/**
+ * Polymorphic: whatever `as` is set to, the remaining props are that element's
+ * own props and nothing else.
+ *
+ * This replaces an `[key: string]: unknown` index signature, which type-checked
+ * absolutely anything — including dangerouslySetInnerHTML — onto an arbitrary tag.
+ */
+export type ButtonProps<T extends ElementType = "button"> = ButtonOwnProps & {
+  as?: T;
+} & Omit<ComponentPropsWithoutRef<T>, keyof ButtonOwnProps | "as">;
+
+export const Button = <T extends ElementType = "button">({
+  as,
+  variant = ButtonVariant.Hazard,
+  size = ButtonSize.Md,
   icon,
   disabled = false,
   fullWidth = false,
-  as = "button",
   className,
   children,
   ...rest
-}: ButtonProps) {
-  const Tag = as as ElementType;
-  const classes = [
-    "jk-btn",
-    `jk-btn--${size}`,
-    `jk-btn--${variant}`,
-    fullWidth ? "jk-btn--full" : null,
-    disabled ? "jk-btn--disabled" : null,
-    className,
-  ]
-    .filter(Boolean)
-    .join(" ");
+}: ButtonProps<T>) => {
+  const Tag = (as ?? "button") as ElementType;
 
   return (
-    <Tag className={classes} disabled={as === "button" ? disabled : undefined} {...rest}>
+    <Tag
+      className={cx(
+        "jk-btn",
+        BUTTON_SIZE_CLASS[size],
+        BUTTON_VARIANT_CLASS[variant],
+        fullWidth && "jk-btn--full",
+        disabled && "jk-btn--disabled",
+        className,
+      )}
+      disabled={Tag === "button" ? disabled : undefined}
+      {...rest}
+    >
       {icon ? <span className="jk-btn__icon">{icon}</span> : null}
       {children}
     </Tag>
   );
-}
+};

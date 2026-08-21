@@ -61,16 +61,12 @@ export const metadata: Metadata = {
   description: "I think therefore I am. Next.js, Django, Discord bots, and whatever else the week needs.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    <html lang="en" className={fontVars}>
-      <body>
-        <PageShell>{children}</PageShell>
-      </body>
-    </html>
-  );
-}
+const RootLayout = ({ children }: Readonly<{ children: React.ReactNode }>) => (
+  <html lang="en" className={fontVars}>
+    <body>
+      <PageShell>{children}</PageShell>
+    </body>
+  </html>
+);
+
+export default RootLayout;

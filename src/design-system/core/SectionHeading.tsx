@@ -1,33 +1,26 @@
 import type { ReactNode } from "react";
+import { HEADING_TONE_CLASS } from "@/constants/ui";
+import { HeadingTone } from "@/models";
+import { cx } from "@/utils/cx";
 
-export interface SectionHeadingProps {
+export type SectionHeadingProps = {
   children?: ReactNode;
   kicker?: ReactNode;
   rule?: boolean;
-  tone?: "light" | "dim";
+  tone?: HeadingTone;
   className?: string;
-}
+};
 
-export function SectionHeading({
+export const SectionHeading = ({
   children,
   kicker,
   rule = true,
-  tone = "light",
+  tone = HeadingTone.Light,
   className,
-}: SectionHeadingProps) {
-  const classes = ["jk-section-heading", className].filter(Boolean).join(" ");
-  const titleClasses = [
-    "jk-section-heading__title",
-    tone === "dim" ? "jk-section-heading__title--dim" : null,
-  ]
-    .filter(Boolean)
-    .join(" ");
-
-  return (
-    <header className={classes}>
-      {kicker ? <span className="jk-section-heading__kicker">{kicker}</span> : null}
-      <h2 className={titleClasses}>{children}</h2>
-      {rule ? <span className="jk-section-heading__rule" /> : null}
-    </header>
-  );
-}
+}: SectionHeadingProps) => (
+  <header className={cx("jk-section-heading", className)}>
+    {kicker ? <span className="jk-section-heading__kicker">{kicker}</span> : null}
+    <h2 className={cx("jk-section-heading__title", HEADING_TONE_CLASS[tone])}>{children}</h2>
+    {rule ? <span className="jk-section-heading__rule" /> : null}
+  </header>
+);
