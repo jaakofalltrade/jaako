@@ -59,27 +59,29 @@ export function NavBar({ brand = "JAAKO", items, status = "ONLINE", className }:
 
   return (
     <nav className={["jk-navbar", className].filter(Boolean).join(" ")}>
-      <Link href="/" className="jk-navbar__brand">
-        {brand}
-      </Link>
-      <ul className="jk-navbar__list">
-        {items.map((item) => (
-          <li key={item.href} className="jk-navbar__item">
-            <Link
-              href={item.href}
-              onClick={(e) => handleClick(e, item)}
-              className="jk-navbar__link"
-              aria-current={isActive(item) ? "page" : undefined}
-            >
-              {item.label}
-            </Link>
-          </li>
-        ))}
-      </ul>
-      <span className="jk-navbar__status">
-        <span aria-hidden="true" className="jk-navbar__led" />
-        {status}
-      </span>
+      <div className="jk-navbar__inner">
+        <Link href="/" className="jk-navbar__brand">
+          {brand}
+        </Link>
+        <ul className="jk-navbar__list">
+          {items.map((item) => (
+            <li key={item.href} className="jk-navbar__item">
+              <Link
+                href={item.href}
+                onClick={(e) => handleClick(e, item)}
+                className="jk-navbar__link"
+                aria-current={isActive(item) ? "page" : undefined}
+              >
+                {item.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <span className="jk-navbar__status">
+          <span aria-hidden="true" className="jk-navbar__led" />
+          {status}
+        </span>
+      </div>
     </nav>
   );
 }

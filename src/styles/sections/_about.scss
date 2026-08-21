@@ -1,5 +1,7 @@
-/* #about — hero, about_me.txt, the now_playing and guestbook aside, and the
-   tech-stack panel. */
+@use "../base/mixins" as *;
+
+/* #about — hero, about_me.txt (which now carries the tech-stack list), and the
+   now_playing and guestbook aside. */
 
 .jk-about {
   display: grid;
@@ -70,11 +72,45 @@
 
 .jk-guestbook__msg {
   margin-top: var(--space-1);
-  font-family: var(--font-body);
+  font-family: var(--font-mono);
   font-size: var(--text-sm);
+  color: var(--xgreen-lit);
+  text-shadow: var(--glow-green);
 }
 
-/* --- stack.json --- */
+/* --- guestbook.cgi as an actual terminal: black CRT well behind the body,
+   scanlines burned into the glass. The titlebar/footer are already near-black,
+   so only the body needed the treatment. --- */
+.jk-guestbook-window {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, #0a0c07 0%, #020301 100%);
+  box-shadow: var(--inset-well), var(--shadow-plate);
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--scanlines);
+    opacity: 0.6;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+  }
+}
+
+/* --- tech stack, nested inside about_me.txt --- */
+.jk-about__stack {
+  margin-top: var(--space-6);
+  padding-top: var(--space-6);
+  border-top: var(--border-1) solid var(--steel-400);
+}
+
+.jk-about__stack-label {
+  @include label;
+  color: var(--xgreen-lit);
+  text-shadow: var(--glow-green);
+}
+
 .jk-stack {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));

@@ -7,16 +7,24 @@
    state that paints the tab are the same thing. */
 
 .jk-navbar {
-  display: flex;
-  align-items: stretch;
-  justify-content: space-between;
-  gap: var(--space-6);
   background: linear-gradient(180deg, rgba(30, 32, 25, 0.92) 0%, rgba(13, 14, 11, 0.96) 100%);
   border-top: var(--border-1) solid rgba(255, 255, 255, 0.1);
   border-bottom: var(--border-2) solid var(--void);
   box-shadow: var(--shadow-hud);
   backdrop-filter: var(--blur-glass);
   -webkit-backdrop-filter: var(--blur-glass);
+}
+
+/* The bar itself stays full-bleed; its content is capped so brand, links, and
+   status stay grouped together instead of space-between flinging them to the
+   edges of a wide viewport. */
+.jk-navbar__inner {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: var(--space-6);
+  max-width: 1024px;
+  margin: 0 auto;
 }
 
 .jk-navbar__brand {

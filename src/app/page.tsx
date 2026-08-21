@@ -132,12 +132,23 @@ export default function Home() {
                 résumé
               </Button>
             </div>
+            <div className="jk-about__stack">
+              <span className="jk-about__stack-label">Tech stack</span>
+              <div className="jk-stack">
+                {TECH_STACK.map((t) => (
+                  <div key={t.key} className="jk-stack__item">
+                    <TechLogo name={t.key} size={22} />
+                    <span className="jk-stack__label">{t.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </Window>
           <div className="jk-about__aside">
             <Window title="now_playing" tone="void" rivets={false} footer="scrobbling since forever">
               <NowPlaying />
             </Window>
-            <Window title="guestbook.cgi" rivets={false} footer="3 entries">
+            <Window title="guestbook.cgi" rivets={false} footer="3 entries" className="jk-guestbook-window">
               <div className="jk-guestbook">
                 {GUESTBOOK.map(({ who, msg, status }) => (
                   <div key={who}>
@@ -158,19 +169,6 @@ export default function Home() {
             </Window>
           </div>
         </div>
-        <Window title="stack.json" tone="void" controls={false} footer="cloud, containers, and bots">
-          <SectionHeading kicker="tech stack" rule={false}>
-            What I build with
-          </SectionHeading>
-          <div className="jk-stack">
-            {TECH_STACK.map((t) => (
-              <div key={t.key} className="jk-stack__item">
-                <TechLogo name={t.key} size={22} />
-                <span className="jk-stack__label">{t.label}</span>
-              </div>
-            ))}
-          </div>
-        </Window>
       </section>
 
       <section id="experience" className="jk-experience-section">

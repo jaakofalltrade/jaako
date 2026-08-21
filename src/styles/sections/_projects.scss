@@ -5,12 +5,56 @@
 }
 
 .jk-projects__panel {
+  position: relative;
   display: grid;
   gap: var(--space-8);
   padding: var(--space-8) var(--space-7);
   background: var(--panel-gradient);
   border: var(--border-1) solid var(--steel-300);
   box-shadow: var(--bevel-metal), var(--shadow-plate);
+  overflow: hidden;
+}
+
+/* Cage fence, UFC-octagon style — a real chain-link photo tiled diagonally
+   through the panel, faded out at both ends so it reads as a stripe of cage
+   rather than wallpapering the whole thing. Oversized and rotated so the
+   rotation never exposes a bare corner. */
+.jk-projects__panel::before {
+  content: "";
+  position: absolute;
+  top: -20%;
+  left: -20%;
+  width: 140%;
+  height: 140%;
+  background-image: url("/images/cage-fence.png");
+  background-repeat: repeat;
+  background-size: 150px 169px;
+  transform: rotate(-16deg);
+  mask-image: linear-gradient(
+    115deg,
+    transparent 0%,
+    transparent 28%,
+    black 44%,
+    black 56%,
+    transparent 72%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    115deg,
+    transparent 0%,
+    transparent 28%,
+    black 44%,
+    black 56%,
+    transparent 72%,
+    transparent 100%
+  );
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.jk-projects__panel > * {
+  position: relative;
+  z-index: 1;
 }
 
 .jk-projects__grid {

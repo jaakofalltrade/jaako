@@ -30,7 +30,7 @@ export const EXPERIENCE: ExperienceItem[] = [
       "Shipped and maintained third-party integrations (Linkly, Sunmi, Stripe, Tyro, USB printing). The printers remain undefeated.",
       "Runs code reviews, onboarding, and technical interviews now; the codebase remembers when it was the other way around.",
     ],
-    stack: ["react", "typescript", "nextjs", "node.js", "javascript"],
+    stack: ["react", "typescript", "nextjs", "node.js", "javascript", "firebase", "docker", "gcp"],
   },
   {
     company: "Boomsourcing",
