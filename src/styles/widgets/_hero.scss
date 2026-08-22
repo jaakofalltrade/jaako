@@ -31,23 +31,22 @@
    The 180° rotation is what makes it read bottom-to-top. Without it vertical-rl runs
    top-to-bottom, which for a Latin name down a left edge reads upside down.
 
-   The size is not timidity. Latin text in vertical-rl keeps its horizontal advance as
-   its vertical extent, so "<<jaako_andes>>" at --text-5xl would stand past 50rem tall
-   — well over the whole masthead. It is also four characters longer than the name it
-   replaced, which is why this is a bespoke clamp rather than --text-4xl: the token
-   tops out at 4rem, and fifteen characters at 4rem run to roughly 37rem, past the
-   30rem the masthead is allowed to grow to. Topping out at 3rem lands the column back
-   at about the height the shorter name had.
+   The size step down from --text-5xl is not timidity. Latin text in vertical-rl keeps
+   its horizontal advance as its vertical extent, so "jaako_andes" at the old 5.5rem
+   would stand about 38rem tall — taller than the entire masthead. --text-4xl lands it
+   just inside. (The bespoke clamp that briefly sat here belonged to the longer
+   "<<jaako_andes>>"; with the brackets gone the name is back to eleven characters and
+   the token fits again.)
 
-   Light and italic rather than the bold the reset gives every heading. At this size
-   the weight was doing the shouting for it; the slant carries the emphasis instead
-   and reads as a signature down the edge rather than as a banner. */
+   Bold and italic. The bold is the reset's own heading weight, restated here rather
+   than left implicit, because the line above it — the size — is what makes the weight
+   survivable at this scale. The slant is the part that is not inherited. */
 .jk-hero__title {
   grid-column: 1;
   grid-row: 1 / -1;
   writing-mode: vertical-rl;
-  font-size: clamp(1.9rem, 1.2rem + 3vw, 3rem);
-  font-weight: var(--weight-regular);
+  font-size: var(--text-4xl);
+  font-weight: var(--weight-bold);
   font-style: italic;
   line-height: 1;
   margin: 0;
@@ -124,6 +123,33 @@
 /* Separated by space rather than by the rule it used to carry down its left edge. */
 .jk-hero__meta {
   margin-left: auto;
+}
+
+/* --- the staggered readout --------------------------------------------------------
+   ROLE / AT / SINCE drop their value onto a second line and indent it, so each pair
+   reads as a step rather than as a table row:
+
+       ROLE
+         technical lead
+
+   The indent is measured, not eyeballed: it lands the value's first character under
+   the third character of its term — the L of ROLE. Both lines are mono, so that is
+   two term-characters of advance, and a term character at --text-3xs (10px) is
+   0.6em of glyph plus --tracking-anno (.18em) of letter-spacing — about 7.8px, so
+   two of them are 15.6px.
+
+   Stated in rem rather than in ch or em. `ch` would resolve against the VALUE's font
+   size (--text-2xs), not the term's, so the two would drift apart the moment either
+   size moved; the term size is a fixed rem token, so a rem indent tracks it exactly.
+   Rounded to 1rem, which is 16px against the measured 15.6 — inside a quarter of a
+   character, and the whole point is the eye reading a step, not a ruler. */
+.jk-hero__meta .jk-dl__row {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+
+.jk-hero__meta .jk-dl__value {
+  padding-left: 1rem;
 }
 
 .jk-hero__actions {

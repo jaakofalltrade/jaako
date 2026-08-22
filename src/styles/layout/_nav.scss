@@ -22,6 +22,19 @@
   padding: var(--space-4) var(--gutter);
 }
 
+/* The surface goes on the list, not on .jk-nav.
+
+   That is what makes it the same object as the hero's status slab rather than a band
+   across the page: the slab is `width: auto` and hugs its own content, and putting
+   the fill on the outer element instead would have stretched it the full 64rem
+   measure with the four links huddled at one end of it. .jk-nav keeps its job as the
+   layout wrapper — the measure, the gutter, the space below — and the list is the
+   panel.
+
+   The fill is .jk-glass's, restated rather than shared. GlassPanel is a component
+   with a `tint` prop and a hover variant; this needs one flat value out of it, and
+   copying the number is cheaper than making the nav render a panel around its own
+   list. If that value moves, it moves in components/_glass-panel.scss and here. */
 .jk-nav__list {
   display: flex;
   align-items: center;
@@ -32,8 +45,11 @@
      nothing on the other side of the row an auto margin was just stranding the links
      against the far edge of a page that reads from the left. */
   margin: 0;
-  padding: 0;
+  /* Was 0. The fill needs room around the links or the panel reads as a highlighter
+     stroke through them. */
+  padding: var(--space-3) var(--space-5);
   list-style: none;
+  background: rgba(242, 239, 231, 0.45);
 }
 
 .jk-nav__link {

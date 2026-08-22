@@ -17,7 +17,6 @@ import { Checkbox } from "../forms/Checkbox";
 import { Field } from "../forms/Field";
 import { Input } from "../forms/Input";
 import { Radio } from "../forms/Radio";
-import { Select } from "../forms/Select";
 import { TextArea } from "../forms/TextArea";
 import { Icon } from "../Icon";
 import { ContactRow } from "../portfolio/ContactRow";
@@ -149,18 +148,30 @@ export const ContactSection = () => {
                 onChange={(event) => set("email", event.target.value)}
               />
             </Field>
-            <Field label="reason">
-              <Select
+            {/*
+              A fieldset rather than a Field. Field renders a <label>, and a label
+              names exactly one control — wrapping three radios in it would nest a
+              label inside three more and leave the group itself unnamed. legend is
+              the element that names a set of controls, which is what this now is.
+
+              Kept as a plain block, not .jk-field's grid: a legend inside a grid or
+              flex container is laid out by rules of its own and browsers disagree
+              about the result. The gap under it is a margin instead.
+            */}
+            <fieldset className="jk-fieldset">
+              <legend className="jk-field__label">reason</legend>
+              <Radio
                 name="reason"
                 options={REASON_OPTIONS}
                 value={form.reason}
                 onChange={(reason) => set("reason", reason)}
+                inline
               />
-            </Field>
+            </fieldset>
             <Field label="message" required>
               <TextArea
                 name="message"
-                rows={5}
+                rows={3}
                 placeholder="what do you need built?"
                 value={form.message}
                 onChange={(event) => set("message", event.target.value)}
@@ -183,7 +194,15 @@ export const ContactSection = () => {
               </label>
             </div>
 
-            <Radio options={HOW_OPTIONS} value={form.how} onChange={(how) => set("how", how)} />
+            {/* name="how" so this group is distinct from the reason radios above —
+                two groups sharing the default name would behave as one. */}
+            <Radio
+              name="how"
+              options={HOW_OPTIONS}
+              value={form.how}
+              onChange={(how) => set("how", how)}
+              inline
+            />
             <Checkbox label="cc me on this" checked={form.cc} onChange={(cc) => set("cc", cc)} />
 
             <Button

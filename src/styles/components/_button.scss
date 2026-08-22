@@ -50,17 +50,35 @@
 
 /* --- variants --- */
 
-/* One per screen. --p-deep from the swatch at .30 over the ground: unmistakably blue,
-   unmistakably transparent, and the label lands at 6.88:1. */
+/* One per screen. --p-deep from the swatch, borderless, and a step deeper than the
+   .30 it used to sit at.
+
+   THE BORDER IS GONE ON PURPOSE and it costs something, so the trade is written down.
+   The --text-link edge was what carried the 3:1 the non-text rule asks of a control
+   boundary; a translucent fill cannot replace it, because it is measured against a
+   photograph that runs from #bdbbb4 to #e3ece7 and the fill separates from that by
+   under 2:1 at either end. What still identifies this as a control is its shape, its
+   label, its radius, and — for the case the rule is really protecting — the focus
+   ring, which is untouched. Deliberate, not an oversight: do not "fix" it by putting
+   the edge back.
+
+   .45 is about as deep as the fill goes while the label still clears AA, and the
+   hover at .55 is the binding constraint rather than the rest state. Composited over
+   the darkest end of the ground quoted in tokens/_colors.scss (#bdbbb4) and measured
+   the same way that file's table is, --text-strong lands near 5.3:1 at rest and 4.7:1
+   on hover — both above 4.5, neither by much. Treat those as the reason not to go
+   deeper, not as certified numbers: the arithmetic here reproduces the old .30 fill at
+   6.2:1 where the note above said 6.88:1, so the two were measured against different
+   samples of the photograph. If this fill moves again, re-measure it properly. */
 .jk-btn--primary {
-  background: color-mix(in srgb, var(--p-deep) 30%, transparent);
-  border: var(--border-1) solid var(--text-link);
+  background: color-mix(in srgb, var(--p-deep) 45%, transparent);
+  border: 0;
   color: var(--text-strong);
   font-weight: var(--weight-medium);
 
   /* Deepens rather than lifting or brightening. */
   &:hover {
-    background: color-mix(in srgb, var(--p-deep) 38%, transparent);
+    background: color-mix(in srgb, var(--p-deep) 55%, transparent);
   }
 }
 
