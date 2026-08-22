@@ -2,7 +2,9 @@
 
 .jk-contact__form-wrap {
   margin-top: var(--space-8);
-  max-width: 34rem;
+  /* Was 34rem. The form is a handful of short fields, and at 34rem the name input was
+     a 500px box holding a word. */
+  max-width: 30rem;
 }
 
 /* The form, and only the form, gets a surface — the spec block above it and the rest
@@ -39,8 +41,8 @@
    you read first. */
 .jk-contact__form {
   display: grid;
-  gap: var(--space-5);
-  padding: var(--space-6);
+  gap: var(--space-4);
+  padding: var(--space-5);
   background: rgba(242, 239, 231, 0.5);
   border: var(--border-1) solid rgba(242, 239, 231, 0.55);
   box-shadow: var(--shadow-float);
@@ -50,6 +52,60 @@
 @supports not (backdrop-filter: blur(1px)) {
   .jk-contact__form {
     background: rgba(242, 239, 231, 0.78);
+  }
+}
+
+/* --- compact ----------------------------------------------------------------------
+   The form was tall enough to need its own scroll on a laptop. What made it tall was
+   not any one thing: 44px controls, a gap between every label and its field, a gap
+   between every field and the next, and a five-row message box.
+
+   THE HEIGHTS COME DOWN ONLY WHERE THERE IS A MOUSE. --control-h-lg and the radio
+   rows are 44px because that is the touch floor, and shrinking them globally would
+   compact the form by making it worse to use on the device most people will open it
+   on. `pointer: fine` is the honest split: a mouse is precise, so 36px is a
+   comfortable target for it and a phone keeps every one of its 44px.
+
+   The font size does NOT come down with them, and that is not an oversight either —
+   under 16px iOS zooms the page the moment a field takes focus. It is a smaller
+   number on a laptop only because there is no iOS on the other side of that query. */
+.jk-contact__form .jk-field {
+  gap: var(--space-2);
+}
+
+/* The reason group. A fieldset with the browser's own border and padding stripped —
+   what is left is a legend doing the labelling and nothing drawing a box. */
+.jk-fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.jk-fieldset > .jk-field__label {
+  padding: 0;
+  margin-bottom: var(--space-3);
+}
+
+@media (pointer: fine) {
+  .jk-contact__form {
+    .jk-input,
+    .jk-select__control {
+      min-height: var(--control-h-md);
+      font-size: var(--text-sm);
+    }
+
+    .jk-textarea {
+      font-size: var(--text-sm);
+      padding: var(--space-3);
+    }
+
+    /* The 44px row per option is the touch floor and nothing else — with a mouse the
+       control is the 18px box, and the row only has to clear its own line. */
+    .jk-radio__option,
+    .jk-checkbox {
+      min-height: 0;
+    }
   }
 }
 

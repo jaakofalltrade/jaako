@@ -13,12 +13,12 @@ import type { ContactLink, HeroCopy, MetaPair, NavItem, SectionCopy } from "@/mo
 export const BRAND = "jaako";
 
 export const HERO: HeroCopy = {
-  title: "<<jaako_andes>>",
+  title: "jaako_andes",
   blurb:
     "I think therefore I am. Full-stack odd jobs: Next.js, Django, Discord bots, and whatever else the week needs.",
   struck: { retired: "for hire", current: "employed, still curious" },
   kicker: "jaako andes · portfolio · rev 03",
-  coords: "12°58′N 124°00′E",
+  coords: "Sorsogon City Coordinate",
   meta: [
     { term: "role", value: "technical lead" },
     { term: "at", value: "restoplus" },

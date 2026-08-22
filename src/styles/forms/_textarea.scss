@@ -14,9 +14,11 @@
   line-height: var(--leading-normal);
   letter-spacing: var(--tracking-wide);
   outline: none;
-  /* Vertical only: horizontal resize can drag the field wider than its column and
-     give the page a scrollbar. */
-  resize: vertical;
+  /* Not resizable at all. It was vertical-only, which kept the drag from widening the
+     column past the form; the handle is off entirely now, so the form keeps the
+     compact height it is laid out at. The field still scrolls internally, so a long
+     message is written, not truncated. */
+  resize: none;
   transition: border-color var(--dur-base) var(--ease-out);
 
   /* --text-dim, not --text-faint. Placeholder text is still text: on a light ground

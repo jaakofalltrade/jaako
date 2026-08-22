@@ -13,6 +13,13 @@ export type RadioProps<T extends string> = {
   value?: T;
   onChange?: (value: T) => void;
   name?: string;
+  /**
+   * Lay the options out in a wrapping row instead of a column.
+   *
+   * For short labels where a stack is mostly whitespace — three one-word reasons cost
+   * three full touch-height rows stacked, and one row inline.
+   */
+  inline?: boolean;
   className?: string;
 };
 
@@ -21,9 +28,10 @@ export const Radio = <T extends string>({
   value,
   onChange,
   name = "radio",
+  inline = false,
   className,
 }: RadioProps<T>) => (
-  <div className={cx("jk-radio", className)}>
+  <div className={cx("jk-radio", inline && "jk-radio--inline", className)}>
     {options.map((option) => (
       <label key={option.value} className="jk-radio__option">
         <input
