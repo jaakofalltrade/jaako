@@ -9,7 +9,8 @@
 
    Losing the sticky position also loses the scroll-spy: an active marker is only
    worth anything on a control you can still see. What is left is a jump menu, and it
-   is styled as one. */
+   is styled as one — a row of links flush with the left edge of the measure, with no
+   presence dot opposite it. */
 
 .jk-nav {
   display: flex;
@@ -21,24 +22,16 @@
   padding: var(--space-4) var(--gutter);
 }
 
-.jk-nav__led {
-  flex: 0 0 auto;
-  width: 6px;
-  height: 6px;
-  border-radius: var(--radius-pill);
-  background: var(--text-faint);
-}
-
 .jk-nav__list {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: var(--space-3) var(--space-6);
-  /* The auto belongs in the shorthand, not on its own line above it — the presence
-     label used to push this over with margin-right:auto, and with the word gone the
-     list has to claim the space itself. A separate margin-left:auto declaration would
-     be silently reset by this shorthand. */
-  margin: 0 0 0 auto;
+  /* Flush left, not pushed right. The list used to claim the leftover width with
+     margin-left:auto so it sat opposite a presence dot; the dot is gone, and with
+     nothing on the other side of the row an auto margin was just stranding the links
+     against the far edge of a page that reads from the left. */
+  margin: 0;
   padding: 0;
   list-style: none;
 }

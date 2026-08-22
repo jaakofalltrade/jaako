@@ -69,38 +69,23 @@
   box-shadow: inset 0 0 0 1px var(--edge);
 }
 
+/* The cover, and nothing on top of it.
+
+   Two layers came off. The duotone filter held the artwork on the site's cyan ramp at
+   rest and bled back to full colour on hover, focus and press; the spindle drew a
+   record's centre hole over the middle of it. Both were treatments of the one piece of
+   live imagery the site has, and the album art is now shown as the album art —
+   straight, in its own colours, all the time. What went with them is the three-state
+   bleed and its transition, since there is no longer a resting state to bleed out of. */
 .jk-dock__art {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* Duotone at rest, so the cover belongs to the same palette as everything else.
-     Colour is the reward for reaching for it. */
-  filter: var(--duotone);
-  transition: filter var(--dur-bleed) var(--ease-out);
-}
-
-/*
-  The colour bleed answers to all three input modes on purpose. Hover alone would hide
-  the cover from keyboard and touch users entirely, which is exactly the kind of
-  detail that only shows up when someone tries to use the site without a mouse.
-*/
-.jk-dock__sleeve:hover .jk-dock__art,
-.jk-dock__sleeve:focus-visible .jk-dock__art,
-.jk-dock__sleeve:active .jk-dock__art {
-  filter: var(--duotone-off);
 }
 
 /* Only spins while sound is actually coming out. */
 .jk-dock__sleeve[data-spin] {
   animation: jk-spin var(--dur-spin) linear infinite;
-}
-
-.jk-dock__spindle {
-  position: absolute;
-  inset: 42%;
-  border-radius: var(--radius-pill);
-  background: var(--surface-page);
-  border: var(--border-1) solid var(--edge);
 }
 
 .jk-dock__disc {
@@ -272,11 +257,10 @@
   .jk-dock__body { padding: 0; }
 }
 
-/* Nothing playing: the sleeve stops and desaturates, so idle is legible at a glance
-   without reading the label. */
-.jk-dock--idle .jk-dock__art {
-  filter: var(--duotone) saturate(0.4) brightness(1.05);
-}
+/* Nothing playing: the sleeve simply stops turning. It used to desaturate on top of
+   the duotone as well, and that reading — idle at a glance, without the label — is not
+   worth putting a filter back over artwork that is meant to be shown plain. The label
+   beside it says "not listening" in words. */
 
 /* --- mobile ------------------------------------------------------------------------ */
 
@@ -323,11 +307,9 @@
   }
 }
 
-/* A cover that spins forever is exactly what this setting exists to stop. The colour
-   bleed goes with it — a 350ms filter transition is motion too. */
+/* A cover that spins forever is exactly what this setting exists to stop. */
 @media (prefers-reduced-motion: reduce) {
   .jk-dock { transition: none; }
   .jk-dock__sleeve[data-spin] { animation: none; }
-  .jk-dock__art { transition: none; }
   .jk-dock__recent-link { transition: none; }
 }

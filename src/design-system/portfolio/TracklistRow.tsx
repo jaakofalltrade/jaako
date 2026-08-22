@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import { PROJECT_STATUS_LABEL, PROJECT_STATUS_TONE } from "@/constants/ui";
 import type { Project } from "@/models";
@@ -9,27 +7,21 @@ export type TracklistRowProps = {
   project: Project;
   /** Two-digit index — the tracklist's spine. */
   index: string;
-  /** Raises this row's plate in the sticky panel beside the list. */
-  onFocus: () => void;
 };
 
 /**
  * One row of the work tracklist.
  *
  * A row, not a card. Project cards are the most over-used object on a developer
- * portfolio; a numbered list with a plate that answers to it is the Aphex sleeve, and
- * it lets ten projects occupy the space three cards would.
+ * portfolio; a numbered list lets ten projects occupy the space three cards would.
  *
- * onFocus fires on hover *and* on keyboard focus, so the plate follows a Tab traversal
- * exactly as it follows the pointer.
+ * It used to take an onFocus callback, fired on hover and on keyboard focus alike, to
+ * raise this project's plate in the panel beside the list. The panel is gone, so the
+ * callback is too — and with no handlers left this is a server component, not a client
+ * one. The row's own hover treatment was always CSS.
  */
-export const TracklistRow = ({ project, index, onFocus }: TracklistRowProps) => (
-  <Link
-    href={`/work/${project.slug}`}
-    className="jk-track"
-    onMouseEnter={onFocus}
-    onFocus={onFocus}
-  >
+export const TracklistRow = ({ project, index }: TracklistRowProps) => (
+  <Link href={`/work/${project.slug}`} className="jk-track">
     <span aria-hidden="true" className="jk-track__index">
       {index}
     </span>
