@@ -31,15 +31,24 @@
    The 180° rotation is what makes it read bottom-to-top. Without it vertical-rl runs
    top-to-bottom, which for a Latin name down a left edge reads upside down.
 
-   The size step down from --text-5xl is not timidity. Latin text in vertical-rl keeps
-   its horizontal advance as its vertical extent, so "jaako andes" at the old 5.5rem
-   would stand about 38rem tall — taller than the entire masthead. --text-4xl lands it
-   just inside. */
+   The size is not timidity. Latin text in vertical-rl keeps its horizontal advance as
+   its vertical extent, so "<<jaako_andes>>" at --text-5xl would stand past 50rem tall
+   — well over the whole masthead. It is also four characters longer than the name it
+   replaced, which is why this is a bespoke clamp rather than --text-4xl: the token
+   tops out at 4rem, and fifteen characters at 4rem run to roughly 37rem, past the
+   30rem the masthead is allowed to grow to. Topping out at 3rem lands the column back
+   at about the height the shorter name had.
+
+   Light and italic rather than the bold the reset gives every heading. At this size
+   the weight was doing the shouting for it; the slant carries the emphasis instead
+   and reads as a signature down the edge rather than as a banner. */
 .jk-hero__title {
   grid-column: 1;
   grid-row: 1 / -1;
   writing-mode: vertical-rl;
-  font-size: var(--text-4xl);
+  font-size: clamp(1.9rem, 1.2rem + 3vw, 3rem);
+  font-weight: var(--weight-regular);
+  font-style: italic;
   line-height: 1;
   margin: 0;
   color: var(--text-strong);

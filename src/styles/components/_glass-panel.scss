@@ -1,7 +1,8 @@
 /* GlassPanel, minus the glass.
 
-   The frosted-glass vocabulary is retired site-wide — no backdrop-filter, no tinted
-   edge, no fill behind the sections. What is left of this component is a quiet inset:
+   The frosted-glass vocabulary is retired as a general treatment — no tinted edge, no
+   fill behind the sections, and no backdrop-filter outside the one place that earns it
+   (the contact form). What is left of this component is a quiet inset:
    a faint cream wash used where a block needs to read as slightly set apart from the
    prose around it, and nothing more. The `tint` prop still scales it.
 

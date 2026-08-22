@@ -43,11 +43,15 @@
 --bg-glass:linear-gradient(rgba(15,33,54,.03),rgba(15,33,54,.03));
 
 /* --- SURFACES -----------------------------------------------------------------------
-   The frosted-glass vocabulary is gone: no backdrop-filter anywhere, no panel behind
-   the sections, no fill behind the masthead, no tinted edges. What is left is flat
+   The frosted-glass vocabulary is gone as a *vocabulary*: no panel behind the
+   sections, no fill behind the masthead, no tinted edges. What is left is flat
    translucent fills on the few things that genuinely cannot be transparent — the
    buttons, the form fields, and the floating player, which has page content scrolling
-   underneath it and would otherwise be text on top of text. --- */
+   underneath it and would otherwise be text on top of text.
+
+   One exception, and it is deliberate: the contact form is a real sheet of glass,
+   backdrop blur and all. See sections/_contact.scss for why the blur and the fill
+   alpha there are a single decision rather than two. --- */
 --shadow-float:0 14px 40px -24px rgba(15,33,54,.4);
 
 /* --- FILM ----------------------------------------------------------------------------

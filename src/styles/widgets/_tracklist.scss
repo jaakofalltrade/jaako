@@ -1,14 +1,18 @@
 @use "../base/mixins" as *;
 
-/* The work list and its plates.
+/* The work list.
 
-   A row, not a card. Cards are the most over-used object on a developer portfolio;
-   a numbered list with a plate that answers to it lets ten projects occupy the space
-   three cards would, and it is the Aphex sleeve read directly. */
+   A row, not a card. Cards are the most over-used object on a developer portfolio; a
+   numbered list lets ten projects occupy the space three cards would.
+
+   The sticky plate panel that used to sit in a second column here is gone — with it
+   the two-column grid, the crossfade, and the mobile treatment where the plate went
+   full-bleed behind the rows and the list floated over it on a fill. The rows sit on
+   the open ground now like everything else on the page, which is also why the mobile
+   block below no longer needs a background of its own. */
 
 .jk-work {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 20rem;
   gap: var(--space-8);
   align-items: start;
 }
@@ -93,78 +97,9 @@
   white-space: nowrap;
 }
 
-/* --- the plates ------------------------------------------------------------------ */
-
-/* PlateStack renders both of these classes onto the SAME element, so order decides
-   which position wins — and .jk-platestack used to come second and quietly turn the
-   sticky panel back into a relative one, which killed the whole interaction. The
-   contextual class goes last on purpose. */
-.jk-platestack {
-  position: relative;
-  aspect-ratio: 4 / 5;
-}
-
-.jk-work__plates {
-  position: sticky;
-  /* Nothing is pinned to the top of the viewport now, so this only has to clear the
-     edge rather than a bar. */
-  top: var(--space-8);
-}
-
-.jk-platestack__item {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transform: scale(1.03);
-  transition:
-    opacity var(--dur-slow) var(--ease-out),
-    transform var(--dur-draw) var(--ease-out);
-}
-
-.jk-platestack__item--on {
-  opacity: 1;
-  transform: none;
-}
-
-/* --- mobile: the plate goes behind the list -------------------------------------- */
+/* --- mobile ----------------------------------------------------------------------- */
 
 @include down($bp-sm) {
-  .jk-work {
-    grid-template-columns: minmax(0, 1fr);
-    position: relative;
-    gap: 0;
-  }
-
-  /* Full-bleed behind the rows rather than beside them, crossfading as the list
-     scrolls. The list sits on top in glass — surface 4 of 4. */
-  .jk-work__plates {
-    position: absolute;
-    inset: 0;
-    top: 0;
-    z-index: 0;
-    pointer-events: none;
-  }
-
-  .jk-platestack {
-    position: absolute;
-    inset: 0;
-    aspect-ratio: auto;
-  }
-
-  .jk-platestack__item {
-    aspect-ratio: auto;
-    border: 0;
-  }
-
-  .jk-work__list {
-    position: relative;
-    z-index: 1;
-    /* One of only two places left with a fill, and for the same reason as the
-       player: the plate is full-bleed directly behind these rows. */
-    background: var(--surface-raised);
-    padding-inline: var(--space-4);
-  }
-
   .jk-track {
     grid-template-columns: 1.75rem minmax(0, 1fr);
     gap: var(--space-4);
@@ -179,8 +114,4 @@
     text-align: left;
     margin-top: var(--space-3);
   }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .jk-platestack__item { transition: opacity var(--dur-fast) linear; transform: none; }
 }

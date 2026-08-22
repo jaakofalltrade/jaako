@@ -8,17 +8,49 @@
 /* The form, and only the form, gets a surface — the spec block above it and the rest
    of the section stay on the open ground.
 
-   Translucent, so the photograph reads through it. .78 is not an arbitrary "quite
-   see-through" value: it is the floor. The field labels are --text-dim, and over the
-   darkest part of the photograph they need this much cream behind them to clear AA.
-   Anything lighter and the labels go first, while the inputs stay readable because
-   they carry --surface-field on top of this — which is exactly the kind of partial
-   failure that survives a glance. */
+   This one is glass: a thin cream fill with the ground blurred behind it, a hairline
+   edge to give the sheet a boundary, and the float shadow to lift it off the
+   photograph. It is the one place on the site that still does this, and it is doing a
+   job rather than decorating — a form is the only block a visitor stops and works
+   inside, and the sheet is what says so.
+
+   THE FILL AND THE BLUR ARE ONE DECISION, not two. The old flat .78 was the floor for
+   legibility: --text-dim labels over the darkest part of an unblurred photograph need
+   that much cream behind them. Blurring the backdrop is what buys the fill back down
+   to .5 — a 20px blur averages away exactly the local dark detail that set that floor,
+   so what sits behind the labels is a flat mid-tone rather than a hard edge. Drop the
+   fill further without raising the blur and the labels go first, while the inputs stay
+   readable on their own --surface-field: a partial failure that survives a glance.
+
+   The saturate is the usual trick for keeping a low-alpha frost from reading grey.
+
+   DO NOT HAND-WRITE THE -WEBKIT- PREFIX HERE. Writing both declarations is the
+   reflex, and in this build it breaks the blur outright: Lightning CSS — the
+   minifier Next runs the compiled CSS through — parses the pair into one property
+   and re-emits it for the configured targets, and it emitted ONLY
+   -webkit-backdrop-filter. Current Chrome dropped that alias, so the rule silently
+   did nothing there while the fill still dropped to .5, which is the illegible
+   half of the trade with none of the payoff. One standard declaration, and the
+   prefixing is the toolchain's business.
+
+   @supports is not ceremony either. Blur is what the low fill is buying its
+   legibility from, so anything rendering without it goes back to the measured .78
+   flat. Written as the negative query, so the blurred version stays the declaration
+   you read first. */
 .jk-contact__form {
   display: grid;
   gap: var(--space-5);
   padding: var(--space-6);
-  background: rgba(242, 239, 231, 0.78);
+  background: rgba(242, 239, 231, 0.5);
+  border: var(--border-1) solid rgba(242, 239, 231, 0.55);
+  box-shadow: var(--shadow-float);
+  backdrop-filter: blur(20px) saturate(1.25);
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .jk-contact__form {
+    background: rgba(242, 239, 231, 0.78);
+  }
 }
 
 /* Off-screen rather than display:none — a bot that respects visibility would skip a

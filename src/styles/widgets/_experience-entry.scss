@@ -63,16 +63,21 @@
     color: var(--text-dim);
   }
 
-  /* A hairline dash rather than a bullet glyph — consistent with the rules that
-     structure everything else on the page. */
+  /* A dot rather than the hairline dash this used to draw. Drawn as a box rather than
+     set as a • glyph so its size and colour answer to the tokens instead of to
+     whichever font happens to render the bullet.
+
+     --hair-lit is a decorative alpha sized for a stroke a dozen pixels long; at 4px
+     square it all but disappears, so the dot takes --text-faint. */
   li::before {
     content: "";
     position: absolute;
     left: 0;
-    top: 0.65em;
-    width: var(--space-3);
-    height: var(--border-1);
-    background: var(--hair-lit);
+    top: 0.6em;
+    width: 4px;
+    height: 4px;
+    border-radius: var(--radius-pill);
+    background: var(--text-faint);
   }
 }
 

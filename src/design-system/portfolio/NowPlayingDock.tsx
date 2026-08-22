@@ -232,11 +232,13 @@ export const NowPlayingDock = () => {
     >
       <div className="jk-dock__body">
         {/*
-          The sleeve is a button in every state. On a pointer it also reveals the cover
-          in full colour, but binding that to hover alone would hide it from keyboard
-          and touch entirely — so the reveal answers to :hover, :focus-visible and
-          :active alike, and pressing it is also what restores the player once it has
-          been collapsed down to the bare sleeve.
+          The sleeve is a button in every state: pressing it is what restores the
+          player once it has been collapsed down to the bare cover.
+
+          Nothing is drawn over the artwork any more. The duotone filter it carried at
+          rest — and the hover/focus/press bleed back to full colour that went with it
+          — and the spindle span that put a record's centre hole over the middle are
+          both gone. The cover is the cover.
         */}
         <button
           type="button"
@@ -257,7 +259,6 @@ export const NowPlayingDock = () => {
           ) : (
             <Icon name={IconName.Disc} size={18} className="jk-dock__disc" />
           )}
-          <span aria-hidden="true" className="jk-dock__spindle" />
         </button>
 
         <div className="jk-dock__meta">
