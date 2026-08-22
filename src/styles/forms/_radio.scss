@@ -1,17 +1,20 @@
-/* Radio — a real, visually-hidden <input type="radio"> drives the dot through a
-   sibling selector, so the checked state needs no JS ternary. It also gains a
-   focus ring, which the opacity:0 input had no way to show before. */
+/* Radio.
+
+   A real, visually-hidden <input type="radio"> drives the dot through a sibling
+   selector, so the checked state needs no JS ternary — and it gains a focus ring,
+   which an opacity:0 input had no way to show. */
 
 .jk-radio {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 
 .jk-radio__option {
   display: inline-flex;
   align-items: center;
   gap: var(--space-3);
+  min-height: var(--touch-min);
   cursor: pointer;
   font-family: var(--font-body);
   font-size: var(--text-sm);
@@ -27,25 +30,30 @@
 .jk-radio__box {
   display: grid;
   place-items: center;
-  width: 16px;
-  height: 16px;
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
   background: var(--surface-field);
-  border: var(--border-1) solid var(--steel-400);
-  box-shadow: var(--inset-well);
+  border: var(--border-1) solid var(--edge);
+  transition: border-color var(--dur-base) var(--ease-out);
 }
 
 .jk-radio__dot {
   width: 6px;
   height: 6px;
   background: transparent;
+  transition: background var(--dur-base) var(--ease-out);
+}
+
+.jk-radio__input:checked + .jk-radio__box {
+  border-color: var(--text-link);
 }
 
 .jk-radio__input:checked + .jk-radio__box .jk-radio__dot {
-  background: var(--xgreen);
-  box-shadow: var(--glow-green);
+  background: var(--text-link);
 }
 
 .jk-radio__input:focus-visible + .jk-radio__box {
   outline: var(--border-2) solid var(--focus-ring);
-  outline-offset: 1px;
+  outline-offset: 2px;
 }

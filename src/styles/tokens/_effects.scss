@@ -1,34 +1,57 @@
 :root{
-/* --- Dark metal plate: brushed grain + piss wash over a steel gradient --- */
---brushed:repeating-linear-gradient(90deg,rgba(255,255,255,.035) 0 1px,rgba(0,0,0,.05) 1px 3px);
---scratches:repeating-linear-gradient(74deg,transparent 0 37px,rgba(255,255,255,.055) 37px 38px,transparent 38px 96px),repeating-linear-gradient(101deg,transparent 0 61px,rgba(255,255,255,.04) 61px 62px,transparent 62px 143px),repeating-linear-gradient(66deg,transparent 0 113px,rgba(0,0,0,.22) 113px 114px,transparent 114px 251px),repeating-linear-gradient(96deg,transparent 0 173px,rgba(255,255,255,.03) 173px 175px,transparent 175px 397px);
---piss-wash:linear-gradient(180deg,rgba(194,189,131,.16) 0%,rgba(128,123,72,.10) 55%,rgba(13,14,11,.35) 100%);
---plate-gradient:linear-gradient(180deg,#3a3d34 0%,#26281f 42%,#15170f 100%);
---bg-page:var(--scratches),var(--brushed),var(--piss-wash),var(--plate-gradient);
---panel-gradient:linear-gradient(180deg,#42453b 0%,#2c2e26 100%);
---panel-gradient-dark:linear-gradient(180deg,#26281f 0%,#15170f 100%);
---seam:linear-gradient(90deg,rgba(0,0,0,.65) 0 1px,rgba(255,255,255,.07) 1px 2px,transparent 2px);
---rivet:radial-gradient(circle at 42% 35%,#a6a99f 0 30%,#6b6f66 55%,#1a1c17 100%);
---hazard-stripes:repeating-linear-gradient(45deg,var(--hazard) 0 7px,var(--void) 7px 14px);
---hazard-stripes-green:repeating-linear-gradient(45deg,var(--xgreen) 0 7px,var(--void) 7px 14px);
---scanlines:repeating-linear-gradient(0deg,rgba(0,0,0,.22) 0 1px,transparent 1px 3px);
---vignette:radial-gradient(120% 90% at 50% 20%,transparent 40%,rgba(0,0,0,.55) 100%);
+/* --- THE GROUND -------------------------------------------------------------------
+   The photograph, softened just off sharp, with an off-white pane over it. Together
+   they are the page looking out through a sheet of glass.
 
-/* --- Smoked glass (the only survivor of the old glass system) --- */
---blur-glass:blur(8px);
---glass-tint:rgba(13,14,11,.55);
---glass-highlight:rgba(222,217,184,.22);
+   Two fixed pseudo-elements on <body> rather than background layers on the element
+   itself: `filter` on an element blurs its children too, so the blur needs its own
+   node, and `background-attachment:fixed` is ignored on iOS where it silently
+   degrades to scrolling. position:fixed is genuinely static everywhere.
 
---bevel-metal:inset 1px 1px 0 rgba(255,255,255,.14),inset -1px -1px 0 rgba(0,0,0,.65);
---bevel-metal-active:inset -1px -1px 0 rgba(255,255,255,.10),inset 1px 1px 0 rgba(0,0,0,.7);
---inset-well:inset 0 1px 3px rgba(0,0,0,.8),inset 0 -1px 0 rgba(255,255,255,.06);
---inset-specular:inset 1px 1px 0 var(--glass-highlight);
---shadow-plate:0 2px 0 rgba(0,0,0,.65),0 8px 18px rgba(0,0,0,.45);
---shadow-float:0 6px 16px rgba(0,0,0,.55);
---shadow-hud:0 1px 0 rgba(255,255,255,.08),0 6px 14px rgba(0,0,0,.6);
---glow-green:0 0 10px rgba(122,184,0,.65);
---glow-blue:0 0 12px rgba(10,108,255,.6);
---glow-hazard:0 0 10px rgba(255,212,0,.6);
---text-shadow-hud:0 1px 0 rgba(0,0,0,.85);
---text-shadow-stamp:2px 2px 0 rgba(0,0,0,.75);
+   THE BLUR IS DELIBERATELY TINY, and that is the point of this version. Earlier
+   passes used 24px and 44px, which turned the picture into coloured mush — and once
+   it was mush, the overlay could be as heavy as it liked because there was nothing
+   left to hide. At 5px every detail survives: the panel joints, the track lights, the
+   sign on the wall. The overlay then reads as something you are looking THROUGH
+   rather than as paint over the top, which is the whole difference.
+
+   THE OVERLAY IS NOT DECORATION. With no panels anywhere on the site, this single
+   layer is what makes every text colour in tokens/_colors.scss legal. .78 is not a
+   taste value: it is the lightest setting at which the type ramp still has three
+   distinguishable levels that all clear AA against the darkest 2% of the photograph.
+   Lower it and the ramp collapses toward one near-black tone; the table at the top of
+   _colors.scss is measured against exactly this number. --- */
+--bg-image:url("/images/glass-wall.webp");
+--bg-blur:blur(5px);
+/* Just enough to hide the soft transparent edge a 5px blur leaves at the frame. */
+--bg-scale:1.02;
+/* Dark blue at 3%, replacing the off-white pane. #0f2136 is the palette's darkest
+   navy — #3368a0's own hue walked down — so the tint stays inside the four swatch
+   colours.
+
+   BE CLEAR ABOUT WHAT 3% DOES: almost nothing. It is a whisper of blue over what is,
+   for practical purposes, the raw photograph. It does not lighten the ground, it
+   darkens it very slightly, and it carries no legibility at all. Every ratio in the
+   table at the top of tokens/_colors.scss was measured against the .78 off-white pane
+   and none of them survive this — see the note there.
+
+   A flat colour expressed as a gradient, which looks redundant and is not: in the
+   `background` shorthand only the LAST layer may be a colour, so writing this as a
+   plain rgba() next to the grain makes the whole declaration invalid and the browser
+   drops the overlay entirely — silently, with no console error. A two-stop gradient
+   is an <image>, so it can sit in any layer position. */
+--bg-glass:linear-gradient(rgba(15,33,54,.03),rgba(15,33,54,.03));
+
+/* --- SURFACES -----------------------------------------------------------------------
+   The frosted-glass vocabulary is gone: no backdrop-filter anywhere, no panel behind
+   the sections, no fill behind the masthead, no tinted edges. What is left is flat
+   translucent fills on the few things that genuinely cannot be transparent — the
+   buttons, the form fields, and the floating player, which has page content scrolling
+   underneath it and would otherwise be text on top of text. --- */
+--shadow-float:0 14px 40px -24px rgba(15,33,54,.4);
+
+/* --- FILM ----------------------------------------------------------------------------
+   Only the duotone plates use this now; it came off the page ground with the wash. */
+--grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+--grain-opacity:.05;
 }

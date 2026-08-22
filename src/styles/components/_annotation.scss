@@ -1,0 +1,29 @@
+@use "../base/mixins" as *;
+
+/* The mono micro-label.
+
+   Two tones, and the difference is an accessibility rule rather than taste — see
+   models/Ui.ts. Info is --text-dim (6.4:1 on ink) and stays in the accessibility tree.
+   Decorative is --text-faint (3.07:1, fails AA) and is aria-hidden by the component,
+   so it can never be the only thing carrying a fact.
+
+   --text-3xs is 10px and is a floor. Nothing here goes below it, however tempting the
+   reference material is. */
+
+.jk-anno {
+  @include label;
+  color: var(--text-dim);
+  /* Tracked caps at 10px need the extra line-height or they optically collide with
+     whatever sits above them. */
+  line-height: var(--leading-snug);
+}
+
+.jk-anno--decorative {
+  color: var(--text-faint);
+}
+
+/* The cyan accent variant. Used for live/active annotation only — --cy-hot is bright
+   enough to clear AA comfortably, unlike a dimmed cyan would be. */
+.jk-anno--lit {
+  color: var(--text-link);
+}

@@ -66,3 +66,51 @@ export type CurrentlyPlayingResponse = {
 export type RecentlyPlayedResponse = {
   items?: { track?: TrackResponse }[];
 };
+
+/* ---------------- listening statistics ---------------- */
+
+/**
+ * The instrument strip's fourth cell.
+ *
+ * Note what is *not* here: minutes listened. The Spotify Web API has no
+ * cumulative-listening-time endpoint — the figure Wrapped shows comes from
+ * Spotify's internal data — and /me/player/recently-played caps at 50 items, so
+ * it can't be derived either. Top artist, track and genre are the real ones.
+ *
+ * Requires the user-top-read scope, which the now-playing pair does not.
+ */
+export type TopArtist = {
+  name: string;
+  url: string;
+};
+
+export type TopTrack = {
+  title: string;
+  artist: string;
+  url: string;
+};
+
+export type TopItemsResponse = {
+  /** False when credentials are missing, the scope was never granted, or Spotify is down. */
+  available: boolean;
+  artist: TopArtist | null;
+  track: TopTrack | null;
+  /** Most common genre across the top artists. Spotify tags artists, not tracks. */
+  genre: string | null;
+};
+
+/* ---------------- what spotify sends us ---------------- */
+
+export type TopArtistResponse = {
+  name?: string;
+  genres?: string[];
+  external_urls?: { spotify?: string };
+};
+
+export type TopArtistsResponse = {
+  items?: TopArtistResponse[];
+};
+
+export type TopTracksResponse = {
+  items?: TrackResponse[];
+};

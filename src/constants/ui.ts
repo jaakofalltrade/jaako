@@ -1,4 +1,4 @@
-import { BadgeTone, ButtonSize, ButtonVariant, HeadingTone, IconName, MarqueeTone, PanelTone, PresenceStatus, ProjectStatus, TechName } from "@/models";
+import { AnnotationTone, BadgeTone, ButtonSize, ButtonVariant, IconName, MarqueeTone, PlateRatio, PresenceStatus, ProjectStatus, TechName } from "@/models";
 
 /**
  * Enum member → the string that actually reaches the DOM.
@@ -10,19 +10,15 @@ import { BadgeTone, ButtonSize, ButtonVariant, HeadingTone, IconName, MarqueeTon
  */
 
 export const BADGE_TONE_CLASS: Record<BadgeTone, string> = {
-  [BadgeTone.Green]: "jk-badge--green",
-  [BadgeTone.Blue]: "jk-badge--blue",
-  [BadgeTone.Hazard]: "jk-badge--hazard",
+  [BadgeTone.Cyan]: "jk-badge--cyan",
   [BadgeTone.Steel]: "jk-badge--steel",
-  [BadgeTone.Void]: "jk-badge--void",
+  [BadgeTone.Ghost]: "jk-badge--ghost",
   [BadgeTone.Alert]: "jk-badge--alert",
 };
 
 export const BUTTON_VARIANT_CLASS: Record<ButtonVariant, string> = {
-  [ButtonVariant.Hazard]: "jk-btn--hazard",
-  [ButtonVariant.Blue]: "jk-btn--blue",
-  [ButtonVariant.Metal]: "jk-btn--metal",
-  [ButtonVariant.Hud]: "jk-btn--hud",
+  [ButtonVariant.Primary]: "jk-btn--primary",
+  [ButtonVariant.Glass]: "jk-btn--glass",
   [ButtonVariant.Ghost]: "jk-btn--ghost",
 };
 
@@ -32,24 +28,26 @@ export const BUTTON_SIZE_CLASS: Record<ButtonSize, string> = {
   [ButtonSize.Lg]: "jk-btn--lg",
 };
 
-/** Plate is the default styling and carries no modifier — hence the empty string. */
-export const PANEL_TONE_CLASS: Record<PanelTone, string> = {
-  [PanelTone.Plate]: "",
-  [PanelTone.Void]: "jk-window--void",
+/** Info is the default treatment and carries no modifier — hence the empty string. */
+export const ANNOTATION_TONE_CLASS: Record<AnnotationTone, string> = {
+  [AnnotationTone.Info]: "",
+  [AnnotationTone.Decorative]: "jk-anno--decorative",
 };
 
-export const HEADING_TONE_CLASS: Record<HeadingTone, string> = {
-  [HeadingTone.Light]: "",
-  [HeadingTone.Dim]: "jk-section-heading__title--dim",
+export const PLATE_RATIO_CLASS: Record<PlateRatio, string> = {
+  [PlateRatio.Portrait]: "jk-plate--portrait",
+  [PlateRatio.Landscape]: "jk-plate--landscape",
+  [PlateRatio.Square]: "jk-plate--square",
+  [PlateRatio.Wide]: "jk-plate--wide",
 };
 
 export const MARQUEE_TONE_CLASS: Record<MarqueeTone, string> = {
-  [MarqueeTone.Void]: "jk-marquee--void",
-  [MarqueeTone.Hazard]: "jk-marquee--hazard",
+  [MarqueeTone.Ink]: "jk-marquee--ink",
+  [MarqueeTone.Cyan]: "jk-marquee--cyan",
 };
 
 export const PRESENCE_CLASS: Record<PresenceStatus, string> = {
-  [PresenceStatus.Online]: "jk-guestbook__status--online",
+  [PresenceStatus.Online]: "jk-presence--online",
   [PresenceStatus.Offline]: "",
 };
 
@@ -58,21 +56,15 @@ export const PRESENCE_LABEL: Record<PresenceStatus, string> = {
   [PresenceStatus.Offline]: "offline",
 };
 
-/** Lucide SVGs in public/icons, tinted by --icon-tint to sit in the piss-filter palette. */
+/** Lucide SVGs in public/icons, tinted by --icon-tint to sit in the palette. */
 export const ICON_SRC: Record<IconName, string> = {
-  [IconName.ArrowRight]: "/icons/arrow-right.svg",
-  [IconName.CircleUser]: "/icons/circle-user.svg",
   [IconName.Disc]: "/icons/disc.svg",
-  [IconName.Folder]: "/icons/folder.svg",
   [IconName.Globe]: "/icons/globe.svg",
   [IconName.Link]: "/icons/link.svg",
   [IconName.Linkedin]: "/icons/linkedin.svg",
   [IconName.Mail]: "/icons/mail.svg",
-  [IconName.Monitor]: "/icons/monitor.svg",
-  [IconName.MousePointer2]: "/icons/mouse-pointer-2.svg",
   [IconName.RefreshCw]: "/icons/refresh-cw.svg",
   [IconName.Save]: "/icons/save.svg",
-  [IconName.Star]: "/icons/star.svg",
   [IconName.Terminal]: "/icons/terminal.svg",
 };
 
@@ -81,6 +73,14 @@ export const PROJECT_STATUS_LABEL: Record<ProjectStatus, string> = {
   [ProjectStatus.Archived]: "archived",
   [ProjectStatus.Done]: "done",
   [ProjectStatus.Wip]: "wip",
+};
+
+/** Archived work is set in the dim tone; everything else reads as current. */
+export const PROJECT_STATUS_TONE: Record<ProjectStatus, BadgeTone> = {
+  [ProjectStatus.Maintained]: BadgeTone.Cyan,
+  [ProjectStatus.Archived]: BadgeTone.Ghost,
+  [ProjectStatus.Done]: BadgeTone.Steel,
+  [ProjectStatus.Wip]: BadgeTone.Cyan,
 };
 
 export const TECH_LABEL: Record<TechName, string> = {

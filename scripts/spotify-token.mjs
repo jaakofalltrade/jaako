@@ -16,7 +16,7 @@ import http from "node:http";
 
 const PORT = 8888;
 const REDIRECT_URI = `http://127.0.0.1:${PORT}/callback`;
-const SCOPES = "user-read-currently-playing user-read-recently-played";
+const SCOPES = "user-read-currently-playing user-read-recently-played user-top-read";
 
 const clientId = process.argv[2] ?? process.env.SPOTIFY_CLIENT_ID;
 const clientSecret = process.argv[3] ?? process.env.SPOTIFY_CLIENT_SECRET;

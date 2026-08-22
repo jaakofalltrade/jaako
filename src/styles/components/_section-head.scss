@@ -1,0 +1,40 @@
+@use "../base/mixins" as *;
+
+/* Index, title, note — all on one baseline.
+
+   The drawing hairline that used to run between the title and the note is gone. It
+   was the single most-repeated line on the page and, once the ground became a
+   photograph rather than flat ink, it read as a scratch on the glass. Space does the
+   separating now: the note is pushed to the far end with margin, which is the same
+   arrangement without the stroke. */
+
+.jk-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-4);
+  margin-bottom: var(--space-7);
+}
+
+.jk-head__index {
+  @include label($size: var(--text-2xs), $tracking: var(--tracking-anno));
+  flex: 0 0 auto;
+  color: var(--text-link);
+}
+
+.jk-head__title {
+  flex: 0 0 auto;
+  font-size: var(--text-xl);
+}
+
+/* Pushed to the far end. This is what the rule used to do, minus the rule. */
+.jk-head__note {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+/* Below the small breakpoint the note is the first thing to go — it is decorative in
+   almost every instance, and keeping it forces the title to wrap. */
+@include down($bp-sm) {
+  .jk-head__note { display: none; }
+  .jk-head { gap: var(--space-3); margin-bottom: var(--space-6); }
+}

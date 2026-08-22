@@ -1,46 +1,63 @@
-"use client";
-
-import Link from "next/link";
-import type { MouseEvent } from "react";
-import { BadgeTone, ButtonSize, ButtonVariant } from "@/models";
-import { Badge } from "../core/Badge";
-import { Button } from "../core/Button";
+import { AnnotationTone } from "@/models";
+import { HERO } from "@/data/site";
+import { Annotation } from "../core/Annotation";
+import { DefinitionList } from "../core/DefinitionList";
 import { GlassPanel } from "../core/GlassPanel";
-import { scrollToSection } from "../scrollToSection";
+import { Rule } from "../core/Rule";
+import { HeroActions } from "./HeroActions";
 
-export const Hero = () => {
-  const handleClick = (event: MouseEvent, id: string) => {
-    event.preventDefault();
-    scrollToSection({ id });
-  };
+/**
+ * The masthead: the name set vertically down the left edge, everything else beside it.
+ *
+ * The title had to come out of .jk-hero__content to do that. It is a sibling of the
+ * body now rather than the first thing inside it, because the rotation makes it a
+ * full-height column of its own — nested in the content flow it could only ever be a
+ * rotated block sitting in a horizontal stack, which is not the same shape.
+ *
+ * It also lost its .jk-mask wrapper. The mask reveal slides an inner span on translateY
+ * behind an overflow:hidden parent, and composing that with the 180° rotation that
+ * makes the name read bottom-to-top gives a wipe running the wrong way. A plain
+ * data-reveal fade is the honest version of the same idea here.
+ *
+ * A server component: only the single call to action needs interactivity, and it is
+ * split out into HeroActions so the lettering stays server-rendered.
+ */
+export const Hero = () => (
+  <header className="jk-hero">
+    {/* The inner span is load-bearing and not decoration. The rotation that makes the
+        name read bottom-to-top has to live on a different element from the one
+        carrying data-reveal: the reveal system animates transform and then sets
+        `transform: none` on .is-in, which silently ate the rotation — computed style
+        said `none` and the name quietly read top-to-bottom instead. Two elements, two
+        transforms, neither fighting the other. */}
+    <h1 className="jk-hero__title" data-reveal>
+      <span>{HERO.title}</span>
+    </h1>
 
-  return (
-    <GlassPanel hazardEdge className="jk-hero">
-      <span aria-hidden="true" className="jk-hero__scanlines" />
-      <div className="jk-hero__badges">
-        <Badge tone={BadgeTone.Green}>online</Badge>
-        <Badge tone={BadgeTone.Void}>est. 2026</Badge>
-        <Badge tone={BadgeTone.Void}>
-          <s className="jk-hero__struck">for hire</s> employed
-        </Badge>
+    {/* The thin rule that crosses the name's axis at a right angle. Decorative: it is
+        a mark, and there is nothing in it for a screen reader to announce. */}
+    <span aria-hidden="true" className="jk-hero__crossline" />
+
+    <div className="jk-hero__body">
+      <div className="jk-hero__top">
+        <Annotation tone={AnnotationTone.Decorative}>{HERO.kicker}</Annotation>
+        <Rule tick />
+        <Annotation tone={AnnotationTone.Decorative}>{HERO.coords}</Annotation>
       </div>
-      <h1 className="jk-hero__title">JAAKO ANDES</h1>
-      <p className="jk-hero__blurb">
-        I think therefore I am. Full-stack odd jobs: Next.js, Django, Discord bots, and whatever else the week
-        needs.
-      </p>
-      <div className="jk-hero__actions">
-        <Link href="/#projects" onClick={(event) => handleClick(event, "projects")} className="jk-hero__link">
-          <Button as="span" variant={ButtonVariant.Hazard} size={ButtonSize.Lg}>
-            see projects
-          </Button>
-        </Link>
-        <Link href="/#contact" onClick={(event) => handleClick(event, "contact")} className="jk-hero__link">
-          <Button as="span" variant={ButtonVariant.Hud} size={ButtonSize.Lg}>
-            <s className="jk-hero__struck">hire me</s> say hi
-          </Button>
-        </Link>
+
+      <GlassPanel className="jk-hero__slab">
+        <DefinitionList items={HERO.slab} className="jk-hero__slab-list" />
+      </GlassPanel>
+
+      <div className="jk-hero__content">
+        <div className="jk-hero__row">
+          <p className="jk-hero__blurb" data-reveal data-delay="2">
+            {HERO.blurb} <s className="jk-struck">{HERO.struck.retired}</s> {HERO.struck.current}
+          </p>
+          <DefinitionList items={HERO.meta} className="jk-hero__meta" />
+        </div>
+        <HeroActions />
       </div>
-    </GlassPanel>
-  );
-};
+    </div>
+  </header>
+);

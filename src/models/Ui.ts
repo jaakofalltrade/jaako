@@ -7,19 +7,21 @@
  */
 
 export enum BadgeTone {
-  Green = "GREEN",
-  Blue = "BLUE",
-  Hazard = "HAZARD",
+  /** Live, current, active. The accent tone; the member name predates the palette. */
+  Cyan = "CYAN",
+  /** Neutral default. */
   Steel = "STEEL",
-  Void = "VOID",
+  /** Retired, archived, past. */
+  Ghost = "GHOST",
   Alert = "ALERT",
 }
 
 export enum ButtonVariant {
-  Hazard = "HAZARD",
-  Blue = "BLUE",
-  Metal = "METAL",
-  Hud = "HUD",
+  /** Frosted, tinted blue. One per screen, maximum. */
+  Primary = "PRIMARY",
+  /** Frosted cream, hairline border. The default. */
+  Glass = "GLASS",
+  /** Bare text, no surface. */
   Ghost = "GHOST",
 }
 
@@ -29,22 +31,52 @@ export enum ButtonSize {
   Lg = "LG",
 }
 
-export enum PanelTone {
-  Plate = "PLATE",
-  Void = "VOID",
+/**
+ * Whether an annotation carries information or is texture.
+ *
+ * This is an accessibility control, not a colour choice. Decorative resolves to
+ * --text-faint, which is 3.31:1 at worst against the page ground and fails WCAG AA
+ * for text — so the Annotation component also sets aria-hidden on it. Info resolves
+ * to --text-dim (4.69:1 at worst) and stays in the accessibility tree. Anything a
+ * reader needs is Info.
+ */
+export enum AnnotationTone {
+  Info = "INFO",
+  Decorative = "DECORATIVE",
 }
 
-export enum HeadingTone {
-  Light = "LIGHT",
-  Dim = "DIM",
+/** Aspect ratios for duotone plates. Fixed set, so the grid can never be surprised. */
+export enum PlateRatio {
+  Portrait = "PORTRAIT",
+  Landscape = "LANDSCAPE",
+  Square = "SQUARE",
+  Wide = "WIDE",
+}
+
+/** The four scroll-choreography behaviours. See styles/components/_reveal.scss. */
+export enum RevealKind {
+  Fade = "FADE",
+  Draw = "DRAW",
+  Mask = "MASK",
+  Plate = "PLATE",
+}
+
+/** The player. Sleeve is the collapsed-but-never-gone state.
+ *
+ * Two members, not three. Expanded/Collapsed drew the line between "recently played
+ * is showing" and "it is not", and the recent list is permanent now, so the only
+ * distinction left is whether the panel is open at all. */
+export enum DockState {
+  Open = "OPEN",
+  Sleeve = "SLEEVE",
 }
 
 export enum MarqueeTone {
-  Void = "VOID",
-  Hazard = "HAZARD",
+  Ink = "INK",
+  Cyan = "CYAN",
 }
 
-/** The guestbook dot and the navbar LED. */
+/** The signature-log dot and the section nav LED. */
 export enum PresenceStatus {
   Online = "ONLINE",
   Offline = "OFFLINE",
@@ -52,19 +84,13 @@ export enum PresenceStatus {
 
 /** Every Lucide SVG in public/icons. Adding a file here is what makes it usable. */
 export enum IconName {
-  ArrowRight = "ARROW_RIGHT",
-  CircleUser = "CIRCLE_USER",
   Disc = "DISC",
-  Folder = "FOLDER",
   Globe = "GLOBE",
   Link = "LINK",
   Linkedin = "LINKEDIN",
   Mail = "MAIL",
-  Monitor = "MONITOR",
-  MousePointer2 = "MOUSE_POINTER_2",
   RefreshCw = "REFRESH_CW",
   Save = "SAVE",
-  Star = "STAR",
   Terminal = "TERMINAL",
 }
 

@@ -1,37 +1,60 @@
-/* PageShell — the page frame every route renders inside. */
+@use "../base/mixins" as *;
+
+/* The frame.
+
+   The two decorative seam rails are gone with the metal plate they belonged to. The
+   page's structure is hairlines and whitespace now, and a vertical rule down each edge
+   fought that.
+
+   Sections carry their own measure rather than sitting inside one container, which is
+   what lets the hero break full-bleed without escaping a wrapper. */
 
 .jk-shell {
-  min-height: 100vh;
-  background: var(--bg-page);
-  background-attachment: fixed;
-}
-
-.jk-shell__container {
-  position: relative;
-  margin: 0 auto;
-  max-width: var(--page-max-px);
-  padding: 0 var(--space-8);
-}
-
-/* Vertical rails down both edges of the content column. */
-.jk-shell__seam {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: var(--seam);
-}
-
-.jk-shell__seam--left {
-  left: 0;
-}
-
-.jk-shell__seam--right {
-  right: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
 }
 
 .jk-shell__main {
-  display: grid;
-  gap: var(--space-8);
-  padding: var(--space-9) 0;
+  flex: 1;
+  // Flex items default to min-width:auto, which refuses to shrink below the widest
+  // thing inside them. The footer ticker is a nowrap strip roughly 2000px long, and
+  // without this the whole shell is dragged out to its width.
+  min-width: 0;
+}
+
+/* The editorial measure. Nothing else — no panel, no fill, no border.
+
+   Sections were briefly sheets of frosted glass, which is what let the background
+   photograph stay sharp behind them. That is reversed: the page is flat now, content
+   sits on the ground, and the wash in tokens/_effects.scss carries the legibility
+   that the panels used to. Separation is whitespace and nothing else. */
+.jk-section {
+  max-width: var(--page-max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  padding-block: var(--section-y);
+}
+
+/* Retired copy stays struck rather than deleted — that is the joke, and deleting it
+   would be the one edit that breaks it. */
+.jk-struck {
+  // --text-dim, not --text-faint. The struck-out phrase is still content — it is half
+  // of the joke — and --text-faint fails AA for text on every ground this page has.
+  color: var(--text-dim);
+  text-decoration-line: line-through;
+  // The stroke has to be legible or the joke silently becomes a typo. --hair-lit was
+  // a decorative alpha and at this size it simply did not show.
+  text-decoration-color: color-mix(in srgb, var(--text-dim) 75%, transparent);
+  text-decoration-thickness: 1px;
+}
+
+/* Presence dot. Shared by the section nav and the signature log. */
+.jk-presence--online {
+  background: var(--text-link);
+  animation: jk-pulse 2.6s var(--ease-in-out) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jk-presence--online { animation: none; }
 }

@@ -1,25 +1,25 @@
 import { EXPERIENCE } from "@/data/experience";
-import { PanelTone } from "@/models";
-import { SectionHeading } from "../core/SectionHeading";
-import { Window } from "../core/Window";
+import { SECTIONS } from "@/data/site";
+import { SectionHead } from "../core/SectionHead";
 import { ExperienceEntry } from "../portfolio/ExperienceEntry";
 
 export const ExperienceSection = () => (
-  <section id="experience" className="jk-experience-section">
-    <Window
-      title="career.log"
-      tone={PanelTone.Void}
-      controls={false}
-      footer="promoted 3x, still answers to the printers"
+  <section id="experience" className="jk-section jk-experience">
+    <SectionHead
+      index={SECTIONS.experience.index}
+      note={`${String(EXPERIENCE.length).padStart(2, "0")} entries`}
     >
-      <SectionHeading kicker="02 / experience" rule={false}>
-        Where I&apos;ve worked
-      </SectionHeading>
-      <div className="jk-experience-section__list">
-        {EXPERIENCE.map((entry) => (
-          <ExperienceEntry key={entry.company} {...entry} />
-        ))}
-      </div>
-    </Window>
+      {SECTIONS.experience.title}
+    </SectionHead>
+
+    <div className="jk-experience__list">
+      {EXPERIENCE.map((item, index) => (
+        <ExperienceEntry
+          key={item.company}
+          item={item}
+          index={String(index + 1).padStart(2, "0")}
+        />
+      ))}
+    </div>
   </section>
 );

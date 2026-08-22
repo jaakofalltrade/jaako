@@ -1,13 +1,13 @@
 import { AboutSection } from "@/design-system/sections/AboutSection";
 import { ContactSection } from "@/design-system/sections/ContactSection";
 import { ExperienceSection } from "@/design-system/sections/ExperienceSection";
-import { ProjectsSection } from "@/design-system/sections/ProjectsSection";
+import { WorkSection } from "@/design-system/sections/WorkSection";
 
 const Home = () => (
   <>
     <AboutSection />
     <ExperienceSection />
-    <ProjectsSection />
+    <WorkSection />
     <ContactSection />
   </>
 );

@@ -38,8 +38,15 @@ waits. Open the URL, approve access, and the script prints:
 SPOTIFY_REFRESH_TOKEN=AQD...
 ```
 
-The scopes requested are `user-read-currently-playing` and
-`user-read-recently-played` — read-only, no playback control.
+The scopes requested are `user-read-currently-playing`, `user-read-recently-played`
+and `user-top-read` — all read-only, no playback control.
+
+> **Rotating an existing token.** `user-top-read` was added for the listening
+> statistics cell in the instrument strip. A refresh token minted before that scope
+> existed will keep working for now-playing but Spotify will answer `403` for
+> `/me/top/*`, and the statistics cell renders its unavailable state instead. Re-run
+> this script and replace `SPOTIFY_REFRESH_TOKEN` to enable it. Nothing else breaks in
+> the meantime — the service never throws.
 
 ## 3. Local environment
 

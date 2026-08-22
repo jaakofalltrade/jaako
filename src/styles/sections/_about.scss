@@ -1,137 +1,78 @@
 @use "../base/mixins" as *;
 
-/* #about — hero, about_me.txt (which now carries the tech-stack list), and the
-   now_playing and guestbook aside. */
+/* Editorial three-column: a marginal mark, the prose, and a metadata rail.
 
-.jk-about {
-  display: grid;
-  gap: var(--space-8);
-  scroll-margin-top: var(--space-8);
-}
+   The narrow first column is the whole reason this reads as print — a wide left
+   margin carrying nothing but a section mark is a thing books do and web pages
+   almost never do. */
 
 .jk-about__grid {
   display: grid;
-  grid-template-columns: 1.4fr 1fr;
-  gap: var(--space-7);
-  align-items: start;
+  grid-template-columns: 3.5rem minmax(0, 1fr) 13rem;
+  gap: 0 var(--space-7);
+}
+
+.jk-about__mark {
+  padding-top: var(--space-2);
+}
+
+.jk-about__lead {
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  font-size: var(--text-2xl);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-display);
+  color: var(--text-strong);
+  margin-bottom: var(--space-5);
+  text-wrap: balance;
+}
+
+/* The one emphasised phrase in the body copy. A solid accent colour: the gradient
+   fill it used to carry was the loudest thing on the page. */
+.jk-about__emphasis {
+  font-style: normal;
+  color: var(--text-link);
 }
 
 .jk-about__text {
-  font-family: var(--font-body);
-  font-size: var(--text-sm);
-  line-height: var(--leading-normal);
-}
-
-.jk-about__actions {
-  display: flex;
-  gap: var(--space-4);
-  margin-top: var(--space-6);
-}
-
-.jk-about__link {
-  text-decoration: none;
-}
-
-.jk-about__aside {
-  display: grid;
-  gap: var(--space-6);
-}
-
-/* --- guestbook.cgi --- */
-.jk-guestbook {
-  display: grid;
-  gap: var(--space-4);
-}
-
-.jk-guestbook__head {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-/* No letter-spacing here on purpose — this one label in the design isn't tracked. */
-.jk-guestbook__who {
-  font-family: var(--font-pixel);
-  font-size: var(--text-2xs);
-  text-transform: uppercase;
-  color: var(--xgreen-lit);
-}
-
-.jk-guestbook__status {
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  background: var(--steel-400);
-}
-
-.jk-guestbook__status--online {
-  background: var(--xgreen);
-  box-shadow: var(--glow-green);
-  animation: jk-blink 1s steps(1, end) infinite;
-}
-
-.jk-guestbook__msg {
-  margin-top: var(--space-1);
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
-  color: var(--xgreen-lit);
-  text-shadow: var(--glow-green);
-}
-
-/* --- guestbook.cgi as an actual terminal: black CRT well behind the body,
-   scanlines burned into the glass. The titlebar/footer are already near-black,
-   so only the body needed the treatment. --- */
-.jk-guestbook-window {
-  position: relative;
-  overflow: hidden;
-  background: linear-gradient(180deg, #0a0c07 0%, #020301 100%);
-  box-shadow: var(--inset-well), var(--shadow-plate);
-
-  &::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: var(--scanlines);
-    opacity: 0.6;
-    mix-blend-mode: overlay;
-    pointer-events: none;
-  }
-}
-
-/* --- tech stack, nested inside about_me.txt --- */
-.jk-about__stack {
-  margin-top: var(--space-6);
-  padding-top: var(--space-6);
-  border-top: var(--border-1) solid var(--steel-400);
-}
-
-.jk-about__stack-label {
-  @include label;
-  color: var(--xgreen-lit);
-  text-shadow: var(--glow-green);
+  font-size: var(--text-md);
+  line-height: var(--leading-loose);
+  color: var(--text-dim);
+  max-width: var(--measure);
+  margin-bottom: var(--space-4);
 }
 
 .jk-stack {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: var(--space-4);
-  margin-top: var(--space-5);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  margin: var(--space-6) 0 0;
+  padding: 0;
+  list-style: none;
 }
 
 .jk-stack__item {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  background: var(--panel-gradient);
-  border: var(--border-1) solid var(--steel-300);
-  box-shadow: var(--bevel-metal);
+  @include label($size: var(--text-3xs), $tracking: var(--tracking-wide));
+  color: var(--text-dim);
+  text-transform: lowercase;
 }
 
-.jk-stack__label {
-  font-family: var(--font-pixel);
-  font-size: var(--text-sm);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-wide);
-  color: var(--text-body);
+@include down($bp-md) {
+  .jk-about__grid {
+    grid-template-columns: 2.5rem minmax(0, 1fr);
+    gap: 0 var(--space-5);
+  }
+
+  /* The metadata rail moves under the prose and spans the text column, keeping it
+     aligned to the same left edge rather than to the marginal mark. */
+  .jk-about__meta {
+    grid-column: 2;
+    margin-top: var(--space-7);
+  }
+}
+
+@include down($bp-sm) {
+  .jk-about__grid { grid-template-columns: minmax(0, 1fr); }
+  .jk-about__mark { display: none; }
+  .jk-about__meta { grid-column: 1; }
 }

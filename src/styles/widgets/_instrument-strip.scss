@@ -1,0 +1,135 @@
+@use "../base/mixins" as *;
+
+/* Four readouts in a row, directly under the hero.
+
+   This is where the comic layer lives now. Scattered across the old design as a
+   guestbook panel, a footer counter and a marquee, the same four gags read as
+   clutter; collected into one dense instrument rail they read as a specification. */
+
+/* One frosted panel with four cells inside it, rather than four cells fenced off
+   from each other by rules. The old version drew five strokes to say what the gaps
+   already say. */
+.jk-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-7);
+  max-width: var(--page-max);
+  margin: 0 auto var(--space-8);
+  padding: var(--space-6) var(--gutter);
+}
+
+.jk-strip__cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.jk-strip__label {
+  color: var(--text-dim);
+}
+
+/* --- visitor index ---------------------------------------------------------------- */
+
+.jk-visitor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+.jk-visitor__display {
+  display: flex;
+  gap: 2px;
+}
+
+.jk-visitor__digit {
+  display: grid;
+  place-items: center;
+  width: 0.85rem;
+  height: 1.1rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  /* Tabular figures: without them the counter jitters horizontally as digits change,
+     which is the one thing an odometer must never do. */
+  font-variant-numeric: tabular-nums;
+  color: var(--text-link);
+  background: var(--surface-well);
+  border: var(--border-1) solid var(--edge);
+}
+
+/* --- signature log ---------------------------------------------------------------- */
+
+.jk-log {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.jk-log__row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-3xs);
+  letter-spacing: var(--tracking-wide);
+}
+
+.jk-log__dot {
+  flex: 0 0 auto;
+  width: 4px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--text-faint);
+  align-self: center;
+}
+
+.jk-log__who {
+  flex: 0 0 auto;
+  color: var(--text-link);
+}
+
+.jk-log__msg {
+  @include truncate;
+  min-width: 0;
+  color: var(--text-dim);
+}
+
+.jk-log__row--total {
+  margin-top: var(--space-1);
+}
+
+/* --- listening statistics --------------------------------------------------------- */
+
+.jk-stats {
+  min-width: 0;
+}
+
+.jk-stats .jk-dl__row {
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  gap: 0 var(--space-3);
+}
+
+.jk-stats .jk-dl__value {
+  @include truncate;
+}
+
+.jk-stats__idle {
+  color: var(--text-dim);
+}
+
+/* --- responsive ------------------------------------------------------------------- */
+
+/* Two-up on tablets. Four 25% cells stop being readable long before the viewport
+   stops being wide — the signature log is the first thing to become unusable. */
+@include down($bp-md) {
+  .jk-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@include down($bp-xs) {
+  .jk-strip { grid-template-columns: minmax(0, 1fr); }
+}

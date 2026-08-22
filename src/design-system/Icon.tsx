@@ -11,7 +11,7 @@ export type IconProps = {
 };
 
 /**
- * Lucide SVGs from public/icons, tinted to sit in the piss-filter palette.
+ * Lucide SVGs from public/icons, recoloured by --icon-tint to sit in the palette.
  *
  * The path comes out of a lookup rather than being interpolated from the name —
  * an unknown icon is now a type error instead of a 404, and nothing a caller

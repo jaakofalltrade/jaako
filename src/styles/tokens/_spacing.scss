@@ -1,8 +1,27 @@
+/* rem, not px, so the whole rhythm scales with the user's root font size. The ladder is
+   the 4/8 grid: 2 4 8 12 16 20 24 32 40 56 80. */
 :root{
---space-0:0;--space-1:2px;--space-2:4px;--space-3:8px;--space-4:12px;--space-5:16px;
---space-6:20px;--space-7:24px;--space-8:32px;--space-9:40px;--space-10:56px;--space-11:80px;
---gutter:16px;--page-max:80%;--page-max-px:1120px;
---radius-none:0;--radius-xs:2px;--radius-sm:5px;--radius-md:10px;--radius-lg:18px;--radius-pill:2rem;
+--space-0:0;--space-1:.125rem;--space-2:.25rem;--space-3:.5rem;--space-4:.75rem;
+--space-5:1rem;--space-6:1.25rem;--space-7:1.5rem;--space-8:2rem;--space-9:2.5rem;
+--space-10:3.5rem;--space-11:5rem;--space-12:7rem;
+
+/* Section rhythm. Sections are the page's largest unit now that panels are gone, so
+   their vertical spacing interpolates rather than stepping at a breakpoint. */
+--section-y:clamp(2rem,1.4rem + 3vw,4rem);
+--gutter:clamp(1.125rem,.7rem + 2vw,1.875rem);
+--page-max:64rem;        /* 1024px — narrower than the old 1120, editorial measure */
+--measure:60ch;          /* prose max-width */
+
+/* Sharp everywhere except controls. The page is square by design, but a button is a
+   thing you press and a little softening on it reads as such — --radius-sm is that,
+   and it is used on .jk-btn and nowhere else. --radius-pill survives for the one
+   circular element left, the player's sleeve. */
+--radius-none:0;--radius-xs:0;--radius-sm:.375rem;--radius-pill:50%;
+
 --border-1:1px;--border-2:2px;--border-3:3px;
---titlebar-h:22px;--control-h-sm:24px;--control-h-md:32px;--control-h-lg:44px;
+--control-h-sm:1.75rem;--control-h-md:2.25rem;--control-h-lg:2.75rem;
+
+/* Touch floor. Every interactive element resolves to at least this in its own rule;
+   the token exists so the number is stated once. */
+--touch-min:2.75rem;     /* 44px */
 }

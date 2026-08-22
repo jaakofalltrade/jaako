@@ -1,0 +1,70 @@
+@use "../base/mixins" as *;
+
+/* A photograph on the duotone ramp.
+
+   The filter is #jk-duotone from app/layout.tsx. Grain is a pseudo-element on the figure, so a plate stays one
+   node in the tree however many layers it appears to have. */
+
+.jk-plate {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  border: var(--border-1) solid var(--hair);
+  background: var(--surface-well);
+  /* Reserves the box before the image decodes. Without this every plate contributes
+     to CLS, which is the one metric photography-led pages reliably fail. */
+  aspect-ratio: 4 / 5;
+}
+
+.jk-plate--portrait  { aspect-ratio: 4 / 5; }
+.jk-plate--landscape { aspect-ratio: 16 / 9; }
+.jk-plate--square    { aspect-ratio: 1 / 1; }
+.jk-plate--wide      { aspect-ratio: 21 / 9; }
+
+.jk-plate__img {
+  object-fit: cover;
+  filter: var(--duotone);
+}
+
+/* Grain — the tooth of the frosted surface. */
+.jk-plate::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background-image: var(--grain);
+  opacity: var(--grain-opacity);
+  mix-blend-mode: overlay;
+}
+
+.jk-plate__caption {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 4;
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  /* Gradient rather than a solid bar: the caption has to stay legible over an
+     unpredictable photograph without boxing it in. */
+  background: linear-gradient(180deg, transparent, rgba(242, 239, 231, .92));
+}
+
+/* The procedural fill, for a plate with no photograph.
+
+   Plate documents this as a permanent feature rather than scaffolding, and it had no
+   rule at all — which on the old near-black ground was invisible and on this one is a
+   conspicuously empty frame. --plate-seed rotates the gradient so a row of them does
+   not repeat, which is the whole reason the component accepts a seed. */
+.jk-plate__proc {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      calc(150deg + var(--plate-seed, 0deg)),
+      color-mix(in srgb, var(--p-mid) 42%, transparent),
+      color-mix(in srgb, var(--p-pale) 65%, transparent) 55%,
+      color-mix(in srgb, var(--p-deep) 26%, transparent)
+    );
+}

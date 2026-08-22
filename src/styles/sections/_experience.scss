@@ -1,9 +1,7 @@
-/* #experience — career.log */
+@use "../base/mixins" as *;
 
-.jk-experience-section {
-  scroll-margin-top: var(--space-8);
-}
-
-.jk-experience-section__list {
-  margin-top: var(--space-5);
+.jk-experience__list {
+  /* Space between entries rather than a rule under each one. */
+  display: grid;
+  gap: var(--space-6);
 }

@@ -1,125 +1,148 @@
-/* Hero — the masthead panel. Sits on .jk-glass, so only what's specific to the
-   hero lives here. */
+@use "../base/mixins" as *;
+
+/* The masthead: the name turned on its side down the left edge, with a thin rule
+   crossing its axis at a right angle, and everything else in the column beside it.
+
+   The grid is what makes the rotation work. The title spans both rows so it is the
+   full height of the masthead regardless of how tall the body column happens to be;
+   the crossline sits in row 1 of the body column, which is what puts it at ninety
+   degrees to the name rather than merely near it. */
 
 .jk-hero {
-  padding: var(--space-10) var(--space-8) var(--space-9);
-
-  /* Worn gunmetal, not the site's usual olive plate: real bullet holes shot
-     through it, grain noise, three crossing gouges, fine brushed grain, a
-     couple of rust stains, a grimy vignette, a cold steel sheen, then a
-     neutral-grey metal gradient underneath — deliberately colder than the
-     rest of the piss-filter site. This is the masthead; it's allowed to be
-     obnoxious about it. */
-  background-image:
-    url("/images/bullet-hole.png"),
-    url("/images/bullet-hole.png"),
-    url("/images/bullet-hole.png"),
-    url("/images/bullet-hole.png"),
-    url("/images/bullet-hole.png"),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
-    var(--vignette),
-    radial-gradient(ellipse 90px 55px at 88% 85%, rgba(200, 92, 20, 0.7) 0%, transparent 70%),
-    radial-gradient(ellipse 60px 40px at 6% 12%, rgba(200, 92, 20, 0.55) 0%, transparent 70%),
-    repeating-linear-gradient(112deg, transparent 0 21px, rgba(255, 255, 255, 0.28) 21px 22px, transparent 22px 63px),
-    repeating-linear-gradient(48deg, transparent 0 33px, rgba(0, 0, 0, 0.45) 33px 34px, transparent 34px 87px),
-    repeating-linear-gradient(160deg, transparent 0 47px, rgba(0, 0, 0, 0.3) 47px 48px, transparent 48px 121px),
-    repeating-linear-gradient(96deg, transparent 0 3px, rgba(255, 255, 255, 0.08) 3px 4px, transparent 4px 9px),
-    linear-gradient(155deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.03) 40%, rgba(0, 0, 0, 0.5) 100%),
-    linear-gradient(180deg, #5f6266 0%, #34363a 45%, #121316 100%);
-  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, repeat, repeat, repeat, repeat, repeat, repeat, repeat, repeat, repeat, repeat;
-  background-position:
-    74% 25%,
-    88% 58%,
-    64% 80%,
-    93% 18%,
-    95% 84%,
-    0 0,
-    0 0,
-    0 0,
-    0 0,
-    0 0,
-    0 0,
-    0 0,
-    0 0,
-    0 0,
-    0 0;
-  background-size:
-    52px 42px,
-    38px 30px,
-    32px 26px,
-    26px 21px,
-    44px 35px,
-    auto,
-    auto,
-    auto,
-    auto,
-    auto,
-    auto,
-    auto,
-    auto,
-    auto,
-    auto;
-  background-blend-mode: normal, normal, normal, normal, normal, overlay, multiply, overlay, overlay, screen, multiply, multiply, overlay, normal, normal;
-  background-color: #34363a;
-}
-
-/* CRT scanline overlay. .jk-glass--hazard-edge already owns ::before, so this
-   stays a real element. */
-.jk-hero__scanlines {
-  position: absolute;
-  inset: 0;
-  background: var(--scanlines);
-  opacity: 0.4;
-  pointer-events: none;
-}
-
-/* Everything below sits above the scanline overlay. */
-.jk-hero__badges,
-.jk-hero__title,
-.jk-hero__blurb,
-.jk-hero__actions {
   position: relative;
+  /* Deliberately not 100dvh. A masthead that fills the viewport tells a reader there
+     is nothing below it; leaving the next block's edge visible does the opposite. */
+  min-height: clamp(22rem, 16rem + 24vh, 30rem);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  column-gap: var(--space-7);
+  max-width: var(--page-max);
+  margin: var(--space-7) auto var(--space-6);
+  padding: var(--space-9) var(--gutter);
+  /* No background. The masthead is type on the photograph. */
 }
 
-.jk-hero__badges {
-  display: flex;
-  gap: var(--space-3);
-  margin-bottom: var(--space-5);
-}
+/* --- the name ---------------------------------------------------------------------
+   writing-mode does the turning, not a transform on a horizontal box: it makes the
+   element genuinely tall-and-narrow, so the grid can lay it out instead of having to
+   reserve space for something that has been visually moved out of its own footprint.
 
+   The 180° rotation is what makes it read bottom-to-top. Without it vertical-rl runs
+   top-to-bottom, which for a Latin name down a left edge reads upside down.
+
+   The size step down from --text-5xl is not timidity. Latin text in vertical-rl keeps
+   its horizontal advance as its vertical extent, so "jaako andes" at the old 5.5rem
+   would stand about 38rem tall — taller than the entire masthead. --text-4xl lands it
+   just inside. */
 .jk-hero__title {
+  grid-column: 1;
+  grid-row: 1 / -1;
+  writing-mode: vertical-rl;
+  font-size: var(--text-4xl);
+  line-height: 1;
   margin: 0;
-  font-family: var(--font-display);
-  font-size: var(--text-5xl);
-  line-height: var(--leading-tight);
-  text-transform: uppercase;
   color: var(--text-strong);
-  text-shadow: 4px 4px 0 rgba(0, 0, 0, 0.7);
+  white-space: nowrap;
+  align-self: end;
+}
+
+/* The rotation sits on the span, not on the heading, and that is not tidiness — the
+   heading carries data-reveal, and components/_reveal.scss sets `transform: none` on
+   .is-in once the element has arrived. Put the rotation on the heading and the reveal
+   wipes it the moment the observer fires: computed style reads `none` and the name
+   silently reads top-to-bottom instead. Two elements, two transforms. */
+.jk-hero__title > span {
+  display: block;
+  transform: rotate(180deg);
+}
+
+/* The perpendicular mark. Sits in the body column's first row, so it meets the name's
+   axis at a right angle and runs away from it across the masthead. */
+.jk-hero__crossline {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: start;
+  height: var(--border-1);
+  background: var(--hair-lit);
+  margin-bottom: var(--space-7);
+}
+
+/* --- everything beside it ---------------------------------------------------------- */
+
+.jk-hero__body {
+  grid-column: 2;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.jk-hero__top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: auto;
+}
+
+/* The inset. Clear rather than frosted — see components/_glass-panel.scss. */
+.jk-hero__slab {
+  align-self: flex-start;
+  width: auto;
+  margin-bottom: var(--space-7);
+  padding: var(--space-4) var(--space-5);
+}
+
+.jk-hero__slab-list {
+  grid-auto-flow: column;
+  gap: 0 var(--space-6);
+}
+
+.jk-hero__row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-8);
 }
 
 .jk-hero__blurb {
-  margin: var(--space-5) 0 var(--space-7);
-  max-width: 48ch;
-  font-family: var(--font-body);
   font-size: var(--text-md);
-  line-height: var(--leading-normal);
+  line-height: var(--leading-loose);
   color: var(--text-body);
+  max-width: 42ch;
+}
+
+/* Separated by space rather than by the rule it used to carry down its left edge. */
+.jk-hero__meta {
+  margin-left: auto;
 }
 
 .jk-hero__actions {
   display: flex;
-  gap: var(--space-4);
   flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-top: var(--space-7);
 }
 
 .jk-hero__link {
   text-decoration: none;
 }
 
-/* "no longer for hire" — the copy stays, struck out and dimmed rather than
-   deleted, so the joke reads. Used inside a badge and a button label. */
-.jk-hero__struck {
-  color: var(--text-muted);
-  opacity: 0.7;
-  text-decoration-thickness: var(--border-1);
+@include down($bp-sm) {
+  /* A vertical name keeps its full horizontal advance as height, so on a phone it has
+     to come down a step again or the masthead is most of the scroll. */
+  .jk-hero__title { font-size: var(--text-3xl); }
+
+  .jk-hero { column-gap: var(--space-5); }
+
+  /* The metadata list and the blurb stop competing for one line and stack. */
+  .jk-hero__row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-5);
+  }
+
+  .jk-hero__meta { margin-left: 0; }
+
+  .jk-hero__top .jk-anno:last-child { display: none; }
 }

@@ -1,0 +1,35 @@
+/* The hairline.
+
+   Kept, but now rare. In the dark design rules were the only thing dividing the page
+   and this was the most-used component in the system; against a photographic ground
+   that many strokes read as damage rather than structure. Sections, lists, the
+   instrument strip and the section heads all separate with space instead, and this
+   survives for the two places a stroke still says something the gap cannot. */
+
+.jk-rule-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1;
+  min-width: 0;
+}
+
+.jk-rule {
+  flex: 1;
+  height: var(--border-1);
+  min-width: 0;
+  /* Fading rather than flat: a rule that dies out reads as a margin note, one that
+     runs edge to edge reads as a table border. This page wants the former. */
+  background: linear-gradient(90deg, var(--hair), transparent);
+}
+
+.jk-rule--lit {
+  background: linear-gradient(90deg, var(--hair-lit), transparent);
+}
+
+.jk-rule__tick {
+  flex: 0 0 auto;
+  width: 4px;
+  height: 4px;
+  background: var(--fill-primary);
+}
