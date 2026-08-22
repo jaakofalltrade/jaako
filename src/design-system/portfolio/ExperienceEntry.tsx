@@ -2,57 +2,47 @@ import { BadgeTone } from "@/models";
 import type { ExperienceItem } from "@/models";
 import { Badge } from "../core/Badge";
 
-export const ExperienceEntry = ({
-  company,
-  location,
-  total_tenure,
-  roles,
-  bullets,
-  stack,
-  current,
-}: ExperienceItem) => (
-  <div className="jk-experience">
-    <div className="jk-experience__head">
-      <div className="jk-experience__company">
-        <h3 className="jk-experience__name">{company}</h3>
-        {current ? (
-          <Badge tone={BadgeTone.Green} blink>
-            active
-          </Badge>
-        ) : (
-          <Badge tone={BadgeTone.Steel}>archived</Badge>
-        )}
-      </div>
-      <span className="jk-experience__where">
-        {location}
-        <br />
-        {total_tenure}
-      </span>
+export type ExperienceEntryProps = {
+  item: ExperienceItem;
+  /** Two-digit index. The list is numbered like the work tracklist, on purpose. */
+  index: string;
+};
+
+/**
+ * One company, as a row rather than a card.
+ *
+ * Roles are a <ul> because they are a list of positions held, and the current one is
+ * marked with <strong> rather than colour alone.
+ */
+export const ExperienceEntry = ({ item, index }: ExperienceEntryProps) => (
+  <article className="jk-xp" data-reveal>
+    <span aria-hidden="true" className="jk-xp__index">
+      {index}
+    </span>
+
+    <div className="jk-xp__body">
+      <h3 className="jk-xp__company">{item.company}</h3>
+      <ul className="jk-xp__roles">
+        {item.roles.map((role, position) => (
+          <li key={role.title} className="jk-xp__role">
+            {position === 0 ? <strong>{role.title}</strong> : role.title}
+            <span className="jk-xp__period"> · {role.period}</span>
+          </li>
+        ))}
+      </ul>
+      <ul className="jk-xp__bullets">
+        {item.bullets.map((bullet) => (
+          <li key={bullet}>{bullet}</li>
+        ))}
+      </ul>
     </div>
 
-    <div className="jk-experience__roles">
-      {roles.map((role) => (
-        <div key={role.title} className="jk-experience__role">
-          <span className="jk-experience__role-title">{role.title}</span>
-          <span className="jk-experience__role-period">{role.period}</span>
-        </div>
-      ))}
+    <div className="jk-xp__meta">
+      <span className="jk-xp__location">{item.location}</span>
+      <span className="jk-xp__tenure">{item.total_tenure}</span>
+      <Badge tone={item.current ? BadgeTone.Cyan : BadgeTone.Ghost}>
+        {item.current ? "active" : "archived"}
+      </Badge>
     </div>
-
-    <ul className="jk-experience__bullets">
-      {bullets.map((bullet) => (
-        <li key={bullet} className="jk-experience__bullet">
-          {bullet}
-        </li>
-      ))}
-    </ul>
-
-    <div className="jk-experience__stack">
-      {stack.map((entry) => (
-        <Badge key={entry} tone={BadgeTone.Steel}>
-          {entry}
-        </Badge>
-      ))}
-    </div>
-  </div>
+  </article>
 );

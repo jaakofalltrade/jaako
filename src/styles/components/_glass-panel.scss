@@ -1,36 +1,26 @@
-/* GlassPanel — smoked-glass surface. The `tint` prop is continuous, so it arrives
-   inline as --glass-alpha rather than as a modifier class. */
+/* GlassPanel, minus the glass.
+
+   The frosted-glass vocabulary is retired site-wide — no backdrop-filter, no tinted
+   edge, no fill behind the sections. What is left of this component is a quiet inset:
+   a faint cream wash used where a block needs to read as slightly set apart from the
+   prose around it, and nothing more. The `tint` prop still scales it.
+
+   The component itself is kept rather than deleted because the hero slab still wants
+   exactly this, and one class doing one flat thing is cheaper than inlining it. */
 
 .jk-glass {
   position: relative;
-  overflow: hidden;
-  border-radius: 0;
-  background: rgba(13, 14, 11, var(--glass-alpha, 0.55));
-  border: var(--border-1) solid var(--border-hairline);
-  backdrop-filter: var(--blur-glass);
-  -webkit-backdrop-filter: var(--blur-glass);
-  box-shadow: var(--shadow-float);
-  color: var(--text-body);
-  text-shadow: var(--text-shadow-hud);
-  transition: var(--transition-card);
+  background: rgba(242, 239, 231, calc(0.45 * var(--glass-alpha, 1)));
 }
 
-.jk-glass--specular {
-  box-shadow: var(--shadow-float), var(--inset-specular);
+.jk-glass--hover-lift {
+  transition: background-color var(--dur-base) var(--ease-out);
+
+  &:hover {
+    background: rgba(242, 239, 231, calc(0.7 * var(--glass-alpha, 1)));
+  }
 }
 
-.jk-glass--hover-lift:hover {
-  transform: translateY(var(--hover-lift));
-}
-
-/* Hazard stripe across the top edge, replacing the decorative span. */
-.jk-glass--hazard-edge::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: 6px;
-  background: var(--hazard-stripes);
-  z-index: 1;
+@media (prefers-reduced-motion: reduce) {
+  .jk-glass--hover-lift { transition: none; }
 }

@@ -1,0 +1,20 @@
+/* Photography is mapped onto a two-colour ramp by the #jk-duotone SVG filter, which is
+   declared once in src/app/layout.tsx inside a visually-hidden <svg>.
+
+   Why a filter and not the usual grayscale + mix-blend-mode:color trick: that trick is
+   a gradient map by *position* — it tints the top of an image differently from the
+   bottom regardless of what is in it. A real duotone maps by *luminance*, so a bright
+   object stays bright wherever it sits in the frame. feComponentTransfer is the only
+   thing in CSS that does that.
+
+   The endpoints are the palette's darkest blue and its cream, so imagery lands inside
+   the same four colours as everything else and stays light. The tableValues in
+   layout.tsx are these two written as 0..1 channel pairs; if these move, those must
+   move with them.
+
+   Same-document filter references are not affected by the CSP. */
+:root{
+--duo-lo:#1d3f63;--duo-hi:#f2efe7;
+--duotone:url(#jk-duotone) contrast(1.02);
+--duotone-off:none;
+}

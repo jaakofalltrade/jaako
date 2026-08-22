@@ -1,0 +1,186 @@
+@use "../base/mixins" as *;
+
+/* The work list and its plates.
+
+   A row, not a card. Cards are the most over-used object on a developer portfolio;
+   a numbered list with a plate that answers to it lets ten projects occupy the space
+   three cards would, and it is the Aphex sleeve read directly. */
+
+.jk-work {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 20rem;
+  gap: var(--space-8);
+  align-items: start;
+}
+
+.jk-work__list {
+  /* No top rule and no rule between rows. The two-digit index is the spine of this
+     list; a stroke under every entry was doing the same job twice. */
+  display: grid;
+}
+
+.jk-track {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr) auto;
+  gap: var(--space-5);
+  align-items: baseline;
+  padding: var(--space-5) var(--space-2);
+  text-decoration: none;
+  color: inherit;
+  transition:
+    padding-left var(--dur-base) var(--ease-out),
+    background var(--dur-base) var(--ease-out);
+
+  /* The indent on hover is the whole interaction. It reads as the row stepping
+     forward to be read, which is what a tracklist does. */
+  &:hover,
+  &:focus-visible {
+    padding-left: var(--space-4);
+    background: linear-gradient(90deg, rgba(51, 104, 160, .09), transparent 70%);
+  }
+}
+
+.jk-track__index {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--text-faint);
+  transition: color var(--dur-base) var(--ease-out);
+
+  .jk-track:hover &,
+  .jk-track:focus-visible & {
+    color: var(--text-link);
+  }
+}
+
+.jk-track__body {
+  display: block;
+  min-width: 0;
+}
+
+.jk-track__title {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  font-size: var(--text-xl);
+  letter-spacing: var(--tracking-display);
+  text-transform: lowercase;
+  color: var(--text-body);
+  transition: color var(--dur-base) var(--ease-out);
+
+  .jk-track:hover &,
+  .jk-track:focus-visible & { color: var(--text-strong); }
+}
+
+.jk-track__blurb {
+  display: block;
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--text-dim);
+}
+
+.jk-track__meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+  text-align: right;
+}
+
+.jk-track__stack {
+  @include label($size: var(--text-3xs), $tracking: var(--tracking-wide));
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+/* --- the plates ------------------------------------------------------------------ */
+
+/* PlateStack renders both of these classes onto the SAME element, so order decides
+   which position wins — and .jk-platestack used to come second and quietly turn the
+   sticky panel back into a relative one, which killed the whole interaction. The
+   contextual class goes last on purpose. */
+.jk-platestack {
+  position: relative;
+  aspect-ratio: 4 / 5;
+}
+
+.jk-work__plates {
+  position: sticky;
+  /* Nothing is pinned to the top of the viewport now, so this only has to clear the
+     edge rather than a bar. */
+  top: var(--space-8);
+}
+
+.jk-platestack__item {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: scale(1.03);
+  transition:
+    opacity var(--dur-slow) var(--ease-out),
+    transform var(--dur-draw) var(--ease-out);
+}
+
+.jk-platestack__item--on {
+  opacity: 1;
+  transform: none;
+}
+
+/* --- mobile: the plate goes behind the list -------------------------------------- */
+
+@include down($bp-sm) {
+  .jk-work {
+    grid-template-columns: minmax(0, 1fr);
+    position: relative;
+    gap: 0;
+  }
+
+  /* Full-bleed behind the rows rather than beside them, crossfading as the list
+     scrolls. The list sits on top in glass — surface 4 of 4. */
+  .jk-work__plates {
+    position: absolute;
+    inset: 0;
+    top: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .jk-platestack {
+    position: absolute;
+    inset: 0;
+    aspect-ratio: auto;
+  }
+
+  .jk-platestack__item {
+    aspect-ratio: auto;
+    border: 0;
+  }
+
+  .jk-work__list {
+    position: relative;
+    z-index: 1;
+    /* One of only two places left with a fill, and for the same reason as the
+       player: the plate is full-bleed directly behind these rows. */
+    background: var(--surface-raised);
+    padding-inline: var(--space-4);
+  }
+
+  .jk-track {
+    grid-template-columns: 1.75rem minmax(0, 1fr);
+    gap: var(--space-4);
+  }
+
+  /* The metadata column drops under the title rather than being cut off. */
+  .jk-track__meta {
+    grid-column: 2;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: left;
+    margin-top: var(--space-3);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jk-platestack__item { transition: opacity var(--dur-fast) linear; transform: none; }
+}

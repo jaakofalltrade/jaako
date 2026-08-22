@@ -1,12 +1,46 @@
 /* Shared declaration clusters.
    These are mixins rather than utility classes on purpose: every element that needs
    them already carries its own component class, so folding the declarations into that
-   class keeps the markup holding exactly one class per element — which is the whole
-   point of the refactor. */
+   class keeps the markup holding exactly one class per element. */
 
-/* The pixel/uppercase/tracked label treatment. Written out by hand in eleven places
-   before this existed. Colour is deliberately left to the caller: it varies. */
-@mixin label($family: var(--font-pixel), $size: var(--text-2xs), $tracking: var(--tracking-caps)) {
+/* --- BREAKPOINTS -------------------------------------------------------------------
+   These have to be Sass variables, not custom properties: CSS variables do not work
+   inside @media conditions. Everything is written mobile-first, so `up()` is the one
+   you want in almost every case and `down()` is reserved for things that genuinely
+   only exist on small screens (the player's sleeve-only mode, for instance). */
+$bp-xs: 30rem;  /*  480px */
+$bp-sm: 48rem;  /*  768px */
+$bp-md: 64rem;  /* 1024px */
+$bp-lg: 80rem;  /* 1280px */
+
+@mixin up($bp) {
+  @media (min-width: $bp) { @content; }
+}
+
+@mixin down($bp) {
+  @media (max-width: ($bp - 0.0625rem)) { @content; }
+}
+
+/* The glass mixins are gone, and so is every backdrop-filter on the site.
+
+   There were two of them, `glass` and `glass-clear`, and between them they put a
+   frosted sheet behind every section, the masthead, the footer and the nav. That
+   whole vocabulary is retired: content sits directly on the background photograph
+   now, which is why the wash in tokens/_effects.scss had to get heavier and why the
+   text ramp in tokens/_colors.scss is measured against the open ground rather than
+   against a panel.
+
+   The three things that still need a surface set it themselves, because each has its
+   own reason and no shared abstraction was carrying its weight: .jk-btn (a control
+   wants to look pressable), the form fields (a field has to show where it starts and
+   ends), and .jk-dock (a fixed overlay with page content scrolling underneath it).
+
+   If a fourth ever needs one, ask first whether it is really overlaying something. */
+
+/* The mono micro-label: caps, tracked wide, small. Colour is deliberately left to the
+   caller — an informational annotation and a decorative one are different colours, and
+   that distinction is the accessibility rule (see tokens/_colors.scss). */
+@mixin label($family: var(--font-mono), $size: var(--text-3xs), $tracking: var(--tracking-anno)) {
   font-family: $family;
   font-size: $size;
   letter-spacing: $tracking;
@@ -14,14 +48,14 @@
 }
 
 /* Single-line ellipsis. Needs an explicit min-width:0 on flex/grid children to
-   actually engage — see .jk-now-playing__meta. */
+   actually engage. */
 @mixin truncate {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* Recolours a black Lucide <img> SVG into the palette. */
+/* Recolours a black Lucide <img> SVG toward --text-dim. */
 @mixin icon-tint {
   filter: var(--icon-tint);
 }

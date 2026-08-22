@@ -1,5 +1,7 @@
-/* Select — native <select> with the arrow suppressed and a fake chevron plate
-   drawn over the right edge. */
+/* Native <select> with the platform arrow suppressed and a chevron drawn over the
+   right edge. Native rather than a custom listbox on purpose — the platform control
+   already handles keyboard, screen readers and the mobile picker correctly, and
+   nothing about this design needs it not to. */
 
 .jk-select {
   position: relative;
@@ -7,42 +9,47 @@
 
 .jk-select__control {
   width: 100%;
-  height: var(--control-h-md);
-  padding: 0 var(--space-9) 0 var(--space-4);
+  min-height: var(--control-h-lg);
+  padding: var(--space-3) var(--space-9) var(--space-3) var(--space-4);
   appearance: none;
-  border: var(--border-1) solid var(--steel-300);
-  border-radius: 0;
-  background: var(--panel-gradient);
+  border: var(--border-1) solid var(--edge);
+  border-radius: var(--radius-none);
+  background: var(--surface-field);
   color: var(--text-body);
-  box-shadow: var(--bevel-metal);
-  font-family: var(--font-pixel);
-  font-size: var(--text-2xs);
-  text-transform: uppercase;
+  font-family: var(--font-mono);
+  /* 16px floor again — a select under 16px zooms iOS exactly like a text input. */
+  font-size: var(--text-md);
   letter-spacing: var(--tracking-wide);
   outline: none;
+  cursor: pointer;
+  transition: border-color var(--dur-base) var(--ease-out);
+
+  &:hover {
+    border-color: var(--text-link);
+  }
 
   &:focus-visible {
     outline: var(--border-2) solid var(--focus-ring);
+    outline-offset: 0;
   }
 }
 
-/* The dropdown list is OS-rendered; this is the one property that reliably lands. */
-.jk-select__option {
-  background: var(--steel-600);
-}
-
+/* The chevron. Decorative and pointer-transparent, so clicking it still opens the
+   select underneath. */
 .jk-select__chevron {
   position: absolute;
-  right: 4px;
-  top: 4px;
-  display: grid;
-  place-items: center;
-  width: 20px;
-  height: 22px;
-  background: var(--void);
-  border: var(--border-1) solid var(--steel-400);
-  color: var(--xgreen-lit);
-  font-family: var(--font-pixel-micro);
-  font-size: var(--text-3xs);
+  top: 50%;
+  right: var(--space-4);
+  transform: translateY(-50%);
   pointer-events: none;
+  font-family: var(--font-mono);
+  font-size: var(--text-3xs);
+  color: var(--text-link);
+}
+
+/* The dropdown list itself is drawn by the OS; these only reach it on some
+   platforms, but costing nothing they are worth setting. */
+.jk-select__control option {
+  background: var(--surface-well);
+  color: var(--text-body);
 }

@@ -48,6 +48,14 @@ const nextConfig: NextConfig = {
       headers: SECURITY_HEADERS,
     },
   ],
+
+  // Projects became work in the 2026 redesign. Permanent rather than temporary: the
+  // old paths were the only shareable URLs the site had, so anything already pointing
+  // at one should end up on the new page for good.
+  redirects: async () => [
+    { source: "/projects/:slug", destination: "/work/:slug", permanent: true },
+    { source: "/projects", destination: "/work", permanent: true },
+  ],
 };
 
 export default nextConfig;

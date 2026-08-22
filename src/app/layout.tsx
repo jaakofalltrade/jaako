@@ -1,49 +1,38 @@
 import type { Metadata } from "next";
-import { Rubik_Glitch, Teko, Silkscreen, Tiny5, Geist_Mono } from "next/font/google";
+import { Quicksand, Geist_Mono } from "next/font/google";
 import "../styles/globals.scss";
 import { PageShell } from "@/design-system/portfolio/PageShell";
 
-// Self-hosted by next/font, so nothing is fetched from Google at runtime. Each face is
-// exposed as a CSS custom property that src/styles/tokens/_typography.scss reads.
+// Self-hosted by next/font, so nothing is fetched from Google at runtime — which is
+// also what the CSP requires, since it sets font-src 'self'. Each face is exposed as a
+// CSS custom property that src/styles/tokens/_typography.scss reads.
 //
 // Each `fallback` is the rest of that face's stack, and it has to be declared here
 // rather than in _typography.scss. Without it next/font appends its own
 // auto-generated Arial-metrics face to the family, and because that face carries no
-// unicode-range it swallows every glyph the webfont doesn't cover (→, ←, □, ▼) before
-// a stack in CSS could catch them — arrows in the UI render visibly wide and wrong.
-// Passing `fallback` replaces that generated face with these entries. (`adjustFontFallback:
-// false` is documented as the switch for this but is ignored in 16.3.1.)
+// unicode-range it swallows every glyph the webfont doesn't cover (→, ←, ▸, ×, ↻)
+// before a stack in CSS could catch them — arrows in the UI render visibly wide and
+// wrong. Passing `fallback` replaces that generated face with these entries.
+// (`adjustFontFallback: false` is documented as the switch for this but is ignored in
+// 16.3.1 for next/font/google; it does work for next/font/local.)
 //
 // These option objects have to be written out literally: next/font statically analyses
 // the call site, so a shared spread is a build error.
-const rubikGlitch = Rubik_Glitch({
-  weight: "400",
+//
+// The two families this design actually specifies are All Round Gothic (display) and
+// Neue Helvetica Georgian (body). Both are commercial and neither is in the repo, so
+// neither can be loaded here. Both are named first in the stacks in
+// tokens/_typography.scss; see tokens/_fonts.scss for the two-block swap that turns
+// them on once the licensed woff2 files land in public/fonts/.
+//
+// Quicksand stands in for the display face: geometric, rounded terminals, closest free
+// match. The body stack needs no webfont at all — it resolves to real Helvetica on
+// macOS and to Arial, its metric clone, on Windows.
+const quicksand = Quicksand({
+  weight: ["400", "500", "600", "700"],
   subsets: ["latin", "latin-ext"],
-  variable: "--font-rubik-glitch",
-  fallback: ["Impact", "Arial Black", "sans-serif"],
-  display: "swap",
-});
-
-const teko = Teko({
-  subsets: ["latin", "latin-ext"],
-  variable: "--font-teko",
-  fallback: ["Impact", "Haettenschweiler", "sans-serif"],
-  display: "swap",
-});
-
-const silkscreen = Silkscreen({
-  weight: ["400", "700"],
-  subsets: ["latin", "latin-ext"],
-  variable: "--font-silkscreen",
-  fallback: ["Courier New", "monospace"],
-  display: "swap",
-});
-
-const tiny5 = Tiny5({
-  weight: "400",
-  subsets: ["latin", "latin-ext"],
-  variable: "--font-tiny5",
-  fallback: ["Silkscreen", "monospace"],
+  variable: "--font-quicksand",
+  fallback: ["Trebuchet MS", "Helvetica", "Arial", "sans-serif"],
   display: "swap",
 });
 
@@ -54,16 +43,44 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
-const fontVars = [rubikGlitch, teko, silkscreen, tiny5, geistMono].map((f) => f.variable).join(" ");
+const fontVars = [quicksand, geistMono].map((f) => f.variable).join(" ");
 
 export const metadata: Metadata = {
   title: "jaako andes · full-stack odd jobs",
   description: "I think therefore I am. Next.js, Django, Discord bots, and whatever else the week needs.",
 };
 
+// Maps image luminance onto the two-colour ramp in tokens/_duotone.scss. feColorMatrix
+// flattens to greyscale first; feComponentTransfer then remaps each channel's 0..1
+// range onto the endpoints. The six numbers below ARE --duo-lo (#1d3f63) and --duo-hi
+// (#f2efe7) as channel pairs — if those tokens move, these must move with them.
+//
+// This has to be real markup in the document rather than a CSS gradient because a
+// gradient maps by position; only a filter maps by luminance. Same-document filter
+// references are not affected by the CSP.
+const DuotoneFilter = () => (
+  <svg className="jk-defs" aria-hidden="true" focusable="false">
+    <filter id="jk-duotone" colorInterpolationFilters="sRGB">
+      <feColorMatrix
+        type="matrix"
+        values="0.33 0.33 0.33 0 0
+                0.33 0.33 0.33 0 0
+                0.33 0.33 0.33 0 0
+                0    0    0    1 0"
+      />
+      <feComponentTransfer>
+        <feFuncR type="table" tableValues="0.114 0.949" />
+        <feFuncG type="table" tableValues="0.247 0.937" />
+        <feFuncB type="table" tableValues="0.388 0.906" />
+      </feComponentTransfer>
+    </filter>
+  </svg>
+);
+
 const RootLayout = ({ children }: Readonly<{ children: React.ReactNode }>) => (
   <html lang="en" className={fontVars}>
     <body>
+      <DuotoneFilter />
       <PageShell>{children}</PageShell>
     </body>
   </html>

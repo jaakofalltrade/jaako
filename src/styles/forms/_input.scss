@@ -1,24 +1,42 @@
-/* Input — recessed text field.
-   Focus is :focus-visible rather than :focus, so the ring appears on keyboard
-   navigation but not on a mouse click. */
+/* Text field.
+
+   Two numbers here are not style choices:
+
+   - font-size is --text-md, whose floor is 16px. Under 16px, iOS zooms the whole page
+     the moment the field takes focus, and then leaves it zoomed.
+   - height is --control-h-lg (44px), the touch floor. The old --control-h-md was 36px,
+     which is a comfortable mouse target and an uncomfortable thumb one. */
 
 .jk-input {
   width: 100%;
-  height: var(--control-h-md);
-  padding: 0 var(--space-4);
-  border: var(--border-1) solid var(--steel-400);
-  border-radius: 0;
+  min-height: var(--control-h-lg);
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-1) solid var(--edge);
+  border-radius: var(--radius-none);
   background: var(--surface-field);
   color: var(--text-body);
-  box-shadow: var(--inset-well);
   font-family: var(--font-mono);
-  font-size: var(--text-sm);
+  font-size: var(--text-md);
+  letter-spacing: var(--tracking-wide);
   outline: none;
+  transition: border-color var(--dur-base) var(--ease-out);
 
-  &[aria-invalid="true"] {
-    border-color: var(--alert);
+  /* --text-dim, not --text-faint. Placeholder text is still text: on a light ground
+     the faint tier is 2.9:1 and would be the one thing on the form that fails. */
+  &::placeholder {
+    color: var(--text-dim);
   }
 
+  &:hover {
+    border-color: var(--text-link);
+  }
+
+  &[aria-invalid="true"] {
+    border-color: var(--status-error);
+  }
+
+  /* :focus-visible rather than :focus, so the ring appears on keyboard navigation
+     but not on a mouse click. */
   &:focus-visible {
     outline: var(--border-2) solid var(--focus-ring);
     outline-offset: 0;

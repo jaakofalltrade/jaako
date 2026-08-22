@@ -1,15 +1,44 @@
-/* Webfont faces that aren't loaded through next/font.
-   The five Google families — Rubik Glitch, Teko, Silkscreen, Tiny5, Geist Mono — are
-   self-hosted by next/font/google in src/app/layout.tsx, which exposes each one as a
-   CSS custom property that _typography.scss reads. Nothing is fetched from Google at
-   runtime, so no @import url() belongs in this file.
+/* Webfont faces that are not loaded through next/font.
 
-   Osaka and Hiragino Kaku Gothic Pro W3 are the classic Japanese-web faces in the body
-   stack. No webfont binary exists for either; declare Osaka as a locally-installed face
-   and let Verdana carry the rendering everywhere else. */
-@font-face {
-  font-family: "Osaka";
-  font-style: normal;
-  font-weight: 400;
-  src: local("Osaka");
+   The design calls for two licensed families:
+
+     display   All Round Gothic          (Dharma Type, commercial)
+     body      Neue Helvetica Georgian   (Monotype, commercial)
+
+   Neither is redistributable, so neither is in this repo. Both are named FIRST in
+   the stacks in _typography.scss, which means two things work without any further
+   change: a visitor who has the family installed locally gets it, and dropping the
+   licensed woff2 files into public/fonts/ plus uncommenting the two blocks below
+   switches the whole site over for everyone. Nothing else reads a family name
+   directly, so those two blocks are the entire swap.
+
+   Until then the stacks fall through to: Helvetica Neue / Helvetica / Arial for
+   body, which is the real Helvetica on macOS and its metric clone on Windows, and
+   Quicksand for display, which is the closest free geometric-with-rounded-terminals
+   to All Round Gothic. Quicksand is self-hosted by next/font in app/layout.tsx.
+
+   The CSP sets font-src 'self', so these must stay same-origin: no @import url(),
+   no Google or Fontshare host, ever. */
+
+/*
+@font-face{
+  font-family:"All Round Gothic";
+  src:url("/fonts/all-round-gothic-book.woff2") format("woff2");
+  font-weight:400;font-style:normal;font-display:swap;
 }
+@font-face{
+  font-family:"All Round Gothic";
+  src:url("/fonts/all-round-gothic-demi.woff2") format("woff2");
+  font-weight:600 800;font-style:normal;font-display:swap;
+}
+@font-face{
+  font-family:"Neue Helvetica Georgian";
+  src:url("/fonts/neue-helvetica-georgian-roman.woff2") format("woff2");
+  font-weight:400;font-style:normal;font-display:swap;
+}
+@font-face{
+  font-family:"Neue Helvetica Georgian";
+  src:url("/fonts/neue-helvetica-georgian-medium.woff2") format("woff2");
+  font-weight:500 700;font-style:normal;font-display:swap;
+}
+*/

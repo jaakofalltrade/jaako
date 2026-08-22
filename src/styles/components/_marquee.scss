@@ -1,55 +1,39 @@
 @use "../base/mixins" as *;
 
-/* Marquee — the scrolling ticker in the site footer. The track is duplicated in
-   the markup so the -50% keyframe loops seamlessly. */
+/* The status ticker. Formerly the footer marquee — same joke, now set as an instrument
+   readout rather than a scrolling banner. */
 
 .jk-marquee {
   overflow: hidden;
-  padding: var(--space-2) 0;
-  border: var(--border-1) solid var(--marquee-border);
-  border-radius: 0;
-  background: var(--marquee-bg);
-  color: var(--marquee-fg);
-  box-shadow: var(--inset-well);
-}
-
-.jk-marquee--void {
-  --marquee-bg: var(--void);
-  --marquee-fg: var(--xgreen-lit);
-  --marquee-border: var(--steel-400);
-}
-
-.jk-marquee--hazard {
-  --marquee-bg: var(--hazard);
-  --marquee-fg: var(--void);
-  --marquee-border: var(--void);
+  // The duplicated track is ~2000px wide by design; this stops that measurement
+  // escaping into the layout of whatever contains it.
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  /* The track is duplicated in markup, so the mask has to be soft at both ends or the
+     loop seam is visible at the edges. */
+  mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
 }
 
 .jk-marquee__track {
-  @include label;
-  display: inline-flex;
-  gap: var(--space-9);
+  display: flex;
+  flex: 0 0 auto;
   white-space: nowrap;
   animation: jk-marquee var(--marquee-dur, var(--dur-marquee)) linear infinite;
 }
 
-.jk-marquee--void .jk-marquee__track {
-  text-shadow: var(--glow-green);
-}
-
 .jk-marquee__group {
-  display: inline-flex;
-  gap: var(--space-9);
+  display: flex;
+  gap: var(--space-8);
+  padding-right: var(--space-8);
+  @include label($size: var(--text-3xs));
 }
 
-/* Retired ticker copy — struck out in place instead of removed. */
-.jk-marquee__struck {
-  opacity: 0.55;
-  text-decoration-thickness: var(--border-1);
-}
+.jk-marquee--ink .jk-marquee__group { color: var(--text-dim); }
+.jk-marquee--cyan .jk-marquee__group { color: var(--text-link); }
 
+/* A permanently moving strip of text is exactly what this setting exists to stop.
+   Stopping the animation leaves the first copy in place and readable. */
 @media (prefers-reduced-motion: reduce) {
-  .jk-marquee__track {
-    animation: none;
-  }
+  .jk-marquee__track { animation: none; }
 }

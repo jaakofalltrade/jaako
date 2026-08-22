@@ -38,9 +38,9 @@ export const PLAYBACK_BADGE: Record<
   Spotify.PlaybackStatus,
   { label: string; tone: BadgeTone }
 > = {
-  [Spotify.PlaybackStatus.Playing]: { label: "now playing", tone: BadgeTone.Green },
-  [Spotify.PlaybackStatus.Recent]: { label: "last played", tone: BadgeTone.Void },
-  [Spotify.PlaybackStatus.Offline]: { label: "offline", tone: BadgeTone.Void },
+  [Spotify.PlaybackStatus.Playing]: { label: "now playing", tone: BadgeTone.Cyan },
+  [Spotify.PlaybackStatus.Recent]: { label: "last played", tone: BadgeTone.Steel },
+  [Spotify.PlaybackStatus.Offline]: { label: "offline", tone: BadgeTone.Ghost },
 };
 
 /** Shown before the first response lands — not a playback state, so it isn't in the enum. */
@@ -51,4 +51,29 @@ export const NOW_PLAYING_CACHE_HEADERS = {
   // it, since the refresh button is the only intended way to update the panel and
   // a heuristically cached response would defeat it.
   "Cache-Control": "public, max-age=0, s-maxage=30, stale-while-revalidate=60",
+} as const;
+
+/* ---------------- listening statistics ---------------- */
+
+/** Roughly the last four weeks. Spotify's other ranges are 6 months and all-time. */
+export const TOP_TIME_RANGE = "short_term";
+
+/** Enough artists to make the modal genre meaningful without paying for a big response. */
+export const TOP_ARTIST_LIMIT = 10;
+
+/** Only the first is shown; the rest exist so a tie in genre can be broken. */
+export const TOP_TRACK_LIMIT = 1;
+
+/** What the cell renders before the user-top-read scope has been granted. */
+export const TOP_ITEMS_OFFLINE: Spotify.TopItemsResponse = {
+  available: false,
+  artist: null,
+  track: null,
+  genre: null,
+};
+
+export const TOP_ITEMS_CACHE_HEADERS = {
+  // Top items move over weeks, not seconds. Nothing like now-playing's 30s: this can
+  // sit in a CDN for hours and still be perfectly current.
+  "Cache-Control": "public, max-age=0, s-maxage=21600, stale-while-revalidate=86400",
 } as const;

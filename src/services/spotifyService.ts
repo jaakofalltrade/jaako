@@ -6,6 +6,10 @@ import {
   RECENT_LIMIT,
   RECENT_SHOWN,
   TOKEN_EXPIRY_MARGIN_MS,
+  TOP_ARTIST_LIMIT,
+  TOP_ITEMS_OFFLINE,
+  TOP_TIME_RANGE,
+  TOP_TRACK_LIMIT,
 } from "@/constants/spotify";
 import { Spotify } from "@/models";
 
@@ -21,6 +25,8 @@ import { Spotify } from "@/models";
 // they're written out rather than assembled at each call site.
 const CURRENTLY_PLAYING_PATH = "/me/player/currently-playing?additional_types=track";
 const RECENTLY_PLAYED_PATH = `/me/player/recently-played?limit=${RECENT_LIMIT}`;
+const TOP_ARTISTS_PATH = `/me/top/artists?time_range=${TOP_TIME_RANGE}&limit=${TOP_ARTIST_LIMIT}`;
+const TOP_TRACKS_PATH = `/me/top/tracks?time_range=${TOP_TIME_RANGE}&limit=${TOP_TRACK_LIMIT}`;
 
 /**
  * Access tokens live an hour, so one is held in module scope and reused across
@@ -204,6 +210,81 @@ const getNowPlaying = async (): Promise<Spotify.NowPlayingResponse> => {
   }
 };
 
+/**
+ * Listening statistics for the instrument strip.
+ *
+ * Needs the user-top-read scope, which the now-playing pair does not — so on a
+ * deployment whose refresh token predates that scope, Spotify answers 403 and this
+ * returns the unavailable shape rather than throwing. That is the expected state
+ * until the token is rotated, not an error worth alarming about.
+ *
+ * Genre is derived rather than fetched: Spotify tags artists, not tracks, so the
+ * modal genre across the top artists is the closest thing to "what you have been
+ * listening to" that the API will actually give you.
+ */
+const modalGenre = (artists: Spotify.TopArtistResponse[]): string | null => {
+  const counts = new Map<string, number>();
+
+  artists.forEach((artist) => {
+    (artist.genres ?? []).forEach((genre) => counts.set(genre, (counts.get(genre) ?? 0) + 1));
+  });
+
+  let best: string | null = null;
+  let bestCount = 0;
+  counts.forEach((count, genre) => {
+    if (count > bestCount) {
+      best = genre;
+      bestCount = count;
+    }
+  });
+
+  return best;
+};
+
+const getTopItems = async (): Promise<Spotify.TopItemsResponse> => {
+  try {
+    if (!hasCredentials()) return TOP_ITEMS_OFFLINE;
+
+    const token = await getAccessToken();
+
+    const [artists, tracks] = await Promise.all([
+      get<Spotify.TopArtistsResponse>({ path: TOP_ARTISTS_PATH, token }),
+      get<Spotify.TopTracksResponse>({ path: TOP_TRACKS_PATH, token }),
+    ]);
+
+    const topArtist = artists?.items?.find((artist) => artist.name);
+    const topTrack = tracks?.items?.find((track) => track.name);
+
+    // Nothing to show is still a successful call — a new account with no history
+    // gets the unavailable shape rather than a row of empty labels.
+    if (!topArtist && !topTrack) return TOP_ITEMS_OFFLINE;
+
+    return {
+      available: true,
+      artist: topArtist
+        ? {
+            name: topArtist.name ?? "unknown",
+            url: topArtist.external_urls?.spotify ?? "https://open.spotify.com",
+          }
+        : null,
+      track: topTrack
+        ? {
+            title: topTrack.name ?? "unknown",
+            artist:
+              topTrack.artists?.map((artist) => artist.name).filter(Boolean).join(", ") ||
+              "unknown",
+            url: topTrack.external_urls?.spotify ?? "https://open.spotify.com",
+          }
+        : null,
+      genre: modalGenre(artists?.items ?? []),
+    };
+  } catch (error) {
+    console.error("[spotify] top-items failed:", error);
+    return TOP_ITEMS_OFFLINE;
+  }
+};
+
 export const spotifyService = {
   getNowPlaying,
+  getTopItems,
 };

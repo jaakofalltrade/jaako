@@ -1,0 +1,80 @@
+@use "../base/mixins" as *;
+
+/* The section index.
+
+   This was a sticky glass bar welded to the top of the viewport. It is now a bare row
+   of links sitting directly above the about section, which is where the page actually
+   starts reading. No bar, no surface behind it: the strip went with the rest of the
+   frosted-glass vocabulary.
+
+   Losing the sticky position also loses the scroll-spy: an active marker is only
+   worth anything on a control you can still see. What is left is a jump menu, and it
+   is styled as one. */
+
+.jk-nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-6);
+  max-width: var(--page-max);
+  margin: 0 auto var(--space-8);
+  padding: var(--space-4) var(--gutter);
+}
+
+.jk-nav__led {
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--text-faint);
+}
+
+.jk-nav__list {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-6);
+  /* The auto belongs in the shorthand, not on its own line above it — the presence
+     label used to push this over with margin-right:auto, and with the word gone the
+     list has to claim the space itself. A separate margin-left:auto declaration would
+     be silently reset by this shorthand. */
+  margin: 0 0 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+.jk-nav__link {
+  display: inline-flex;
+  align-items: center;
+  @include label($size: var(--text-3xs));
+  color: var(--text-dim);
+  text-decoration: none;
+  /* The underline is the hover affordance, reserved rather than drawn, so nothing
+     shifts when it appears. */
+  border-bottom: var(--border-1) solid transparent;
+  transition: color var(--dur-base) var(--ease-out),
+              border-color var(--dur-base) var(--ease-out);
+
+  &:hover {
+    color: var(--text-link);
+    border-bottom-color: var(--text-link);
+  }
+}
+
+/* Every item here is a link and every one needs the thumb floor. */
+@media (pointer: coarse) {
+  .jk-nav__link { min-height: var(--touch-min); }
+}
+
+@include down($bp-sm) {
+  .jk-nav {
+    gap: var(--space-3) var(--space-5);
+    margin-bottom: var(--space-7);
+  }
+
+  .jk-nav__list { gap: var(--space-3) var(--space-5); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jk-nav__link { transition: none; }
+}

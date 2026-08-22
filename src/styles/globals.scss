@@ -28,6 +28,7 @@
 @use "tokens/typography";
 @use "tokens/spacing";
 @use "tokens/effects";
+@use "tokens/duotone";
 @use "tokens/motion";
 
 // --- base --------------------------------------------------------------------
@@ -35,16 +36,19 @@
 
 // --- layout ------------------------------------------------------------------
 @use "layout/shell"; // PageShell
-@use "layout/navbar"; // NavBar
+@use "layout/nav"; // SectionNav — above the about section, not a bar
 @use "layout/footer"; // SiteFooter
 
 // --- components --------------------------------------------------------------
 @use "components/button"; // Button
-@use "components/window"; // Window
 @use "components/badge"; // Badge
 @use "components/glass-panel"; // GlassPanel
 @use "components/marquee"; // Marquee
-@use "components/section-heading"; // SectionHeading
+@use "components/reveal"; // Reveal — scroll choreography
+@use "components/rule"; // Rule
+@use "components/annotation"; // Annotation
+@use "components/section-head"; // SectionHead
+@use "components/definition-list"; // DefinitionList
 @use "components/icon"; // Icon, TechLogo
 
 // --- forms -------------------------------------------------------------------
@@ -56,16 +60,18 @@
 @use "forms/radio"; // Radio
 
 // --- widgets -----------------------------------------------------------------
+@use "widgets/plate"; // Plate
 @use "widgets/hero"; // Hero
-@use "widgets/now-playing"; // NowPlaying
-@use "widgets/project-card"; // ProjectCard
+@use "widgets/tracklist"; // Tracklist, TracklistRow, PlateStack
+@use "widgets/spec-block"; // SpecBlock
 @use "widgets/contact-row"; // ContactRow
 @use "widgets/experience-entry"; // ExperienceEntry
-@use "widgets/hit-counter"; // HitCounter
+@use "widgets/instrument-strip"; // InstrumentStrip, VisitorIndex, SignatureLog, ListeningStats
+@use "widgets/dock"; // NowPlayingDock
 
 // --- sections ----------------------------------------------------------------
-@use "sections/about"; // #about  — hero, about_me, now_playing, guestbook, stack
+@use "sections/about"; // #about — hero, instrument strip, bio, stack
 @use "sections/experience"; // #experience
-@use "sections/projects"; // #projects
+@use "sections/work"; // #work
 @use "sections/contact"; // #contact
-@use "sections/project-detail"; // /projects/[slug]
+@use "sections/detail"; // /work/[slug]

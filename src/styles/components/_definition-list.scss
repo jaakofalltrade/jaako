@@ -1,0 +1,46 @@
+@use "../base/mixins" as *;
+
+/* Term/value metadata. Set in mono throughout — these are readouts, not prose. */
+
+.jk-dl {
+  margin: 0;
+  display: grid;
+  gap: var(--space-2) 0;
+}
+
+.jk-dl__row {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+  gap: var(--space-2) var(--space-5);
+  align-items: baseline;
+}
+
+.jk-dl__term {
+  @include label($size: var(--text-3xs));
+  color: var(--text-dim);
+}
+
+.jk-dl__value {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-body);
+  /* Values are user data — slugs, handles, URLs. They reflow rather than pushing the
+     grid wider. */
+  overflow-wrap: anywhere;
+}
+
+/* Ruled variant: each pair becomes a row of a table rather than an inline aside. */
+.jk-dl--ruled {
+  gap: 0;
+
+  .jk-dl__row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    padding-bottom: var(--space-3);
+    border-bottom: var(--border-1) solid var(--hair);
+
+    & + .jk-dl__row { padding-top: var(--space-3); }
+  }
+}

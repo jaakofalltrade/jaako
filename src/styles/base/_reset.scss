@@ -8,6 +8,14 @@
 
 html {
   scroll-behavior: smooth;
+  /* Light now. Without it the native select, checkbox and scrollbar chrome comes
+     back dark against a cream page. */
+  color-scheme: light;
+  /* The base sits here rather than on <body> on purpose. Body's own background paints
+     *above* a negative-z-index child, so the two ground layers below would be hidden
+     by it; putting the fallback colour on the root leaves body transparent and lets
+     them through. */
+  background: var(--surface-page);
 }
 
 html,
@@ -17,19 +25,127 @@ body {
 }
 
 body {
-  min-height: 100vh;
-  background: var(--bg-page);
-  background-attachment: fixed;
+  /* dvh, not vh: on mobile 100vh is the *largest* viewport height, so a 100vh page
+     always overflows behind the browser chrome. */
+  min-height: 100dvh;
   color: var(--text-body);
   font-family: var(--font-body);
   font-size: var(--text-md);
   line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* The page must never scroll sideways. Any child that needs to overflow scrolls
+     inside its own container. */
+  overflow-x: hidden;
+}
+
+/* --- the ground -----------------------------------------------------------------
+   The photograph behind a pane of off-white glass: ::before is the picture, softened
+   just off sharp, and ::after is the pane.
+
+   Two nodes rather than layers on body itself, because `filter` on an element also
+   blurs its children — the blur needs one of its own — and because
+   background-attachment:fixed is ignored on iOS, where it silently degrades to
+   scrolling. position:fixed is genuinely static everywhere.
+
+   See tokens/_effects.scss for why the blur is only 5px and why the pane is at .78;
+   neither is a free number. */
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+body::before {
+  z-index: -2;
+  background: var(--bg-image) center / cover no-repeat;
+  filter: var(--bg-blur);
+  transform: scale(var(--bg-scale));
+}
+
+/* The pane. Flat off-white, plus the grain, which at this opacity is not film stock —
+   it is the tooth that keeps a large flat wash from looking like a dead colour fill,
+   and it is what sells the surface as glass rather than as paint. */
+body::after {
+  z-index: -1;
+  background: var(--bg-glass), var(--grain);
+  background-blend-mode: normal, overlay;
+}
+
+/* The display face is set lowercase everywhere by design — the geometric reference is
+   a lowercase alphabet. Stated once here rather than on every heading. */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-display);
+  text-transform: lowercase;
+  line-height: var(--leading-snug);
+  color: var(--text-strong);
+  margin: 0;
+}
+
+p {
+  margin: 0;
 }
 
 a {
   color: var(--text-link);
+  text-decoration-color: color-mix(in srgb, var(--text-link) 40%, transparent);
 
   &:hover {
     color: var(--text-link-hover);
   }
+}
+
+/* Images must never be the reason the page scrolls sideways. */
+img, svg, video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* One focus treatment for the whole site. Deep blue on the frosted ground is 5.32:1,
+   comfortably past the 3:1 the non-text rule asks for; the offset keeps it legible
+   over glass and photography alike. */
+:focus-visible {
+  outline: var(--border-2) solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* Long tokens — URLs, IDs, hashes — reflow instead of forcing a horizontal scrollbar.
+   Deliberately not word-break:break-all, which would also chop ordinary prose. */
+code, kbd, samp {
+  font-family: var(--font-mono);
+  overflow-wrap: anywhere;
+}
+
+/* Smooth scrolling is motion too. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+/* Holds the #jk-duotone filter in layout.tsx. It has to be in the document to be
+   referenced, but must occupy no space and never be announced. */
+.jk-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+/* Visually hidden but announced. Used where an instrument shows something graphically
+   — the visitor odometer, the presence dot — and a screen reader needs the plain fact
+   instead of seven separate digit cells. */
+.jk-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }

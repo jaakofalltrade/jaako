@@ -1,21 +1,36 @@
-/* TextArea — same recessed treatment as .jk-input, vertically resizable. */
+/* Multi-line field. Same 16px floor as .jk-input — an iOS zoom triggered by the
+   message box is the most likely one on this form, since it is the field people
+   actually spend time in. */
 
 .jk-textarea {
   width: 100%;
-  padding: var(--space-3) var(--space-4);
-  resize: vertical;
-  border: var(--border-1) solid var(--steel-400);
-  border-radius: 0;
+  padding: var(--space-4);
+  border: var(--border-1) solid var(--edge);
+  border-radius: var(--radius-none);
   background: var(--surface-field);
   color: var(--text-body);
-  box-shadow: var(--inset-well);
   font-family: var(--font-mono);
-  font-size: var(--text-sm);
+  font-size: var(--text-md);
   line-height: var(--leading-normal);
+  letter-spacing: var(--tracking-wide);
   outline: none;
+  /* Vertical only: horizontal resize can drag the field wider than its column and
+     give the page a scrollbar. */
+  resize: vertical;
+  transition: border-color var(--dur-base) var(--ease-out);
+
+  /* --text-dim, not --text-faint. Placeholder text is still text: on a light ground
+     the faint tier is 2.9:1 and would be the one thing on the form that fails. */
+  &::placeholder {
+    color: var(--text-dim);
+  }
+
+  &:hover {
+    border-color: var(--text-link);
+  }
 
   &[aria-invalid="true"] {
-    border-color: var(--alert);
+    border-color: var(--status-error);
   }
 
   &:focus-visible {

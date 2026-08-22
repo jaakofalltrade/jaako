@@ -39,7 +39,7 @@ export const VALIDATION_MESSAGE: Record<ValidationFailure, string> = {
   [ValidationFailure.Honeypot]: "",
   [ValidationFailure.NameRequired]: "Name is required.",
   [ValidationFailure.NameTooLong]: "That name is too long.",
-  [ValidationFailure.EmailRequired]: "E-mail is required — otherwise I can't reply.",
+  [ValidationFailure.EmailRequired]: "E-mail is required, otherwise I can't reply.",
   [ValidationFailure.EmailInvalid]: "That e-mail address doesn't look right.",
   [ValidationFailure.MessageRequired]: "Say something in the message.",
   [ValidationFailure.MessageTooLong]: "That message is too long.",

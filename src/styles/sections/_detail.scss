@@ -1,0 +1,66 @@
+@use "../base/mixins" as *;
+
+/* One project: a plate, a title on a rule, a short case note, and its specification.
+
+   No screenshot slot. Half of these projects are a bot, a metronome and internal
+   tooling — things with nothing worth photographing — and a page that promises a
+   screenshot and delivers a grey box is worse than one that never offered. */
+
+.jk-detail__plate {
+  margin-bottom: var(--space-7);
+}
+
+.jk-detail__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-7);
+}
+
+.jk-detail__title {
+  font-size: var(--text-3xl);
+}
+
+.jk-detail__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 13rem;
+  gap: var(--space-8);
+  align-items: start;
+}
+
+.jk-detail__blurb {
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  font-size: var(--text-xl);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-display);
+  color: var(--text-strong);
+  margin-bottom: var(--space-5);
+  text-wrap: balance;
+}
+
+.jk-detail__note {
+  font-size: var(--text-md);
+  line-height: var(--leading-loose);
+  color: var(--text-dim);
+  max-width: var(--measure);
+}
+
+.jk-detail__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-8);
+}
+
+.jk-detail__link {
+  text-decoration: none;
+}
+
+@include down($bp-md) {
+  .jk-detail__grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-7);
+  }
+}

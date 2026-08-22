@@ -1,27 +1,29 @@
-/* #contact — the form, the links panel, and the availability card. */
+@use "../base/mixins" as *;
 
-.jk-contact {
-  display: grid;
-  gap: var(--space-8);
-  scroll-margin-top: var(--space-8);
+.jk-contact__form-wrap {
+  margin-top: var(--space-8);
+  max-width: 34rem;
 }
 
-.jk-contact__grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-7);
-  align-items: start;
-}
+/* The form, and only the form, gets a surface — the spec block above it and the rest
+   of the section stay on the open ground.
 
+   Translucent, so the photograph reads through it. .78 is not an arbitrary "quite
+   see-through" value: it is the floor. The field labels are --text-dim, and over the
+   darkest part of the photograph they need this much cream behind them to clear AA.
+   Anything lighter and the labels go first, while the inputs stay readable because
+   they carry --surface-field on top of this — which is exactly the kind of partial
+   failure that survives a glance. */
 .jk-contact__form {
   display: grid;
   gap: var(--space-5);
-  margin-top: var(--space-5);
+  padding: var(--space-6);
+  background: rgba(242, 239, 231, 0.78);
 }
 
-/* Honeypot wrapper. Pulled out of the flow rather than `display: none` —
-   some bots skip inputs that are outright hidden, and this one wants to be
-   found and filled. Never announced: the markup carries aria-hidden. */
+/* Off-screen rather than display:none — a bot that respects visibility would skip a
+   hidden field, and the point is that it fills this one. Also out of the tab order
+   and aria-hidden at the markup level, so no human ever reaches it. */
 .jk-contact__honeypot {
   position: absolute;
   left: -9999px;
@@ -31,48 +33,23 @@
 }
 
 .jk-contact__error {
-  margin: 0;
-  font-family: var(--font-body);
-  font-size: var(--text-sm);
+  padding: var(--space-4);
+  border: var(--border-1) solid color-mix(in srgb, var(--status-error) 45%, transparent);
   color: var(--status-error);
+  font-size: var(--text-sm);
+  /* Focused programmatically after a failed submit; without this it takes the global
+     focus ring while carrying its own border, which reads as a double outline. */
+  &:focus { outline: none; }
+  &:focus-visible { outline: var(--border-2) solid var(--focus-ring); outline-offset: 2px; }
 }
 
-/* --- post-submit confirmation --- */
 .jk-contact__sent {
   display: grid;
-  gap: var(--space-5);
-  padding: var(--space-7) 0;
+  justify-items: start;
+  gap: var(--space-4);
 }
 
 .jk-contact__sent-text {
-  margin: 0;
-  font-family: var(--font-body);
-  font-size: var(--text-sm);
-}
-
-/* --- aside --- */
-.jk-contact__aside {
-  display: grid;
-  gap: var(--space-6);
-}
-
-.jk-contact__list {
-  padding: var(--space-3);
-}
-
-.jk-contact__availability {
-  padding: var(--space-6);
-}
-
-.jk-contact__availability-title {
-  font-family: var(--font-headline);
-  font-size: var(--text-xl);
-  text-transform: uppercase;
-  color: var(--text-strong);
-}
-
-.jk-contact__availability-text {
-  margin: var(--space-3) 0 0;
-  font-family: var(--font-body);
-  font-size: var(--text-sm);
+  font-size: var(--text-md);
+  color: var(--text-dim);
 }

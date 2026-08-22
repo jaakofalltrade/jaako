@@ -13,7 +13,7 @@ export type MarqueeProps = {
 
 export const Marquee = ({
   speed,
-  tone = MarqueeTone.Void,
+  tone = MarqueeTone.Ink,
   className,
   children,
 }: MarqueeProps) => (

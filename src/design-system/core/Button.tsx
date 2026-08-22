@@ -26,7 +26,7 @@ export type ButtonProps<T extends ElementType = "button"> = ButtonOwnProps & {
 
 export const Button = <T extends ElementType = "button">({
   as,
-  variant = ButtonVariant.Hazard,
+  variant = ButtonVariant.Glass,
   size = ButtonSize.Md,
   icon,
   disabled = false,

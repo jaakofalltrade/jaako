@@ -1,30 +1,79 @@
+/* The palette is the four colours from the Color Hunt swatch:
+
+     --p-deep  #3368a0   button fill, form-field borders, focus ring, progress bar,
+                         the presence dot. The structural colour of the site.
+     --p-mid   #66a3bf   decorative marks and the few surviving hairlines.
+     --p-pale  #c8dfdb   wells and quiet fills.
+     --p-cream #f2efe7   the wash over the photograph, and every surface fill.
+
+   WHY THE TEXT COLOURS ARE NOT IN THAT LIST. On this ground #3368a0 reaches 3.00:1 and
+   #66a3bf is far below that, so neither can legally carry body text — arithmetic, not
+   preference. The text tokens are therefore the same hue darkened until it passes:
+   #0f2136, #22405c, #2b4964 and #234b76 are all #3368a0's family walked down in
+   lightness. The swatch colours themselves are used wherever the 3:1 non-text bar
+   applies, which is most of the visible chrome.
+
+   HOW THE NUMBERS WERE ARRIVED AT. There are no panels anywhere on this site: content
+   sits directly on the background. So every ratio below is measured against the ground
+   itself — the raw photograph, blurred 5px and seen through the off-white pane in
+   _effects.scss. Sampling public/images/glass-wall.webp finely (the blur is small
+   enough that local darks survive, so the fine grid is the honest one) gives a ground
+   running from #bdbbb4 at the 2nd percentile to #e3ece7 at the 95th, and the worst of
+   that range is what is quoted.
+
+   THE PANE'S ALPHA IS HALF OF THIS TABLE. At .78 the ramp has three distinguishable
+   levels that all clear AA. It does not degrade gently: at .74 --text-dim has to go to
+   #25425d to keep passing, which is within a hair of --text-body, and the hierarchy is
+   gone. Anything below about .70 cannot be fixed by darkening these tokens at all,
+   because the photograph reaches pure black in places and no text colour survives that.
+
+   So: if --bg-glass or --bg-blur changes, re-measure this whole table. They are one
+   system, and the failure mode is silent. */
 :root{
-/* --- Piss filter: desaturated yellow-green wash. The brand's defining hue. --- */
---piss-050:#efecc9;--piss-100:#dcd8a6;--piss-200:#c2bd83;--piss-300:#a29d63;
---piss-400:#807b48;--piss-500:#5f5b34;--piss-600:#454226;--piss-700:#2f2d1a;
+/* --- the swatch, verbatim --- */
+--p-deep:#3368a0;--p-mid:#66a3bf;--p-pale:#c8dfdb;--p-cream:#f2efe7;
 
-/* --- Steel: olive-tinted metal greys. All structure is built from these. --- */
---steel-050:#d6d8cf;--steel-100:#b4b7ad;--steel-200:#8e9188;--steel-300:#6b6f66;
---steel-400:#4d5049;--steel-500:#383a34;--steel-600:#26281f;--steel-700:#1a1c17;
---void:#0d0e0b;
+/* --- Text: #3368a0's hue, darkened until it passes on the open ground. --- */
+--text-strong:#0f2136;   /* 8.44:1 worst — headings, display type */
+--text-body:#22405c;     /* 5.57:1 worst — prose */
+--text-dim:#2b4964;      /* 4.87:1 worst — labels, metadata, secondary prose */
+--text-link:#234b76;     /* 4.66:1 worst */
+--text-link-hover:var(--text-strong);
+--text-inverse:var(--p-cream);
 
-/* --- Accents --- */
---xgreen:#7ab800;--xgreen-dim:#5c8c00;--xgreen-lit:#a3e62a;
---psblue:#0a6cff;--psblue-dim:#0a4fbb;--psblue-lit:#5b9bff;
---hazard:#ffd400;--alert:#c0261f;--rust:#a8410f;
+/* Decorative only. 3.97:1 is below the bar and that is deliberate: the contract is
+   unchanged from every previous version of this file — permitted solely on annotation
+   carrying aria-hidden="true" (plate numbers, ref codes, coordinates). The Annotation
+   component is what enforces it. */
+--text-faint:#3a5670;
 
-/* --- Semantic aliases --- */
---text-body:#ded9b8;--text-muted:var(--piss-300);--text-strong:var(--piss-050);
---text-inverse:var(--void);--text-link:var(--xgreen-lit);--text-link-hover:var(--hazard);
---surface-page:var(--steel-700);--surface-panel:var(--steel-500);
---surface-panel-dark:var(--steel-600);--surface-well:var(--void);
---surface-glass:rgba(13,14,11,.55);--surface-field:#15170f;
---border-hairline:rgba(222,217,184,.16);--border-metal:var(--steel-300);
---border-ink:var(--void);--focus-ring:var(--psblue);
---accent-primary:var(--xgreen);--accent-secondary:var(--psblue);
---status-ok:var(--xgreen);--status-warn:var(--hazard);--status-error:var(--alert);
+/* --- Surfaces.
+       Flat fills, no backdrop-filter. Only three things on the page have a surface at
+       all now: buttons, form fields, and the floating player — which has page content
+       scrolling underneath it and would otherwise be text over text. Everything else
+       sits directly on the ground. --- */
+--surface-page:var(--p-cream);
+--surface-control:rgba(242,239,231,.45);   /* buttons */
+--surface-field:rgba(242,239,231,.6);      /* inputs, selects, textareas */
+--surface-raised:rgba(242,239,231,.94);    /* the floating player */
+--surface-well:rgba(200,223,219,.55);
 
-/* --- Recolours a black Lucide SVG to sit in the piss-filter palette. Applied to
-       <img> icons, which can't be filled with currentColor. --- */
---icon-tint:invert(84%) sepia(18%) saturate(320%) hue-rotate(20deg) brightness(95%);
+/* --- Lines. Almost all of them went with the panels: no tinted panel edges, no
+       section rules. What is left is the boundary of a control, which the non-text
+       rule requires to reach 3:1 and which --p-deep clears at 3.43:1 on the ground and
+       4.33:1 inside a field. --hair is decorative and carries nothing. --- */
+--hair:rgba(102,163,191,.5);
+--hair-lit:rgba(51,104,160,.45);
+--edge:var(--p-deep);
+--focus-ring:var(--p-deep);
+
+/* --- Fills. Used at alpha, never solid: see components/_button.scss. --- */
+--fill-primary:var(--p-deep);
+
+/* --- Status. Colour is never the only carrier — each one is paired with a word. --- */
+--status-ok:#1f5540;--status-idle:var(--text-dim);--status-error:#8c1d30;
+
+/* --- Recolours a black Lucide SVG toward --text-dim. Applied to <img> icons, which
+       cannot be filled with currentColor. --- */
+--icon-tint:invert(28%) sepia(22%) saturate(1100%) hue-rotate(178deg) brightness(88%) contrast(88%);
 }
