@@ -25,8 +25,21 @@
   min-width: 0;
 }
 
+/* The four cell headings, and the only bold type in the strip.
+
+   They are what makes this read as four labelled instruments rather than four loose
+   piles of small text: the readouts underneath are all mono at --text-3xs, so without
+   a weight step at the top of each cell the eye has nothing to anchor on and the whole
+   rail flattens into one texture.
+
+   Bold rather than darker-and-bold. --text-dim is where the tone change already put
+   them (see the note in InstrumentStrip.tsx) and that is the right colour for a label;
+   adding weight on top of a further darkening would have made these compete with the
+   section headings, which are the actual hierarchy of the page. Weight alone is the
+   smaller instrument and it is enough at this size. */
 .jk-strip__label {
   color: var(--text-dim);
+  font-weight: var(--weight-bold);
 }
 
 /* --- visitor index ---------------------------------------------------------------- */

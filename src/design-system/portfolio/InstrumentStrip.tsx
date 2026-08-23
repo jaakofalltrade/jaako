@@ -1,4 +1,3 @@
-import { AnnotationTone } from "@/models";
 import { Annotation } from "../core/Annotation";
 import { KnownAs } from "./KnownAs";
 import { ListeningStats } from "./ListeningStats";
@@ -34,9 +33,14 @@ export const InstrumentStrip = () => (
   <div className="jk-strip">
     {CELLS.map((cell) => (
       <section key={cell.label} className="jk-strip__cell">
-        <Annotation tone={AnnotationTone.Decorative} className="jk-strip__label">
-          {cell.label}
-        </Annotation>
+        {/* Info, not Decorative, and the tone had to move with the weight rather than
+            after it. Decorative is --text-faint, which fails AA, and the Annotation
+            component aria-hides it precisely because of that — a fair contract while
+            these were the quietest thing in the cell. They are the loudest now: each
+            one names what the readout under it is, and a bold heading that no screen
+            reader announces is the worst of both. Info puts them in the accessibility
+            tree at --text-dim, which is what they were always doing visually. */}
+        <Annotation className="jk-strip__label">{cell.label}</Annotation>
         {cell.content}
       </section>
     ))}

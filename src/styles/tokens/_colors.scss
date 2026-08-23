@@ -60,46 +60,42 @@
    the hue and this number change — re-measure rather than assuming. */
 --p-ember:#c2470c;
 
-/* The second rare accent: the employer's name, wherever it appears. Two places, the
-   same discipline as the ember — a colour that means something only stays meaning
-   something while it is spent on one thing.
+/* The mint. It is the primary-action colour: the two buttons on the site that are
+   .jk-btn--primary wear it, and nothing else does.
 
-   THE REQUESTED COLOUR WAS #4cbba1 AND THIS IS NOT IT. Here are the measurements,
-   taken off the rendered page rather than off the table below — the ground was
-   reconstructed the way the browser composites it (the photograph, cover-fit to the
-   viewport, blurred 5px, scaled 1.02, under the 3 % navy of --bg-glass) and sampled
-   pixel by pixel under the word's own box:
+   TWO, NOT ONE, and that is the point rather than a leak. The variant means "the one
+   thing to do on this screen" — see the work, at the top of the page; send it, at the
+   bottom of the form — and they are four sections apart. Giving them one colour is
+   what makes the colour mean the action; special-casing the masthead would produce two
+   primary buttons that look like different kinds of control, which is the failure the
+   variant exists to prevent. If a third primary button ever appears, the thing to
+   question is the third button.
 
-     ground under the word    relative luminance 0.307 → 0.510
-     #4cbba1                  1.25:1 at both ends
-     --text-body #22405c      3.65:1 → 5.73:1   (what the values beside it get)
-     this token               3.29:1 → 5.17:1
+   IT IS THE SOURCE VALUE, VERBATIM, and the reason it can be is that it is a fill.
+   This colour was first tried as ink — the employer's name set in it, in the hero meta
+   and on the experience entry — and it failed outright. Measured off the composited
+   page (the photograph, cover-fit, blurred 5px, scaled 1.02, under the 3 % navy of
+   --bg-glass) the ground under that word runs 0.307 → 0.510 in relative luminance, and
+   #4cbba1 reached 1.25:1 against it at both ends. On screen the word disappeared. That
+   is not a hue problem or a near miss a nudge recovers: a light colour cannot separate
+   from a light ground, and nothing at that lightness was ever going to work there.
 
-   1.25:1 is not a near miss that a nudge recovers. It is a colour the same brightness
-   as what is behind it, and on screen it was exactly that: the word vanished. Nothing
-   at that lightness works here, because a light colour on a light ground has nowhere
-   to go.
+   A fill inverts the problem. The colour is no longer competing with the photograph to
+   be read — it IS the ground, and what has to be legible is the dark label on top of
+   it, which the mint makes easier rather than harder. So the value that was unusable
+   as text is exactly right here, which is what the old note over this token predicted
+   would happen if it ever moved onto a surface.
 
-   SO THE BENCHMARK IS THE TEXT NEXT TO IT, not a fixed ratio. Note what the table
-   below would have demanded and why it is the wrong instrument: it is measured through
-   an .78 off-white pane that tokens/_effects.scss replaced with a 3 % navy tint, and
-   that file says outright that none of its ratios survive the change. Measured against
-   the real ground, --text-body itself only reaches 3.65:1 under this word. Holding one
-   accent to 4.5:1 while the prose around it sits at 3.65:1 would be arithmetic for its
-   own sake. This lands within a third of a stop of its neighbours, which is the honest
-   target.
+   The button's own file carries the composited numbers for the label, since those
+   depend on the alpha rather than on this value. See .jk-btn--primary in
+   components/_button.scss.
 
-   WHY IT IS SATURATED RATHER THAN MERELY DARK. #4cbba1 is hsl(166, 45%, 52%). The
-   first attempt kept that saturation and walked the lightness down, and the result was
-   a colour that read as ink rather than as green — at this luminance a 45 % green and
-   the navy beside it are hard to tell apart. This is the same 166° at 80 % saturation
-   and 17 % lightness: identical contrast, unmistakably green. When a hue has to live
-   this dark, saturation is the only thing carrying it.
-
-   IF THE WORD EVER MOVES ONTO A SURFACE — a filled panel, a badge with a fill — this
-   can go a long way back toward the source value, because the ground stops being the
-   photograph. Re-measure rather than assuming. */
---p-jade:#094e3e;
+   SPEND IT AS SPARINGLY AS THE EMBER. Buttons only, and only the primary variant — the
+   moment this appears on a rule, a badge, an icon or a heading it stops reading as
+   "press this" and becomes decoration, and the ember loses its own charge alongside
+   it. The two accents share the masthead and each is the only saturated thing of its
+   kind there; that balance is the whole reason either one works. */
+--p-jade:#4cbba1;
 
 /* --- Text: #3368a0's hue, darkened until it passes on the open ground. --- */
 --text-strong:#0f2136;   /* 8.44:1 worst — headings, display type */

@@ -1,6 +1,5 @@
 import { BadgeTone } from "@/models";
 import type { ExperienceItem } from "@/models";
-import { EMPLOYER } from "@/data/site";
 import { Badge } from "../core/Badge";
 
 export type ExperienceEntryProps = {
@@ -26,26 +25,7 @@ export const ExperienceEntry = ({ item, index }: ExperienceEntryProps) => (
     </span>
 
     <div className="jk-xp__body">
-      {/* The employer accent, decided here rather than in the data — the same trade
-          Hero makes with the masthead name. Matched case-insensitively because this
-          file prints the company's own capitalisation and the hero meta sets it
-          lowercase; EMPLOYER in src/data/site.ts is the one place that says which
-          employer it is.
-
-          THE SPAN IS NOT DECORATION. .jk-employer lives in the components layer and
-          .jk-xp__company in widgets, which loads after it — put both classes on the
-          same element and the heading's own `color: var(--text-strong)` wins the
-          cascade and the accent silently never appears. On a child element there is
-          nothing to win: the span sets its own colour and the heading only passes one
-          down. Hero reaches the same arrangement from the other direction, its accent
-          being a span inside a dd. */}
-      <h3 className="jk-xp__company">
-        {item.company.toLowerCase() === EMPLOYER.toLowerCase() ? (
-          <span className="jk-employer">{item.company}</span>
-        ) : (
-          item.company
-        )}
-      </h3>
+      <h3 className="jk-xp__company">{item.company}</h3>
       <ul className="jk-xp__roles">
         {item.roles.map((role, position) => (
           <li key={role.title} className="jk-xp__role">

@@ -12,21 +12,6 @@ import type { ContactLink, HeroCopy, MetaPair, NavItem, SectionCopy } from "@/mo
 
 export const BRAND = "jaako";
 
-/**
- * The current employer, named once so the two places that print it can agree.
- *
- * It is a constant rather than a flag on the data because the accent is a
- * presentation decision, exactly as HERO.title_accent and ABOUT_LEAD_EMPHASIS are:
- * this file says what the copy is, and Hero and ExperienceEntry decide which word
- * gets the colour by matching against this. Compared case-insensitively — the hero
- * meta sets it lowercase like everything else in that block, the experience entry
- * uses the company's own capitalisation, and both are the same employer.
- *
- * See .jk-employer in styles/components/_employer.scss for the colour, and the
- * --p-jade note in tokens/_colors.scss for why it is not the mint it started as.
- */
-export const EMPLOYER = "restoplus";
-
 export const HERO: HeroCopy = {
   title: "jaako andes.",
   title_accent: "andes.",
@@ -144,8 +129,14 @@ export const FOOTER = {
   spec: "plate 01-05 · duotone c-2 · 6400 k",
 } as const;
 
-/** Recast hit counter. The number is the number; the unit label is the joke. */
-export const VISITOR_INDEX = { count: 1985057, unit: "cumulative ± 1 · since 2021" } as const;
+/**
+ * Recast hit counter. The number is the number; the unit label is the joke.
+ *
+ * It was 1,985,057 since 2021 and it is 1 since 2026, which is a better joke and also
+ * the true one — the site is new. Rendered in a seven-digit odometer it comes out as
+ * 0000001, and the "± 1" underneath now spans the entire range of plausible values.
+ */
+export const VISITOR_INDEX = { count: 1, unit: "cumulative ± 1 · since 2026" } as const;
 
 /**
  * The section index, rendered twice: inline above the about section by SectionNav,

@@ -77,35 +77,60 @@
 
 /* --- variants --- */
 
-/* One per screen. --p-deep from the swatch, borderless, and a step deeper than the
-   .30 it used to sit at.
+/* One per screen, borderless, and mint. Two on the site — the masthead's call to
+   action and the contact form's submit — which is one each for the two screens that
+   have something to press.
+
+   IT USED TO BE --p-deep, the structural blue, at .45. The colour is the change; the
+   construction is not. See tokens/_colors.scss for why #4cbba1 is usable here after
+   failing as ink elsewhere on this page — short version, a fill is a ground rather
+   than a mark, so a light colour stops having to separate from a light photograph and
+   starts being the thing the label separates from.
 
    THE BORDER IS GONE ON PURPOSE and it costs something, so the trade is written down.
    The --text-link edge was what carried the 3:1 the non-text rule asks of a control
    boundary; a translucent fill cannot replace it, because it is measured against a
-   photograph that runs from #bdbbb4 to #e3ece7 and the fill separates from that by
-   under 2:1 at either end. What still identifies this as a control is its shape, its
-   label, its radius, and — for the case the rule is really protecting — the focus
-   ring, which is untouched. Deliberate, not an oversight: do not "fix" it by putting
-   the edge back.
+   photograph that runs bright to near-black and the fill separates from that by under
+   2:1 at some point along it. What still identifies this as a control is its shape,
+   its label, its radius, and — for the case the rule is really protecting — the focus
+   ring, which is untouched. The mint helps here too, being the only object on the page
+   wearing that hue. Deliberate, not an oversight: do not "fix" it by putting the edge
+   back. */
+/* THE FILL IS THE MINT NOW, not --p-deep, and the alpha went up with it. Same
+   construction as before — a see-through wash, no edge — but --p-jade at .55 rather
+   than the deep blue at .45. Two reasons for the extra ten points: the mint is a much
+   lighter colour than the blue and washes out faster against a bright photograph, and
+   the whole point of putting it here is that it reads as green rather than as a tinted
+   pane.
 
-   .45 is about as deep as the fill goes while the label still clears AA, and the
-   hover at .55 is the binding constraint rather than the rest state. Composited over
-   the darkest end of the ground quoted in tokens/_colors.scss (#bdbbb4) and measured
-   the same way that file's table is, --text-strong lands near 5.3:1 at rest and 4.7:1
-   on hover — both above 4.5, neither by much. Treat those as the reason not to go
-   deeper, not as certified numbers: the arithmetic here reproduces the old .30 fill at
-   6.2:1 where the note above said 6.88:1, so the two were measured against different
-   samples of the photograph. If this fill moves again, re-measure it properly. */
+   IT MAKES THE LABEL EASIER, NOT HARDER, which is the reverse of the note above. A
+   light fill lightens the ground under the ink, so --text-strong GAINS contrast as the
+   alpha rises — deepening this fill is safe in a way deepening the blue one was not.
+
+   Measured rather than derived: the composite under the button was reconstructed the
+   way the browser builds it and sampled pixel by pixel, taking the worst and best
+   points of the photograph behind it.
+
+     no fill (bare ground)   3.44:1 → 12.68:1
+     .55, at rest            5.14:1 →  9.12:1
+     .68, on hover           5.61:1 →  8.42:1
+
+   Read the first row against the second: the fill RESCUES the label. On the open
+   ground the worst point is 3.44:1, under the 4.5:1 that 12px type owes; the mint
+   lifts it to 5.14:1 and hover lifts it again. There is no alpha in the usable range
+   where this label is the constraint, which is why the choice of .55 was made on how
+   the colour reads rather than on arithmetic. */
 .jk-btn--primary {
-  background: color-mix(in srgb, var(--p-deep) 45%, transparent);
+  background: color-mix(in srgb, var(--p-jade) 55%, transparent);
   border: 0;
   color: var(--text-strong);
   font-weight: var(--weight-medium);
 
-  /* Deepens rather than lifting or brightening. */
+  /* Saturates rather than darkening. With a light fill "deeper" means more mint and
+     less photograph, so this is also the higher-contrast end for the label — the one
+     variant where hover is the safe direction rather than the binding constraint. */
   &:hover {
-    background: color-mix(in srgb, var(--p-deep) 55%, transparent);
+    background: color-mix(in srgb, var(--p-jade) 68%, transparent);
   }
 }
 

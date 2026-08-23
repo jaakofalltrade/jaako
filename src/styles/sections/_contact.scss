@@ -66,13 +66,19 @@
    The bordered version stays the default so the next form to appear anywhere else gets
    a control with an edge.
 
-   .18 IS ALMOST NOTHING AND THAT IS THE POINT, but it is worth being straight about
-   what it buys. Over the form's own .5 cream the field is 18 % of the remaining
-   distance to cream, which is plainly visible where the ground behind the glass is
-   dark and close to invisible where it is bright. So the wash is not what identifies
-   these as fields — the label above each one is, which is why every field here has a
-   real <label> and a placeholder rather than a placeholder standing in for a label.
-   Hover and focus are where the fill does real work.
+   NO FILL AT ALL AT REST. The wash is gone too — the field is the form's own glass,
+   with nothing drawn on it but the text you type. Which means the wash is not what
+   identifies these as fields and neither is anything else visual: the label above each
+   one is, which is why every field here has a real <label> rather than a placeholder
+   standing in for one. Hover and focus are where the fill does all of its work now,
+   and they are the only states that have one.
+
+   THE FONT IS THE BODY STACK, NOT THE MONO. Every other control on this site is mono
+   because every other control is a readout — a badge, an annotation, a spec line. A
+   message box is prose: it is the one place on the page where a visitor writes
+   sentences, and setting sentences in a monospace face makes them look like terminal
+   output rather than like the note they are. The labels around the fields stay mono,
+   which is correct — those ARE readouts. What changed is the text a person types.
 
    WHAT REPLACES THE EDGE ON ERROR. --status-error was carried by border-color, and
    removing the border removes the only mark an invalid field had. An inset shadow
@@ -87,18 +93,23 @@
   .jk-input,
   .jk-textarea {
     border: 0;
-    background: rgba(242, 239, 231, 0.18);
+    background: transparent;
+    font-family: var(--font-body);
+    /* The mono face was tracked out to sit as a readout. Prose does not want that —
+       --tracking-normal is what the rest of the page's sentences are set at. */
+    letter-spacing: var(--tracking-normal);
     transition:
       background-color var(--dur-base) var(--ease-out),
       box-shadow var(--dur-base) var(--ease-out);
 
-    /* Deepens rather than drawing an edge — the same move .jk-btn--primary makes. */
+    /* The fill appears on approach rather than sitting there. Same move
+       .jk-btn--primary makes: deepen, do not draw an edge. */
     &:hover {
-      background: rgba(242, 239, 231, 0.3);
+      background: rgba(242, 239, 231, 0.22);
     }
 
     &:focus-visible {
-      background: rgba(242, 239, 231, 0.34);
+      background: rgba(242, 239, 231, 0.3);
     }
 
     &[aria-invalid="true"] {

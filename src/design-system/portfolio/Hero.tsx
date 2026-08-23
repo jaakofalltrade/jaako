@@ -1,5 +1,5 @@
 import { AnnotationTone } from "@/models";
-import { EMPLOYER, HERO } from "@/data/site";
+import { HERO } from "@/data/site";
 import { Annotation } from "../core/Annotation";
 import { DefinitionList } from "../core/DefinitionList";
 import { Rule } from "../core/Rule";
@@ -31,22 +31,6 @@ import { HeroActions } from "./HeroActions";
  */
 const titleLead = HERO.title.slice(0, HERO.title.length - HERO.title_accent.length);
 
-/**
- * The same trade one row down: the copy stays a string in src/data/site.ts, and which
- * word takes a colour stays here.
- *
- * MetaPair.value is typed as string but DefinitionItem.value is a ReactNode, so the
- * list happily takes an element — which is what lets the employer row carry a span
- * without MetaPair having to learn about JSX. Matched case-insensitively against
- * EMPLOYER because the hero sets it lowercase and the experience entry uses the
- * company's own capitalisation; both are the same employer, and neither file should
- * have to know how the other spells it. */
-const heroMeta = HERO.meta.map(({ term, value }) =>
-  value.toLowerCase() === EMPLOYER.toLowerCase()
-    ? { term, value: <span className="jk-employer">{value}</span> }
-    : { term, value },
-);
-
 export const Hero = () => (
   <header className="jk-hero">
     {/* Info, not Decorative, and that is a colour decision with an accessibility
@@ -76,7 +60,7 @@ export const Hero = () => (
         <p className="jk-hero__blurb" data-reveal data-delay="2">
           {HERO.blurb} <s className="jk-struck">{HERO.struck.retired}</s> {HERO.struck.current}
         </p>
-        <DefinitionList items={heroMeta} className="jk-hero__meta" />
+        <DefinitionList items={HERO.meta} className="jk-hero__meta" />
       </div>
       <HeroActions />
     </div>
