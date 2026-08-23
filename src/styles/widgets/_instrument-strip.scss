@@ -25,8 +25,21 @@
   min-width: 0;
 }
 
+/* The four cell headings, and the only bold type in the strip.
+
+   They are what makes this read as four labelled instruments rather than four loose
+   piles of small text: the readouts underneath are all mono at --text-3xs, so without
+   a weight step at the top of each cell the eye has nothing to anchor on and the whole
+   rail flattens into one texture.
+
+   Bold rather than darker-and-bold. --text-dim is where the tone change already put
+   them (see the note in InstrumentStrip.tsx) and that is the right colour for a label;
+   adding weight on top of a further darkening would have made these compete with the
+   section headings, which are the actual hierarchy of the page. Weight alone is the
+   smaller instrument and it is enough at this size. */
 .jk-strip__label {
   color: var(--text-dim);
+  font-weight: var(--weight-bold);
 }
 
 /* --- visitor index ---------------------------------------------------------------- */
@@ -99,6 +112,46 @@
 
 .jk-aka__row--total {
   margin-top: var(--space-1);
+}
+
+/* --- status ----------------------------------------------------------------------- */
+
+/* Four term/value rows where a marquee used to scroll. The term column is fixed rather
+   than auto so the values line up as a column of their own — a readout with ragged
+   values is a list, and this is meant to read as an instrument.
+
+   5.5rem is the same width the listening statistics use two cells over. That is the
+   point: both are DefinitionLists in a quarter-width cell, and the strip only reads as
+   one instrument if its columns agree. "employment" is the longest term here and fits
+   inside it at --text-3xs. */
+.jk-status .jk-dl__row {
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  gap: 0 var(--space-3);
+  /* Not baseline. Three of these rows are one line and "employed, still curious" is
+     two in a quarter-width cell; on a baseline grid the two-line value hangs its first
+     line off the term and the pair stops looking like a pair. */
+  align-items: start;
+}
+
+/* NO TRUNCATE HERE, unlike the listening statistics next door — and the difference is
+   what the values are. Over there they are track and artist names, arbitrary-length
+   strings from an API, where an ellipsis is the only alternative to a cell that grows
+   without limit. Here they are four fixed phrases written in src/data/site.ts, and the
+   longest of them is "employed, still curious", which does not fit on one line at this
+   width and truncated to "employed, still…" — an employment status cut off exactly
+   where it stops being an employment status. It wraps. */
+.jk-status .jk-dl__value {
+  overflow-wrap: anywhere;
+}
+
+/* Tabular figures, and the reason is the same one the visitor odometer gives: without
+   them the digits change width as they change value and the clock jitters sideways
+   once a second, which is the one thing a clock beside three static rows must not do.
+   The width is already held by the placeholder in LocalClock.tsx; this holds it once
+   the real value is in. */
+.jk-status__clock {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-wide);
 }
 
 /* --- listening statistics --------------------------------------------------------- */

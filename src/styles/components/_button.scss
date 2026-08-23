@@ -37,6 +37,33 @@
   flex: 0 0 auto;
 }
 
+/* The trailing arrow, centred as a box rather than hung off the label's baseline.
+
+   Both halves of this are corrections, not taste:
+
+   THE NEGATIVE MARGIN IS THE TRAILING LETTER-SPACE. The label mixin sets
+   --tracking-anno (.18em), and letter-spacing is added after every character including
+   the last one — so the flex line is .18em wider than the ink in it and
+   justify-content: center splits that surplus, hanging the whole label .09em to the
+   left of true centre. Pulling the same amount back off the end removes the phantom
+   column instead of guessing at a compensating offset.
+
+   THE BASELINE NUDGE IS THE FONT FALLBACK. → is in neither webfont (see the fallback
+   note in app/layout.tsx), so it renders out of whatever system face catches it, whose
+   baseline sits lower against these caps than the arrow's own optical centre wants.
+   line-height:1 collapses its box to the glyph so align-items can centre it, and the
+   .06em lift covers the residual difference between a symbol centred on the math axis
+   and letters centred on cap height.
+
+   Applies to any button given one, though only the masthead's has an arrow today. */
+.jk-btn__arrow {
+  display: inline-flex;
+  flex: 0 0 auto;
+  line-height: 1;
+  margin-right: calc(var(--tracking-anno) * -1);
+  transform: translateY(-0.06em);
+}
+
 /* --- sizes --- */
 .jk-btn--sm { min-height: var(--control-h-sm); padding: 0 var(--space-4); }
 .jk-btn--md { min-height: var(--control-h-md); padding: 0 var(--space-6); }
@@ -50,35 +77,68 @@
 
 /* --- variants --- */
 
-/* One per screen. --p-deep from the swatch, borderless, and a step deeper than the
-   .30 it used to sit at.
+/* One per screen, borderless, and mint. Two on the site — the masthead's call to
+   action and the contact form's submit — which is one each for the two screens that
+   have something to press.
+
+   IT USED TO BE --p-deep, the structural blue, at .45. The colour is the change; the
+   construction is not. See tokens/_colors.scss for why #4cbba1 is usable here after
+   failing as ink elsewhere on this page — short version, a fill is a ground rather
+   than a mark, so a light colour stops having to separate from a light photograph and
+   starts being the thing the label separates from.
 
    THE BORDER IS GONE ON PURPOSE and it costs something, so the trade is written down.
    The --text-link edge was what carried the 3:1 the non-text rule asks of a control
    boundary; a translucent fill cannot replace it, because it is measured against a
-   photograph that runs from #bdbbb4 to #e3ece7 and the fill separates from that by
-   under 2:1 at either end. What still identifies this as a control is its shape, its
-   label, its radius, and — for the case the rule is really protecting — the focus
-   ring, which is untouched. Deliberate, not an oversight: do not "fix" it by putting
-   the edge back.
+   photograph that runs bright to near-black and the fill separates from that by under
+   2:1 at some point along it. What still identifies this as a control is its shape,
+   its label, its radius, and — for the case the rule is really protecting — the focus
+   ring, which is untouched. The mint helps here too, being the only object on the page
+   wearing that hue. Deliberate, not an oversight: do not "fix" it by putting the edge
+   back. */
+/* THE FILL IS THE GREEN NOW, not --p-deep, and the ALPHA IS HIGH BECAUSE THE GREEN IS
+   DARK. That second half is the whole of this note, and it is not a taste decision.
 
-   .45 is about as deep as the fill goes while the label still clears AA, and the
-   hover at .55 is the binding constraint rather than the rest state. Composited over
-   the darkest end of the ground quoted in tokens/_colors.scss (#bdbbb4) and measured
-   the same way that file's table is, --text-strong lands near 5.3:1 at rest and 4.7:1
-   on hover — both above 4.5, neither by much. Treat those as the reason not to go
-   deeper, not as certified numbers: the arithmetic here reproduces the old .30 fill at
-   6.2:1 where the note above said 6.88:1, so the two were measured against different
-   samples of the photograph. If this fill moves again, re-measure it properly. */
+   The colour arrived here light — #4cbba1 — and at .55 it cleared the label
+   comfortably, because a light fill lightens the ground under dark ink. It was then
+   taken a step down to #3a9d86, which reads far better on a photograph that is itself
+   bright cyan, and that inverted the arithmetic: a darker fill moves the ground TOWARD
+   the ink, and the label started losing contrast instead of gaining it.
+
+   Measured rather than derived — the composite under the button was reconstructed the
+   way the browser builds it (photograph, cover-fit, blurred 5px, scaled 1.02, under
+   --bg-glass) and sampled pixel by pixel, worst and best point of the ground behind it:
+
+     no fill (bare ground)   3.14:1 → 10.87:1
+     .55                     4.05:1 →  7.16:1   ← under the bar
+     .70                     4.32:1 →  6.34:1   ← still under
+     .85, at rest            4.61:1 →  5.59:1
+     .96, on hover           4.83:1 →  5.09:1
+     fully opaque            4.92:1              (the colour's own ceiling)
+
+   READ THE LAST ROW FIRST. #3a9d86 against --text-strong is 4.92:1 flat, so this colour
+   has about four tenths of a stop of headroom over the 4.5:1 that 12px type owes, TOTAL
+   — and every point of transparency spends some of it letting a dark photograph back
+   in. .55 lands at 4.05:1, which fails. That is why the wash is now thin rather than
+   generous: at .85 only about a sixth of the ground shows through, which is enough to
+   keep the button sitting in the picture rather than pasted on it, and enough contrast
+   to be legible over the worst of it.
+
+   DO NOT DARKEN --p-jade FURTHER WITHOUT REDOING THIS. The ceiling above is the thing
+   that binds: one more step down and no alpha rescues the label, and the fix stops
+   being the fill and becomes the ink — which means a light label, which means this
+   button stops matching every other control on the page.
+
+   Hover deepens rather than lifting, and with a dark fill that is also the
+   higher-contrast end: more green, less photograph, a more definite label. */
 .jk-btn--primary {
-  background: color-mix(in srgb, var(--p-deep) 45%, transparent);
+  background: color-mix(in srgb, var(--p-jade) 85%, transparent);
   border: 0;
   color: var(--text-strong);
   font-weight: var(--weight-medium);
 
-  /* Deepens rather than lifting or brightening. */
   &:hover {
-    background: color-mix(in srgb, var(--p-deep) 55%, transparent);
+    background: color-mix(in srgb, var(--p-jade) 96%, transparent);
   }
 }
 

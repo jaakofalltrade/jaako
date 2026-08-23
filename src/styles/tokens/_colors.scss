@@ -60,6 +60,49 @@
    the hue and this number change — re-measure rather than assuming. */
 --p-ember:#c2470c;
 
+/* The mint. It is the primary-action colour: the two buttons on the site that are
+   .jk-btn--primary wear it, and nothing else does.
+
+   TWO, NOT ONE, and that is the point rather than a leak. The variant means "the one
+   thing to do on this screen" — see the work, at the top of the page; send it, at the
+   bottom of the form — and they are four sections apart. Giving them one colour is
+   what makes the colour mean the action; special-casing the masthead would produce two
+   primary buttons that look like different kinds of control, which is the failure the
+   variant exists to prevent. If a third primary button ever appears, the thing to
+   question is the third button.
+
+   IT IS #4cbba1 TAKEN ONE STEP DOWN. The source value went in verbatim first and read
+   as a pastel: at .55 over a photograph that is already cyan and already bright, a mint
+   that light stopped being a colour and became a tint of the ground behind it. Same
+   hue, same saturation, less lightness — enough that the button is a green object on
+   the picture rather than a lit patch of it.
+
+   THE REASON A LIGHT-ISH GREEN WORKS HERE AT ALL is that it is a fill. This colour was
+   first tried as ink — the employer's name set in it, in the hero meta and on the
+   experience entry — and it failed outright. Measured off the composited page (the
+   photograph, cover-fit, blurred 5px, scaled 1.02, under the 3 % navy of --bg-glass)
+   the ground under that word runs 0.307 → 0.510 in relative luminance, and #4cbba1
+   reached 1.25:1 against it at both ends. On screen the word disappeared. That is not
+   a hue problem or a near miss a nudge recovers: a light colour cannot separate from a
+   light ground, and nothing at that lightness was ever going to work there.
+
+   A fill inverts the problem. The colour is no longer competing with the photograph to
+   be read — it IS the ground, and what has to be legible is the dark label on top of
+   it, which the mint makes easier rather than harder. So the value that was unusable
+   as text is exactly right here, which is what the old note over this token predicted
+   would happen if it ever moved onto a surface.
+
+   The button's own file carries the composited numbers for the label, since those
+   depend on the alpha rather than on this value. See .jk-btn--primary in
+   components/_button.scss.
+
+   SPEND IT AS SPARINGLY AS THE EMBER. Buttons only, and only the primary variant — the
+   moment this appears on a rule, a badge, an icon or a heading it stops reading as
+   "press this" and becomes decoration, and the ember loses its own charge alongside
+   it. The two accents share the masthead and each is the only saturated thing of its
+   kind there; that balance is the whole reason either one works. */
+--p-jade:#3a9d86;
+
 /* --- Text: #3368a0's hue, darkened until it passes on the open ground. --- */
 --text-strong:#0f2136;   /* 8.44:1 worst — headings, display type */
 --text-body:#22405c;     /* 5.57:1 worst — prose */

@@ -28,23 +28,12 @@
   overscroll-behavior: contain;
   background: var(--surface-raised);
   box-shadow: var(--shadow-float);
-
-  /* Hidden until the hero scrolls past — see the observer in NowPlayingDock.tsx.
-     pointer-events matters as much as opacity: an invisible panel pinned over the
-     hero would still swallow clicks on the buttons underneath it. */
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(0.5rem);
-  transition:
-    opacity var(--dur-slow) var(--ease-out),
-    transform var(--dur-slow) var(--ease-out);
 }
 
-.jk-dock--in {
-  opacity: 1;
-  pointer-events: auto;
-  transform: none;
-}
+/* The opacity/pointer-events/transform gate that used to live here is gone with the
+   IntersectionObserver that drove it — the player is present from the first paint now.
+   See the note over NowPlayingDock. Nothing replaced it: there is no entrance
+   animation, because there is no entrance. It is simply already there. */
 
 .jk-dock__body {
   display: flex;
@@ -55,16 +44,18 @@
 
 /* --- the sleeve ------------------------------------------------------------------- */
 
+/* The cover frame. A span in both states now — the collapsed player is one button
+   around the whole strip, so the artwork has no handler of its own to justify being a
+   <button>. Hence no cursor and no reset of button chrome here; both moved to
+   .jk-dock__peek. */
 .jk-dock__sleeve {
   position: relative;
   flex: 0 0 auto;
-  width: 2.75rem;
-  height: 2.75rem;
-  padding: 0;
-  border: 0;
+  display: grid;
+  width: 3rem;
+  height: 3rem;
   border-radius: var(--radius-pill);
   overflow: hidden;
-  cursor: pointer;
   background: var(--surface-well);
   box-shadow: inset 0 0 0 1px var(--edge);
 }
@@ -300,23 +291,135 @@
   color: var(--text-dim);
 }
 
-/* --- collapsed to the bare sleeve -------------------------------------------------- */
+/* --- minimised --------------------------------------------------------------------- */
 
+/* THIS IS NO LONGER THE PANEL WITH THINGS HIDDEN. The old block was four display:none
+   declarations and a background:none — the full markup with its metadata, controls and
+   recent list blanked out, leaving a bare 44px cover floating with no surface under it.
+   NowPlayingDock renders a different tree for this state now, so there is nothing to
+   hide and the rules below are all additive.
+
+   IT KEEPS THE SURFACE. The bare cover did not need one; two lines of type over a
+   photograph do, and it is the same --surface-raised the open panel uses, so the two
+   states are visibly the same object at two sizes rather than two different things.
+
+   Width is auto: the strip is as wide as the title it is carrying, up to the cap on
+   .jk-dock__peek-meta below. */
+/* A PILL, AND MOSTLY NOT THERE UNTIL YOU LOOK AT IT.
+
+   Two decisions, and they depend on each other. The shape is rounded to the full pill
+   radius so the strip reads as one object with the circular cover as its head, rather
+   than as a square panel with a round picture inside it — at this size a sharp corner
+   two pixels from a circle is just a mismatch. And the whole thing sits at .55 opacity
+   until it is pointed at, which is what buys the right to be on screen permanently: it
+   is over the masthead now, and a fully opaque panel parked on the one part of the
+   page composed as a picture is exactly what the old hero gate existed to prevent.
+
+   OPACITY ON THE WHOLE ELEMENT, not a translucent background. It is the cover as much
+   as the sheet that has to recede — a full-strength album photograph on a faded panel
+   would read as a bug — and one property on the container is also what makes the
+   hover a single clean transition instead of four.
+
+   :focus-within, not just :hover. The pill is a button; arriving at it by keyboard has
+   to bring it up exactly as the pointer does, or the focus ring lands on something
+   half-faded.
+
+   The square corners everywhere else on this site are deliberate and this does not
+   break that rule so much as sit outside it: nothing else on the page is a floating
+   object over a photograph. The one other rounded thing, the button, is round for the
+   same underlying reason — it is a control rather than content. */
 .jk-dock--sleeve {
   width: auto;
   max-height: none;
   overflow: visible;
-  background: none;
-  box-shadow: none;
+  /* --radius-stadium, NOT --radius-pill. The latter is 50 %, which on a strip this
+     wide draws an ellipse rather than rounding its ends — see tokens/_spacing.scss. */
+  border-radius: var(--radius-stadium);
+  opacity: 0.55;
+  transition: opacity var(--dur-base) var(--ease-out);
 
-  .jk-dock__meta,
-  .jk-dock__controls,
-  .jk-dock__recent-head,
-  .jk-dock__recent {
-    display: none;
+  &:hover,
+  &:focus-within {
+    opacity: 1;
   }
+}
 
-  .jk-dock__body { padding: 0; }
+/* Coarse pointers have no hover, so a permanently faded pill would simply be a
+   permanently faded pill. It sits up at full strength there and the transition never
+   has anything to do. */
+@media (hover: none) {
+  .jk-dock--sleeve { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jk-dock--sleeve { transition: none; }
+}
+
+/* The whole strip is the button. Cover, title and artist are one target, which is what
+   makes a 3.5rem-tall control out of what would otherwise be a cover with some text
+   beside it that does nothing when you press it.
+
+   text-align: left because a button centres its contents by default and this one holds
+   a paragraph's worth of left-aligned type. */
+.jk-dock__peek {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  padding: var(--space-3);
+  /* More on the right than the left: the cover is a circle and reads as having its own
+     margin, so matching the two optically means giving the text end more. */
+  padding-right: var(--space-6);
+  border: 0;
+  /* Inherits the pill radius from the parent so the button's own focus ring and any
+     future background follow the shape rather than cutting corners off it. */
+  border-radius: inherit;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: var(--border-2) solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+/* "i'm currently listening to", and the offline version of the same. The quietest line
+   in the pill and the first one read — it is what tells you the other two lines are a
+   song rather than a heading. Mono caps like every other label on the site. */
+.jk-dock__peek-status {
+  @include truncate;
+  @include label($size: var(--text-3xs), $tracking: var(--tracking-wide));
+  color: var(--text-dim);
+}
+
+/* THE WHOLE POINT OF THE MINIMISED STATE. At 2.75rem the cover was a thumbnail of a
+   thumbnail — enough to tell that album art existed, not enough to recognise a record
+   you know. 4rem is the size at which a cover reads as a picture, and it sets the
+   height of the strip, which is why the strip clears the touch floor without anything
+   here having to mention the touch floor. */
+.jk-dock--sleeve .jk-dock__sleeve {
+  width: 4rem;
+  height: 4rem;
+}
+
+/* Three lines now, capped. Without the cap a long title would stretch the strip most
+   of the way across a phone; with it, the title truncates and the lines around it stay
+   readable.
+
+   13rem rather than the 11rem this started at, and the status line is why: "i'm
+   currently listening to" is 26 characters of tracked mono caps and was truncating at
+   the old width — which is a bad line to cut, because it is the one that explains the
+   other two. It fits whole now, and the title is what gives when a track has a long
+   name, which is the right thing to sacrifice.
+
+   min-width: 0 is what makes the truncate on the lines engage at all inside a flex
+   parent. */
+.jk-dock__peek-meta {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  max-width: 13rem;
 }
 
 /* Nothing playing: the sleeve simply stops turning. It used to desaturate on top of
@@ -348,12 +451,10 @@
     left: auto;
   }
 
-  /* The sleeve is the only control in the collapsed state, so it carries the whole
-     touch target. */
-  .jk-dock--sleeve .jk-dock__sleeve {
-    width: var(--touch-min);
-    height: var(--touch-min);
-  }
+  /* The old rule here pushed the collapsed cover up to var(--touch-min), because the
+     cover WAS the control and 2.75rem is the thumb floor. The control is the whole
+     strip now and the cover is 4rem, so the target clears the floor in both dimensions
+     without help. Nothing to state. */
 
   /* Every control clears the touch floor once the sheet is open. */
   .jk-dock:not(.jk-dock--sleeve) {
@@ -370,8 +471,9 @@
 }
 
 /* A cover that spins forever is exactly what this setting exists to stop. */
+/* .jk-dock itself is no longer listed: its only transition was the entrance fade, and
+   there is no entrance any more. */
 @media (prefers-reduced-motion: reduce) {
-  .jk-dock { transition: none; }
   .jk-dock__sleeve[data-spin] { animation: none; }
   .jk-dock__recent-link { transition: none; }
 }

@@ -46,6 +46,40 @@ export const PLAYBACK_BADGE: Record<
 /** Shown before the first response lands — not a playback state, so it isn't in the enum. */
 export const LOADING_BADGE = { label: "tuning in", tone: BadgeTone.Steel };
 
+/**
+ * The line above the track in the minimised player, per playback state.
+ *
+ * Separate from PLAYBACK_BADGE rather than reusing it, because the two are saying
+ * different things. The badge is an instrument reading — "now playing", "offline" —
+ * and it labels the panel. This is the panel talking about its owner in the first
+ * person, which is the only place on the site that does, and it is what makes the
+ * pill legible at a glance to somebody who has not worked out what the widget is.
+ *
+ * OFFLINE NEEDS ITS OWN SENTENCE and does not get "offline". A player that says
+ * offline reads as broken — as though the widget failed rather than the man stopped
+ * playing music. Naming him instead puts the silence where it belongs.
+ */
+export const PEEK_STATUS: Record<Spotify.PlaybackStatus, string> = {
+  [Spotify.PlaybackStatus.Playing]: "i'm currently listening to",
+  [Spotify.PlaybackStatus.Recent]: "i was last listening to",
+  [Spotify.PlaybackStatus.Offline]: "i'm not listening to anything",
+};
+
+/** Before the first response lands. Same slot, same reason it isn't in the enum. */
+export const PEEK_LOADING = "checking the turntable";
+
+/**
+ * What stands in for the title and artist when there is no track.
+ *
+ * Two lines because the layout has two, and leaving the second empty would collapse
+ * the pill to a different height depending on whether music is playing — which is the
+ * one thing a permanently-visible element must not do.
+ */
+export const PEEK_OFFLINE_LINES = {
+  title: "silence, deliberately",
+  artist: "back when the coffee lands",
+} as const;
+
 export const NOW_PLAYING_CACHE_HEADERS = {
   // s-maxage lets a CDN absorb traffic spikes; max-age=0 keeps the browser out of
   // it, since the refresh button is the only intended way to update the panel and

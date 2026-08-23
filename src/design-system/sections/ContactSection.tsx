@@ -6,6 +6,7 @@ import {
   CONTACT_HOWS,
   CONTACT_HOW_LABEL,
   CONTACT_REASONS,
+  CONTACT_REASONS_CLOSED,
   CONTACT_REASON_LABEL,
 } from "@/constants/contact";
 import { BadgeTone, ButtonVariant, ContactHow, ContactReason, SubmissionStatus } from "@/models";
@@ -13,7 +14,6 @@ import { CONTACT_LINKS, CONTACT_SPEC, SECTIONS } from "@/data/site";
 import { Badge } from "../core/Badge";
 import { Button } from "../core/Button";
 import { SectionHead } from "../core/SectionHead";
-import { Checkbox } from "../forms/Checkbox";
 import { Field } from "../forms/Field";
 import { Input } from "../forms/Input";
 import { Radio } from "../forms/Radio";
@@ -25,7 +25,20 @@ import { SpecBlock } from "../portfolio/SpecBlock";
 const REASON_OPTIONS = CONTACT_REASONS.map((reason) => ({
   value: reason,
   label: CONTACT_REASON_LABEL[reason],
+  disabled: CONTACT_REASONS_CLOSED.has(reason),
 }));
+
+/**
+ * The first reason still on offer, and what the form opens on.
+ *
+ * Derived rather than written down as SayingHi, because a default that is hard-coded
+ * next to a closed-set that is not will eventually disagree with it — and the failure
+ * is silent and bad: the form would open with a disabled radio pre-selected, which no
+ * browser lets the visitor change and no validation would catch. Emptying
+ * CONTACT_REASONS_CLOSED puts this back to freelance on its own.
+ */
+const DEFAULT_REASON =
+  CONTACT_REASONS.find((reason) => !CONTACT_REASONS_CLOSED.has(reason)) ?? ContactReason.SayingHi;
 
 const HOW_OPTIONS = CONTACT_HOWS.map((how) => ({
   value: how,
@@ -36,10 +49,9 @@ const HOW_OPTIONS = CONTACT_HOWS.map((how) => ({
 const EMPTY_FORM = {
   name: "",
   email: "",
-  reason: ContactReason.Freelance,
+  reason: DEFAULT_REASON,
   message: "",
   how: ContactHow.Email,
-  cc: true,
   /** Honeypot, rendered off-screen and never filled by a human. See contactService. */
   website: "",
 };
@@ -168,11 +180,16 @@ export const ContactSection = () => {
                 inline
               />
             </fieldset>
+            {/* The placeholder carries the same news as the struck radios above it,
+                because a placeholder is the thing people actually read before they
+                start typing. It says no to the work and yes to the message in one
+                breath — the point is not to close the form, it is to stop someone
+                drafting a job offer that was never going to land. */}
             <Field label="message" required>
               <TextArea
                 name="message"
                 rows={3}
-                placeholder="what do you need built?"
+                placeholder="the queue is closed, but the inbox isn't — say what's on your mind"
                 value={form.message}
                 onChange={(event) => set("message", event.target.value)}
               />
@@ -203,8 +220,6 @@ export const ContactSection = () => {
               onChange={(how) => set("how", how)}
               inline
             />
-            <Checkbox label="cc me on this" checked={form.cc} onChange={(cc) => set("cc", cc)} />
-
             <Button
               type="submit"
               variant={ButtonVariant.Primary}

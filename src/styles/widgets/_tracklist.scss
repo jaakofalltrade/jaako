@@ -75,6 +75,32 @@
   .jk-track:focus-visible & { color: var(--text-strong); }
 }
 
+/* Archived work, one step back.
+
+   THE TITLE ONLY, AND IT STOPS AT --text-dim. That is not caution for its own sake:
+   --text-dim is 4.87:1 on this ground and the tier under it, --text-faint, is 3.97:1,
+   which fails — so this is the last step available before an archived project becomes
+   less readable than a current one rather than merely quieter, and a portfolio that
+   hides half its work is not doing its job. The blurb is already --text-dim and does
+   not move; dimming it too would take the pair down together and cost the difference
+   this rule exists to create.
+
+   NOTHING CHANGES ON HOVER. The title still goes to --text-strong when the row is
+   pointed at or focused, so the distinction is a scanning aid and never an obstacle:
+   the moment a reader shows interest in an archived project it reads exactly as
+   loudly as any other. Which is also why this is safe to be subtle — it is carried by
+   the badge, and this only has to agree with it.
+
+   THE :not() PAIR IS LOAD-BEARING, not defensive. The hover rule above is
+   `.jk-track:hover .jk-track__title`, which is three classes' worth of specificity —
+   exactly what `.jk-track[data-archived] .jk-track__title` would be, and this rule
+   comes later in the file, so it would win the tie and archived rows would simply stop
+   responding to hover. Excluding the two states outright is the fix, and it says what
+   it means: this colour applies at rest and nowhere else. */
+.jk-track[data-archived]:not(:hover):not(:focus-visible) .jk-track__title {
+  color: var(--text-dim);
+}
+
 .jk-track__blurb {
   display: block;
   margin-top: var(--space-2);

@@ -125,7 +125,6 @@ const validate = (args: { body: unknown }): ValidationResult => {
       reason,
       message,
       how: isHow(how) ? how : ContactHow.Email,
-      cc: raw.cc === true,
     },
   };
 };
@@ -161,9 +160,10 @@ const send = async (args: { request: ContactRequest }): Promise<void> => {
     from: serverConfig.contact_from_email,
     to: serverConfig.contact_to_email,
     replyTo: request.email,
-    // cc goes to the sender's own address, so it can only ever leak the message
-    // back to whoever wrote it.
-    cc: request.cc ? [request.email] : undefined,
+    // No cc. The form used to offer "cc me on this", defaulted on, which sent a copy
+    // to the sender's own address — harmless, since that is the one place the message
+    // had already been. It is gone from the form, and it comes out of here with it
+    // rather than lingering as a field nothing can set.
     subject: `[jaako.xyz] ${CONTACT_REASON_LABEL[request.reason]} — ${request.name}`,
     text: toBody({ request }),
   });

@@ -15,7 +15,11 @@ export type ExperienceEntryProps = {
  * marked with <strong> rather than colour alone.
  */
 export const ExperienceEntry = ({ item, index }: ExperienceEntryProps) => (
-  <article className="jk-xp" data-reveal>
+  /* data-archived, same attribute and same reasoning as the work tracklist: the badge
+     in the meta column is the carrier, and this is the same fact said at the scale of
+     the entry so a past job is recognisable while scanning the column of company names.
+     See the rule in widgets/_experience-entry.scss. */
+  <article className="jk-xp" data-archived={item.current ? undefined : ""} data-reveal>
     <span aria-hidden="true" className="jk-xp__index">
       {index}
     </span>

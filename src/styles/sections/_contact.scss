@@ -55,6 +55,88 @@
   }
 }
 
+/* --- the fields, borderless -------------------------------------------------------
+   No edge, and a wash instead of a fill: the fields stop being five stacked boxes and
+   become the form's own surface, very slightly deepened where you type.
+
+   SCOPED HERE RATHER THAN IN forms/_input.scss ON PURPOSE. .jk-input and .jk-textarea
+   are the general-purpose controls, and what makes this safe is the sheet: these fields
+   sit on the form's glass, which is doing the work of separating them from the
+   photograph. The same treatment on the open ground would be a field you cannot find.
+   The bordered version stays the default so the next form to appear anywhere else gets
+   a control with an edge.
+
+   NO FILL AT REST, BUT AN EDGE. The wash is gone — the field is the form's own glass
+   with nothing behind the text you type — and a hairline draws the box instead.
+
+   The edge is back because taking both away went too far. With no fill and no border
+   the only thing saying "you can type here" was the label above, and a label names a
+   field rather than locating it: the target had no visible extent, so the click had to
+   be aimed at remembered geometry. The border is the cheapest fix and the honest one,
+   and it costs nothing the transparency was buying.
+
+   --hair, NOT --edge. The original was --edge, the full-strength --p-deep, which is
+   what made five stacked fields read as five boxes. --hair is the same family at half
+   the presence: enough to bound the field, not enough to draw a grid. Hover and focus
+   walk it up to --text-link, so the control gets more definite as you approach it —
+   which is where the strength belongs.
+
+   THE FONT IS THE BODY STACK, NOT THE MONO. Every other control on this site is mono
+   because every other control is a readout — a badge, an annotation, a spec line. A
+   message box is prose: it is the one place on the page where a visitor writes
+   sentences, and setting sentences in a monospace face makes them look like terminal
+   output rather than like the note they are. The labels around the fields stay mono,
+   which is correct — those ARE readouts. What changed is the text a person types.
+
+   WHAT REPLACES THE EDGE ON ERROR. --status-error was carried by border-color, and
+   removing the border removes the only mark an invalid field had. An inset shadow
+   redraws exactly that line without reintroducing a border in the layout: no box
+   changes size, nothing reflows, and aria-invalid still shows up as something a person
+   can see. box-shadow rather than outline because outline is spoken for by focus, and a
+   field can be focused and invalid at once.
+
+   The focus ring itself is untouched, inherited from forms/_input.scss. It is the one
+   affordance here that was never negotiable. */
+.jk-contact__form {
+  .jk-input,
+  .jk-textarea {
+    border: var(--border-1) solid var(--hair);
+    background: transparent;
+    font-family: var(--font-body);
+    /* The mono face was tracked out to sit as a readout. Prose does not want that —
+       --tracking-normal is what the rest of the page's sentences are set at. */
+    letter-spacing: var(--tracking-normal);
+    transition:
+      border-color var(--dur-base) var(--ease-out),
+      background-color var(--dur-base) var(--ease-out);
+
+    /* The edge firms up and a wash arrives together, so approaching the field makes it
+       more of a control rather than merely tinting it. */
+    &:hover {
+      border-color: var(--text-link);
+      background: rgba(242, 239, 231, 0.22);
+    }
+
+    &:focus-visible {
+      border-color: var(--text-link);
+      background: rgba(242, 239, 231, 0.3);
+    }
+
+    /* Back to a border rather than the inset shadow that stood in for one while there
+       was no border to colour. */
+    &[aria-invalid="true"] {
+      border-color: var(--status-error);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jk-contact__form {
+    .jk-input,
+    .jk-textarea { transition: none; }
+  }
+}
+
 /* --- compact ----------------------------------------------------------------------
    The form was tall enough to need its own scroll on a laptop. What made it tall was
    not any one thing: 44px controls, a gap between every label and its field, a gap

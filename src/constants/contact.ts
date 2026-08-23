@@ -21,6 +21,25 @@ export const CONTACT_REASONS: readonly ContactReason[] = [
   ContactReason.SayingHi,
 ];
 
+/**
+ * The reasons that are on the list but not on offer. Rendered struck through and
+ * unpickable; see the `disabled` note on ChoiceOption in forms/Radio.tsx.
+ *
+ * They stay in CONTACT_REASONS rather than being deleted from it, and that is the
+ * whole point. A reason list with one entry says nothing and looks like a form that
+ * forgot to ask; a list with two of its three crossed out answers the question a
+ * visitor actually came with — is he taking work — before they have typed anything.
+ * It is the same device as the struck copy in the masthead and the footer ticker.
+ *
+ * TO REOPEN FOR WORK, EMPTY THIS SET. Nothing else has to change: the radio group, the
+ * default reason in ContactSection and the message placeholder all read from here or
+ * follow from it.
+ */
+export const CONTACT_REASONS_CLOSED: ReadonlySet<ContactReason> = new Set([
+  ContactReason.Freelance,
+  ContactReason.FullTime,
+]);
+
 export const CONTACT_HOW_LABEL: Record<ContactHow, string> = {
   [ContactHow.Email]: "email",
   [ContactHow.Dm]: "dm",
