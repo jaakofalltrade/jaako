@@ -42,7 +42,6 @@
 // --- components --------------------------------------------------------------
 @use "components/button"; // Button
 @use "components/badge"; // Badge
-@use "components/glass-panel"; // GlassPanel
 @use "components/marquee"; // Marquee
 @use "components/reveal"; // Reveal — scroll choreography
 @use "components/rule"; // Rule
@@ -66,7 +65,7 @@
 @use "widgets/spec-block"; // SpecBlock
 @use "widgets/contact-row"; // ContactRow
 @use "widgets/experience-entry"; // ExperienceEntry
-@use "widgets/instrument-strip"; // InstrumentStrip, VisitorIndex, SignatureLog, ListeningStats
+@use "widgets/instrument-strip"; // InstrumentStrip, VisitorIndex, KnownAs, ListeningStats
 @use "widgets/dock"; // NowPlayingDock
 
 // --- sections ----------------------------------------------------------------

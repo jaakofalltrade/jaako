@@ -33,6 +33,33 @@
 /* --- the swatch, verbatim --- */
 --p-deep:#3368a0;--p-mid:#66a3bf;--p-pale:#c8dfdb;--p-cream:#f2efe7;
 
+/* The one warm colour. It is used twice — the second word of the masthead name, and
+   the same word in the contact block — and it should stay that rare: a complement
+   earns its charge by being spent sparingly.
+
+   IT IS CHOSEN BACKWARDS, THROUGH THE BLEND. The obvious value for it was #a06833,
+   which is --p-deep's own channels reversed — (51,104,160) read as (160,104,51) —
+   landing at hue 29° against --p-deep's 211°, within two degrees of its exact
+   complement. Elegant, and wrong in practice: the masthead name is multiplied into the
+   ground, the ground under that word is cyan (#74c1c7, hue 184°), and multiplying an
+   orange by a cyan drags it toward yellow. #a06833 rendered at hue 69° — olive, not
+   orange, and it read as a muddy, washed-out word.
+
+   So the source is pre-compensated. #c2470c is redder and more saturated than the
+   colour actually wanted, which is the point: multiplied by that cyan it lands at hue
+   34°, back on the complement, and reads as the burnt orange it was supposed to be.
+   The flat swatch looking hotter than the design wants is the correct outcome, not a
+   mistake to tone down — the only place it appears flat is the contact block, where
+   the ground is bright and it reads clean.
+
+   CONTRAST HERE IS COMPOSITED, NOT FLAT. On its own against the photograph under that
+   word it reaches 4.35:1 on the bright end, but the honest figure is the composited
+   one: sampling every pixel under the word and multiplying per pixel, the worst point
+   is 4.12:1, comfortably over the 3:1 that 88px display type has to clear and better
+   than the value it replaced managed. If the blend ever comes off that element, both
+   the hue and this number change — re-measure rather than assuming. */
+--p-ember:#c2470c;
+
 /* --- Text: #3368a0's hue, darkened until it passes on the open ground. --- */
 --text-strong:#0f2136;   /* 8.44:1 worst — headings, display type */
 --text-body:#22405c;     /* 5.57:1 worst — prose */

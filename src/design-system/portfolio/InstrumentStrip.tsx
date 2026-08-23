@@ -1,7 +1,7 @@
 import { AnnotationTone } from "@/models";
 import { Annotation } from "../core/Annotation";
+import { KnownAs } from "./KnownAs";
 import { ListeningStats } from "./ListeningStats";
-import { SignatureLog } from "./SignatureLog";
 import { StatusTicker } from "./StatusTicker";
 import { VisitorIndex } from "./VisitorIndex";
 
@@ -22,7 +22,7 @@ type Cell = {
  */
 const CELLS: Cell[] = [
   { label: "visitor index", content: <VisitorIndex /> },
-  { label: "signature log", content: <SignatureLog /> },
+  { label: "known as", content: <KnownAs /> },
   { label: "status", content: <StatusTicker /> },
   { label: "listening · 4 weeks", content: <ListeningStats /> },
 ];

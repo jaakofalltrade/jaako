@@ -8,6 +8,13 @@
 
 html {
   scroll-behavior: smooth;
+  /* The section index is sticky at the top of the viewport, so every jump to a
+     #hash has to stop short of it or the heading it landed on is underneath the bar.
+     scroll-padding on the scrollport rather than scroll-margin on each target: it is
+     one declaration, and it covers the cases a per-section rule misses — a hash in
+     the URL on first load, and the scrollIntoView call in scrollToSection.ts.
+     --nav-clear is measured from the nav's own box in layout/_nav.scss. */
+  scroll-padding-top: var(--nav-clear);
   /* Light now. Without it the native select, checkbox and scrollbar chrome comes
      back dark against a cream page. */
   color-scheme: light;
@@ -67,10 +74,13 @@ body::before {
 
 /* The pane. Flat off-white, plus the grain, which at this opacity is not film stock —
    it is the tooth that keeps a large flat wash from looking like a dead colour fill,
-   and it is what sells the surface as glass rather than as paint. */
+   and it is what sells the surface as glass rather than as paint.
+
+   --grain-pane, not --grain: the noise is at .7 here. At full strength it was reading
+   as a layer of its own over the photograph rather than as the surface of it. */
 body::after {
   z-index: -1;
-  background: var(--bg-glass), var(--grain);
+  background: var(--bg-glass), var(--grain-pane);
   background-blend-mode: normal, overlay;
 }
 

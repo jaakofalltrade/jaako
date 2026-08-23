@@ -8,7 +8,21 @@
 
    The scale is rem + clamp(), so every step interpolates between a phone value and a
    desktop value and no @media query has to restate a font size. --text-3xs is a hard
-   10px floor; nothing in this design may be smaller. */
+   floor; nothing in this design may be smaller.
+
+   THE FLOOR MOVED FROM 10px TO 11px, and the step above it with it, because at 10px the
+   labelled metadata was genuinely uncomfortable to read — the experience entries'
+   locations and the hero's role/at/since being the cases that prompted it. Both steps
+   went up exactly 1px, which is enough to feel different and small enough that nothing
+   re-flowed: the four-column instrument strip, the player panel and the form labels all
+   still fit at the widths they had.
+
+   ONE CONSEQUENCE, DELIBERATELY LEFT: --text-2xs and --text-xs are both 12px now. The
+   ladder has a duplicate step rather than a gap, which is untidy and harmless — they
+   are used for different things (metadata values against control labels) and nothing
+   picks between them by size. Closing it means moving --text-xs to 13px, which pulls
+   the Lg button and the player's track title with it; that was considered and not
+   done. If the small end is ever revisited, start there. */
 :root{
 /* Rounded geometric display. Always set lowercase — see base/_reset.scss. */
 --font-display:"All Round Gothic","AllRoundGothic",var(--font-quicksand),"Trebuchet MS",sans-serif;
@@ -19,9 +33,9 @@
 
 --font-mono:var(--font-geist-mono);
 
---text-3xs:.625rem;      /* 10px — floor, never smaller */
---text-2xs:.6875rem;     /* 11px */
---text-xs:.75rem;        /* 12px */
+--text-3xs:.6875rem;     /* 11px — floor, never smaller */
+--text-2xs:.75rem;       /* 12px */
+--text-xs:.75rem;        /* 12px — see the note above: same as --text-2xs for now */
 --text-sm:clamp(.8125rem,.78rem + .15vw,.875rem);
 --text-md:clamp(1rem,.98rem + .1vw,1.0625rem);   /* 16px floor: body prose, and
                                                     every text input — under 16px iOS
@@ -37,7 +51,7 @@
 
 /* Helvetica is a tight face and wants no help; the geometric display is set very
    slightly open so its round counters stay open at size. Annotation is tracked wide
-   because it is caps at 10-11px. */
+   because it is caps at 11-12px. */
 --tracking-display:.002em;--tracking-tight:-.015em;--tracking-normal:0;
 --tracking-wide:.05em;--tracking-caps:.12em;--tracking-anno:.18em;
 

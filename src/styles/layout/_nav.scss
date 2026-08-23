@@ -1,40 +1,157 @@
 @use "../base/mixins" as *;
 
-/* The section index.
+/* The section index, pinned.
 
-   This was a sticky glass bar welded to the top of the viewport. It is now a bare row
-   of links sitting directly above the about section, which is where the page actually
-   starts reading. No bar, no surface behind it: the strip went with the rest of the
-   frosted-glass vocabulary.
+   It has been three things. A sticky glass bar welded to the top of every page, then
+   a bare row of links sitting inline above the about section, and now both at once:
+   the inline row scrolls up with the page, stops at the top edge, and only then puts
+   a surface behind itself.
 
-   Losing the sticky position also loses the scroll-spy: an active marker is only
-   worth anything on a control you can still see. What is left is a jump menu, and it
-   is styled as one — a row of links flush with the left edge of the measure, with no
-   presence dot opposite it. */
+   That order matters more than it sounds. The reason the bar was taken out of
+   PageShell was that a frosted strip pinned over the masthead announces itself before
+   the reader has seen anything, and the masthead is the page's one full-bleed image.
+   Nothing here undoes that: over the hero this is four links on the photograph with no
+   fill, no edge and no shadow, and the glass only arrives once there is body text
+   underneath it that the links have to be legible against.
 
-.jk-nav {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-3) var(--space-6);
-  max-width: var(--page-max);
-  margin: 0 auto var(--space-8);
-  padding: var(--space-4) var(--gutter);
+   The sheet stops at the measure. .jk-nav still spans <main> so the sticky box is the
+   full width of the scrollport, but the glass lives on .jk-nav__inner, which is held to
+   --page-max — so the bar is exactly as wide as the column it belongs to rather than an
+   edge of the window.
+
+   Its ends are masked rather than cut. A hard vertical edge in the middle of open page
+   announces a rectangle sitting on top of the photograph; fading the last few percent of
+   the sheet to nothing lets it dissolve into the ground instead, which is the same
+   device the footer ticker uses for the same reason. The mask takes the backdrop blur
+   with it, so the blur fades out exactly where the fill does — that is why this is a
+   mask and not a gradient in the background.
+
+   Two things follow from pinning, and both are handled rather than assumed:
+
+     - The bar overlays scrolling content, so it needs a real surface. That is the
+       fourth case base/_mixins.scss says to ask about, and it is the genuine article:
+       real glass, blur and all, like the contact form.
+     - A hash jump would land its heading underneath the bar. base/_reset.scss sets
+       scroll-padding-top on the scrollport from --nav-clear, below.
+
+   The pinned state is a class, not a selector: there is no :stuck in CSS, so
+   SectionNav watches a sentinel and adds .is-stuck. See the comment there. */
+
+/* The PINNED bar's height plus a little air, for base/_reset.scss to hold hash jumps
+   clear of. It is the pinned height that matters and not the resting one, because the
+   only time a heading can land underneath this thing is when it is stuck.
+
+   That height is about 4.4rem — --space-6 twice on the inner element and a line of 11px
+   caps — so 5.5rem clears it with room. Coarse pointers get the touch floor on every
+   link and wrap to two rows on the narrowest phones, so theirs is measured from a
+   two-row bar.
+
+   Both are rounded up on purpose. Overshooting leaves a strip of whitespace above the
+   heading; undershooting hides the heading, which is the failure that matters. */
+:root {
+  --nav-clear: 5.5rem;
 }
 
-/* The surface goes on the list, not on .jk-nav.
+@media (pointer: coarse) {
+  :root { --nav-clear: 7.5rem; }
+}
 
-   That is what makes it the same object as the hero's status slab rather than a band
-   across the page: the slab is `width: auto` and hugs its own content, and putting
-   the fill on the outer element instead would have stretched it the full 64rem
-   measure with the four links huddled at one end of it. .jk-nav keeps its job as the
-   layout wrapper — the measure, the gutter, the space below — and the list is the
-   panel.
+/* The marker at the bar's resting position, observed by SectionNav. It has to be
+   outside .jk-nav — a sticky element never stops intersecting, so a sentinel inside one
+   could never report that it left.
 
-   The fill is .jk-glass's, restated rather than shared. GlassPanel is a component
-   with a `tint` prop and a hover variant; this needs one flat value out of it, and
-   copying the number is cheaper than making the nav render a panel around its own
-   list. If that value moves, it moves in components/_glass-panel.scss and here. */
+   1px tall and pulled back by the same 1px, so it takes part in layout (which is what
+   makes it observable) while occupying none of it. A zero-height target is supposed to
+   work — the spec has a rule for zero-area targets — but engines have historically
+   disagreed about it, and a sentinel that reports nothing fails silently: the bar
+   simply never puts its glass on, with nothing in the console to say why. */
+.jk-nav__sentinel {
+  display: block;
+  height: 1px;
+  margin-bottom: -1px;
+}
+
+.jk-nav {
+  position: sticky;
+  top: 0;
+  /* Under the player (60), over everything that scrolls beneath it: the plate stack
+     in widgets/_plate.scss tops out at 4. */
+  z-index: 50;
+  /* Full width, but only as a box. The sticky element spans the scrollport so the
+     pinning is stable at any viewport size; the visible sheet is .jk-nav__inner and
+     stops at the measure. No max-width, no auto margins and no padding here — all of
+     that lives on the inner element, which is what lets the bar change height on
+     pinning without the page flow moving. */
+  margin: 0 0 var(--space-8);
+}
+
+/* The measure. Same two values every section uses, so the links land on the same left
+   edge as the prose below them — and, now that the sheet is painted here rather than on
+   the wrapper, so does the sheet.
+
+   Bare until pinned. Stated rather than left to the initial value so the pair with
+   .is-stuck reads as one decision in one place. */
+.jk-nav__inner {
+  max-width: var(--page-max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  /* The resting height. It grows on pinning — see below — and the growth lives here
+     rather than on .jk-nav so that the page flow at the bar's inline position never
+     changes: the wrapper's box is the same height whether the sheet inside it is tall
+     or short, so nothing below the bar moves when it sticks. */
+  padding-block: var(--space-4);
+  background: transparent;
+  box-shadow: none;
+  transition:
+    padding-block var(--dur-base) var(--ease-out),
+    background-color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+
+/* Pinned: real glass, dissolving at both ends.
+
+   The fill and the blur are a single decision, exactly as in sections/_contact.scss —
+   .6 is buying its legibility from the blur behind it, and without one the other is
+   wrong. It sits higher than the form's .5 because the type here is 11px caps rather
+   than 16px prose, and it is moving relative to whatever is underneath it.
+
+   IT GROWS ON PINNING, from --space-4 to --space-6, which is about 54px to about 70px.
+   Only when pinned: at rest this is four links on a photograph and has no business
+   taking up more room than it needs, and the extra height would push the whole page
+   down. Padding is a layout property and animating it is not free, but this fires once
+   per pin rather than per frame, and it arrives on the same transition as the glass —
+   which is the point, the bar assembles itself in one gesture instead of two.
+
+   THE MASK IS WHAT MAKES THE EDGES SOFT, and it has to be a mask rather than a gradient
+   in the background: backdrop-filter is clipped to the element's box, so a fill that
+   fades while the blur stops dead leaves a visible rectangle of sharpened backdrop
+   past the fade. Masking the element fades the fill and the blur together.
+
+   ENDS ONLY. A vertical fade was tried across the top and bottom edges as well and
+   taken straight back out: on a bar this short the two gradients leave very little
+   fully-opaque band in the middle, so the sheet reads as a smear rather than as a bar
+   with soft ends. 8% horizontally, and hard edges top and bottom.
+
+   DO NOT HAND-WRITE THE -WEBKIT- PREFIX on the blur. Lightning CSS parses the pair into
+   one property and re-emits only -webkit-backdrop-filter, which current Chrome has
+   dropped — the blur then silently does nothing while the fill stays low, which is the
+   illegible half of the trade with none of the payoff. One standard declaration; the
+   prefixing is the toolchain's business. The full account is in _contact.scss.
+
+   The shadow is doing the same job as the fill: it is what says the bar is over the
+   page rather than in it. */
+.jk-nav.is-stuck .jk-nav__inner {
+  padding-block: var(--space-6);
+  background: rgba(242, 239, 231, 0.6);
+  box-shadow: var(--shadow-float);
+  backdrop-filter: blur(20px) saturate(1.25);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .jk-nav.is-stuck .jk-nav__inner { background: rgba(242, 239, 231, 0.88); }
+}
+
 .jk-nav__list {
   display: flex;
   align-items: center;
@@ -45,18 +162,26 @@
      nothing on the other side of the row an auto margin was just stranding the links
      against the far edge of a page that reads from the left. */
   margin: 0;
-  /* Was 0. The fill needs room around the links or the panel reads as a highlighter
-     stroke through them. */
-  padding: var(--space-3) var(--space-5);
+  /* No padding and no fill. Both belonged to the version where the list was the
+     panel; the bar is the panel now, and padding here would only inset the links from
+     the measure everything else is aligned to. */
+  padding: 0;
   list-style: none;
-  background: rgba(242, 239, 231, 0.45);
 }
 
+/* --text-strong, not the --text-dim these labels started at.
+
+   Every other micro-annotation on the page sits inside the measure with prose around it;
+   these four spend most of their life directly on the photograph, unpinned, with the
+   masthead's brightest quarter behind them — and --text-dim is calibrated for the
+   ground's median, not its extremes. The same four links in the footer moved with them
+   for the same reason. Darker rather than lighter because everything else on this page
+   is dark ink: a lighter treatment would have made them the exception. */
 .jk-nav__link {
   display: inline-flex;
   align-items: center;
   @include label($size: var(--text-3xs));
-  color: var(--text-dim);
+  color: var(--text-strong);
   text-decoration: none;
   /* The underline is the hover affordance, reserved rather than drawn, so nothing
      shifts when it appears. */
@@ -76,14 +201,15 @@
 }
 
 @include down($bp-sm) {
-  .jk-nav {
-    gap: var(--space-3) var(--space-5);
-    margin-bottom: var(--space-7);
-  }
+  .jk-nav { margin-bottom: var(--space-7); }
 
   .jk-nav__list { gap: var(--space-3) var(--space-5); }
 }
 
+/* .jk-nav__inner, not .jk-nav: the fill and shadow transition moved to the inner
+   element when the sheet did, and a reduced-motion rule aimed at the old element is a
+   rule that silently stops working. */
 @media (prefers-reduced-motion: reduce) {
+  .jk-nav__inner,
   .jk-nav__link { transition: none; }
 }

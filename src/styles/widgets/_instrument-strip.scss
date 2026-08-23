@@ -58,9 +58,9 @@
   border: var(--border-1) solid var(--edge);
 }
 
-/* --- signature log ---------------------------------------------------------------- */
+/* --- known as --------------------------------------------------------------------- */
 
-.jk-log {
+.jk-aka {
   margin: 0;
   padding: 0;
   list-style: none;
@@ -69,7 +69,7 @@
   min-width: 0;
 }
 
-.jk-log__row {
+.jk-aka__row {
   display: flex;
   align-items: baseline;
   gap: var(--space-3);
@@ -79,7 +79,7 @@
   letter-spacing: var(--tracking-wide);
 }
 
-.jk-log__dot {
+.jk-aka__dot {
   flex: 0 0 auto;
   width: 4px;
   height: 4px;
@@ -88,18 +88,16 @@
   align-self: center;
 }
 
-.jk-log__who {
-  flex: 0 0 auto;
+/* The handles are the whole cell now: the message column that used to sit beside
+   them is gone, so the name takes the width and truncates if a handle ever outgrows
+   the column. */
+.jk-aka__name {
+  @include truncate;
+  min-width: 0;
   color: var(--text-link);
 }
 
-.jk-log__msg {
-  @include truncate;
-  min-width: 0;
-  color: var(--text-dim);
-}
-
-.jk-log__row--total {
+.jk-aka__row--total {
   margin-top: var(--space-1);
 }
 
@@ -125,7 +123,7 @@
 /* --- responsive ------------------------------------------------------------------- */
 
 /* Two-up on tablets. Four 25% cells stop being readable long before the viewport
-   stops being wide — the signature log is the first thing to become unusable. */
+   stops being wide — the handle list is the first thing to become unusable. */
 @include down($bp-md) {
   .jk-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

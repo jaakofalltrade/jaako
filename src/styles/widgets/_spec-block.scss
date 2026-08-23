@@ -36,6 +36,15 @@
   line-height: var(--leading-snug);
 }
 
+/* The second word of the name, in the palette one warm colour — the same accent the
+   masthead carries. Flat here, with no blend and no grain: this block sits on the
+   bright half of the photograph, where --p-ember reads as the burnt orange it is. The
+   pre-compensation described in tokens/_colors.scss is only needed where the multiply
+   is, which is why the same token can be used raw in both places. 4.35:1 here. */
+.jk-spec__accent {
+  color: var(--p-ember);
+}
+
 .jk-spec__mark {
   font-size: 0.42em;
   vertical-align: super;

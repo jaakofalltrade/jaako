@@ -1,22 +1,25 @@
 @use "../base/mixins" as *;
 
-/* The masthead: the name turned on its side down the left edge, with a thin rule
-   crossing its axis at a right angle, and everything else in the column beside it.
+/* The masthead: one column, read top to bottom.
 
-   The grid is what makes the rotation work. The title spans both rows so it is the
-   full height of the masthead regardless of how tall the body column happens to be;
-   the crossline sits in row 1 of the body column, which is what puts it at ninety
-   degrees to the name rather than merely near it. */
+   The name was set vertically down the left edge until this pass, which is what the
+   grid was for — a rotated title spanning both rows so it stood the full height of
+   the header, with everything else in the column beside it. The name is horizontal
+   and in the flow now, so there is nothing left for the grid to solve and this is a
+   flex stack: annotation row, rule, name, status slab, body.
+
+   justify-content is flex-end and .jk-hero__top keeps its auto bottom margin. Between
+   them the annotation row stays pinned to the top of the masthead and everything else
+   settles against the bottom of it, which is the shape the grid used to give. */
 
 .jk-hero {
   position: relative;
   /* Deliberately not 100dvh. A masthead that fills the viewport tells a reader there
      is nothing below it; leaving the next block's edge visible does the opposite. */
   min-height: clamp(22rem, 16rem + 24vh, 30rem);
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  grid-template-rows: auto minmax(0, 1fr);
-  column-gap: var(--space-7);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
   max-width: var(--page-max);
   margin: var(--space-7) auto var(--space-6);
   padding: var(--space-9) var(--gutter);
@@ -24,68 +27,151 @@
 }
 
 /* --- the name ---------------------------------------------------------------------
-   writing-mode does the turning, not a transform on a horizontal box: it makes the
-   element genuinely tall-and-narrow, so the grid can lay it out instead of having to
-   reserve space for something that has been visually moved out of its own footprint.
+   Upright, horizontal, and no longer italic.
 
-   The 180° rotation is what makes it read bottom-to-top. Without it vertical-rl runs
-   top-to-bottom, which for a Latin name down a left edge reads upside down.
+   All three used to be the other way round: writing-mode:vertical-rl turned the box
+   tall-and-narrow, a 180° rotation on an inner span made it read bottom-to-top, and
+   the slant was the one thing about it that was not inherited. The span is gone with
+   the rotation — it only existed because components/_reveal.scss sets
+   `transform: none` on .is-in and would have flattened a rotation living on the same
+   element as data-reveal.
 
-   The size step down from --text-5xl is not timidity. Latin text in vertical-rl keeps
-   its horizontal advance as its vertical extent, so "jaako_andes" at the old 5.5rem
-   would stand about 38rem tall — taller than the entire masthead. --text-4xl lands it
-   just inside. (The bespoke clamp that briefly sat here belonged to the longer
-   "<<jaako_andes>>"; with the brackets gone the name is back to eleven characters and
-   the token fits again.)
+   --text-5xl rather than the --text-4xl the vertical version had to settle for.
+   Latin text in vertical-rl keeps its horizontal advance as its vertical extent, so
+   the name at the display size stood taller than the whole masthead; set across the
+   measure it has 64rem to spend and eleven characters to spend it on.
 
-   Bold and italic. The bold is the reset's own heading weight, restated here rather
-   than left implicit, because the line above it — the size — is what makes the weight
-   survivable at this scale. The slant is the part that is not inherited. */
+   The bold is the reset's own heading weight, restated here because the line above it
+   — the size — is what makes the weight survivable at this scale. */
 .jk-hero__title {
-  grid-column: 1;
-  grid-row: 1 / -1;
-  writing-mode: vertical-rl;
-  font-size: var(--text-4xl);
+  /* No font-family here, and that is the decision rather than an omission. The name
+     briefly had a stack of its own — a condensed face, set apart from everything else
+     — and being the one element in its own typeface is exactly what made it read as
+     pasted on. It inherits the display stack from the reset now, so it is the same
+     face as every section head and as the name in the contact block. */
+  font-size: var(--text-5xl);
   font-weight: var(--weight-bold);
-  font-style: italic;
-  line-height: 1;
-  margin: 0;
+  line-height: var(--leading-tight);
+  /* PADDING, NOT MARGIN, AND IT IS NOT DECORATIVE SPACE.
+
+     background-clip:text paints inside the padding box, and a line-height of 1 leaves
+     the glyphs overflowing it: this face carries 88 units of ascent and 22 of descent
+     in an 88px em, so at --leading-tight the ink hangs 11px past the box at each end.
+     The j of jaako reaches 7px below, and with the fill clipped to the box that tail
+     had nothing to paint it — it rendered transparent and read as a cropped letter
+     sitting on the status slab. .25em covers the overflow at every step of the
+     --text-5xl clamp. Raising line-height instead would have fixed it too and cost the
+     masthead its tight setting.
+
+     Only the bottom needs it: the ascenders measure 66px against the 77px available
+     above the baseline. */
+  padding-bottom: .25em;
+  margin: 0 0 var(--space-5);
   color: var(--text-strong);
+  /* The name takes the ground's texture instead of sitting on top of it.
+
+     Flat ink at this size is the one thing on the page big enough to look like a
+     sticker: everything else is small enough that the eye reads the photograph around
+     it rather than through it. Multiply lets the wall's tonal variation modulate the
+     letterforms, so the name is lit by the same picture as the rest of the masthead.
+
+     MULTIPLY IS TIED TO THE GROUND BEING PALE, so if that ever changes this has to
+     change with it. The argument for it is that multiply can only darken and the name
+     is the darkest ink on a light page, which makes the blend free — it cannot cost
+     contrast. Invert the ground and that argument inverts too: on a dark page the name
+     is the LIGHTEST thing on it and multiply drives it down into the ground until it is
+     very nearly invisible. Screen is the dual and would be the right call there. This
+     is written down because it has already happened once.
+
+     Blending reaches the ground layers because nothing between this and <body>
+     establishes a stacking context — no transform, no filter, no opacity below 1. The
+     reveal's fade is the exception and it is temporary: while opacity is under 1 the
+     element isolates and blends against nothing, then rejoins the ground when the fade
+     lands on 1. Anything that later gives .jk-hero or .jk-shell a stacking context
+     will silently switch this off. */
+  mix-blend-mode: multiply;
+  /* This used to be a note that the declaration was inert: the name was one
+     unbreakable token, jaako_andes, and no browser breaks at an underscore. It has a
+     real space in it now, so this is load-bearing — without it the masthead can break
+     as "jaako / andes." on a narrow viewport. */
   white-space: nowrap;
-  align-self: end;
 }
 
-/* The rotation sits on the span, not on the heading, and that is not tidiness — the
-   heading carries data-reveal, and components/_reveal.scss sets `transform: none` on
-   .is-in once the element has arrived. Put the rotation on the heading and the reveal
-   wipes it the moment the observer fires: computed style reads `none` and the name
-   silently reads top-to-bottom instead. Two elements, two transforms. */
-.jk-hero__title > span {
-  display: block;
-  transform: rotate(180deg);
+/* The name carries the ground's grain as well as its tone.
+
+   Multiply above gets the name the ground's TONAL variation, and on its own that is
+   most of the way there — but it cannot deliver the grain, and the grain is the part
+   the eye actually reads as texture. The arithmetic is why: multiply scales the
+   backdrop by the source, so a source this dark (#0f2136, luminance .024) flattens
+   everything it touches. The name came out perfectly smooth against a ground that is
+   visibly toothed, which is exactly the seam this closes.
+
+   So the noise is painted INTO the glyphs instead. Two background layers — the grain
+   over a flat sheet of --text-strong — clipped to the text, which is the only way CSS
+   will put a texture inside letterforms.
+
+   SCREEN, NOT OVERLAY, for the same reason multiply cannot do this: over ink this dark
+   overlay resolves to multiply and vanishes. Screen lightens, so the noise shows. That
+   costs the name a little contrast, which is affordable here and would not be on body
+   copy — it is 88px display type, where the bar is 3:1 rather than 4.5:1. It is also
+   why --grain-ink is half the strength of the pane's: the trade only stays cheap while
+   the speckle is fine.
+
+   The @supports guard is not ceremony. A transparent colour is what makes the clipped
+   background visible, and it is also what makes the name INVISIBLE if the clip does not
+   apply — so the fallback has to be the whole pairing, not just the clip.
+
+   The -webkit- prefix is deliberately absent. Lightning CSS emits it; hand-writing it
+   beside the standard property is what broke backdrop-filter in sections/_contact.scss,
+   and there is no reason to think this property is treated differently. */
+@supports (background-clip: text) {
+  .jk-hero__title {
+    background-image: var(--grain-ink), linear-gradient(var(--text-strong), var(--text-strong));
+    background-blend-mode: screen, normal;
+    background-clip: text;
+    color: transparent;
+  }
 }
 
-/* The perpendicular mark. Sits in the body column's first row, so it meets the name's
-   axis at a right angle and runs away from it across the masthead. */
+/* The second word, in the palette’s one warm colour. See --p-ember in tokens/_colors.scss.
+
+   It repeats the clip rather than just setting a colour, and it has to: the parent
+   paints ONE sheet of --text-strong clipped to all of its text, so a child that only
+   set `color` would paint opaque over that sheet and lose the grain with it. Each
+   element clips its own background to its own glyphs, so the accent needs its own copy
+   of the recipe with the ember sheet swapped in.
+
+   The fallback outside the guard is a plain colour, which is correct rather than lazy:
+   a browser without background-clip gets solid ember text on solid ink text, which is
+   the same design minus the tooth. */
+.jk-hero__accent {
+  color: var(--p-ember);
+}
+
+@supports (background-clip: text) {
+  .jk-hero__accent {
+    background-image: var(--grain-ink), linear-gradient(var(--p-ember), var(--p-ember));
+    background-blend-mode: screen, normal;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+/* The mark under the annotation row. It used to meet the vertical name's axis at a
+   right angle, which is where the name came from; with the name upright it is a plain
+   hairline separating the row above from the masthead below. */
 .jk-hero__crossline {
-  grid-column: 2;
-  grid-row: 1;
-  align-self: start;
   height: var(--border-1);
   background: var(--hair-lit);
-  margin-bottom: var(--space-7);
+  /* Both margins are the requested air between the annotation row and the name. The
+     rule sits nearer the row it belongs to than the name it introduces, which is what
+     keeps it reading as the row's underline rather than as a divider stranded in the
+     middle of the gap. */
+  margin-top: var(--space-5);
+  margin-bottom: var(--space-8);
 }
 
-/* --- everything beside it ---------------------------------------------------------- */
-
-.jk-hero__body {
-  grid-column: 2;
-  grid-row: 2;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  min-width: 0;
-}
+/* --- everything under it ----------------------------------------------------------- */
 
 .jk-hero__top {
   display: flex;
@@ -94,17 +180,32 @@
   margin-bottom: auto;
 }
 
-/* The inset. Clear rather than frosted — see components/_glass-panel.scss. */
-.jk-hero__slab {
-  align-self: flex-start;
-  width: auto;
-  margin-bottom: var(--space-7);
-  padding: var(--space-4) var(--space-5);
-}
+/* The two annotations get a surface. They are the only text on the page with NOTHING
+   under them but the raw photograph at its most extreme: this row sits across the top
+   of the masthead, where the picture runs from the near-black ceiling on the left to
+   open window on the right. Measured against the ground actually beneath them, the
+   kicker was at 1.87:1 and the coordinates at 2.22:1 — not dim, unreadable, and no
+   text colour fixes it because the range spans both ends of the ramp at once.
 
-.jk-hero__slab-list {
-  grid-auto-flow: column;
-  gap: 0 var(--space-6);
+   So this is the fourth surface, and it is the case base/_mixins.scss says to ask
+   about: it is genuinely overlaying something. A flat cream chip puts a known ground
+   under the caps regardless of what the photograph is doing.
+
+   .65 IS THE FLOOR, NOT A PREFERENCE. Measured against the actual pixels beneath each
+   chip, .65 leaves the kicker at 6.59:1 and the coordinates at 5.93:1. One step down is
+   where it breaks: at .55 the coordinates land on 4.40:1, under the 4.5:1 this size
+   needs, and at .45 both fail outright and the original complaint comes back over the
+   dark ceiling. So .65 is the most transparent these can be while both still clear AA,
+   which is what was asked for and happens to be the same number.
+
+   Chips rather than a band across the row, because the rule between them is the
+   dimension line of a technical drawing and boxing the whole row would lose that. No
+   backdrop-filter: at this alpha the blur would buy nothing, and it is the one effect
+   on this page with a documented way to fail silently. */
+.jk-hero__top .jk-anno {
+  padding: var(--space-2) var(--space-3);
+  background: rgba(242, 239, 231, 0.65);
+  color: var(--text-strong);
 }
 
 .jk-hero__row {
@@ -134,14 +235,14 @@
 
    The indent is measured, not eyeballed: it lands the value's first character under
    the third character of its term — the L of ROLE. Both lines are mono, so that is
-   two term-characters of advance, and a term character at --text-3xs (10px) is
-   0.6em of glyph plus --tracking-anno (.18em) of letter-spacing — about 7.8px, so
-   two of them are 15.6px.
+   two term-characters of advance, and a term character at --text-3xs (11px) is
+   0.6em of glyph plus --tracking-anno (.18em) of letter-spacing — about 8.6px, so
+   two of them are 17.2px.
 
    Stated in rem rather than in ch or em. `ch` would resolve against the VALUE's font
    size (--text-2xs), not the term's, so the two would drift apart the moment either
    size moved; the term size is a fixed rem token, so a rem indent tracks it exactly.
-   Rounded to 1rem, which is 16px against the measured 15.6 — inside a quarter of a
+   Rounded to 1rem, which is 16px against the measured 17.2 — inside a sixth of a
    character, and the whole point is the eye reading a step, not a ruler. */
 .jk-hero__meta .jk-dl__row {
   grid-template-columns: minmax(0, 1fr);
@@ -164,11 +265,20 @@
 }
 
 @include down($bp-sm) {
-  /* A vertical name keeps its full horizontal advance as height, so on a phone it has
-     to come down a step again or the masthead is most of the scroll. */
-  .jk-hero__title { font-size: var(--text-3xl); }
+  /* Down one step. The name is a single unbreakable word set across the viewport, so
+     the masthead is the first thing to run out of width. */
+  .jk-hero__title { font-size: var(--text-4xl); }
 
-  .jk-hero { column-gap: var(--space-5); }
+  /* The kicker and the coordinates stop competing for one line. They used to be
+     resolved by hiding the coordinates outright, which is the wrong half to drop —
+     it is the only place on the page that says where the work is done from. */
+  .jk-hero__top {
+    flex-wrap: wrap;
+    row-gap: var(--space-3);
+  }
+
+  /* The tick rule between them has nothing to separate once the row wraps. */
+  .jk-hero__top .jk-rule-wrap { display: none; }
 
   /* The metadata list and the blurb stop competing for one line and stack. */
   .jk-hero__row {
@@ -178,6 +288,4 @@
   }
 
   .jk-hero__meta { margin-left: 0; }
-
-  .jk-hero__top .jk-anno:last-child { display: none; }
 }

@@ -2,62 +2,67 @@ import { AnnotationTone } from "@/models";
 import { HERO } from "@/data/site";
 import { Annotation } from "../core/Annotation";
 import { DefinitionList } from "../core/DefinitionList";
-import { GlassPanel } from "../core/GlassPanel";
 import { Rule } from "../core/Rule";
 import { HeroActions } from "./HeroActions";
 
 /**
- * The masthead: the name set vertically down the left edge, everything else beside it.
+ * The masthead: one column, read top to bottom.
  *
- * The title had to come out of .jk-hero__content to do that. It is a sibling of the
- * body now rather than the first thing inside it, because the rotation makes it a
- * full-height column of its own — nested in the content flow it could only ever be a
- * rotated block sitting in a horizontal stack, which is not the same shape.
+ * The name used to be set vertically down the left edge, which is why this was a grid
+ * with a rotated full-height first column. It is back in the flow now — horizontal,
+ * upright, sitting between the annotation row and the status slab — so the grid went
+ * with it and the header is a plain stack.
  *
- * It also lost its .jk-mask wrapper. The mask reveal slides an inner span on translateY
- * behind an overflow:hidden parent, and composing that with the 180° rotation that
- * makes the name read bottom-to-top gives a wipe running the wrong way. A plain
- * data-reveal fade is the honest version of the same idea here.
+ * Two things came off the title with the rotation. The inner <span> existed only to
+ * carry a 180° transform that the reveal system would otherwise have wiped when it
+ * set `transform: none` on .is-in; with nothing to rotate, the heading carries
+ * data-reveal on its own. And the slant is gone: italic display type at this size was
+ * doing the work the rotation used to, and upright is what the name wants now that it
+ * reads left to right like everything under it.
  *
  * A server component: only the single call to action needs interactivity, and it is
  * split out into HeroActions so the lettering stays server-rendered.
  */
+/**
+ * The name is one string in the data file and two elements here, split on its own
+ * accent so src/data/site.ts stays free of JSX — the same trade AboutSection makes
+ * with ABOUT_LEAD_EMPHASIS. The copy stays a string; which half is warm stays a
+ * presentation decision.
+ */
+const titleLead = HERO.title.slice(0, HERO.title.length - HERO.title_accent.length);
+
 export const Hero = () => (
   <header className="jk-hero">
-    {/* The inner span is load-bearing and not decoration. The rotation that makes the
-        name read bottom-to-top has to live on a different element from the one
-        carrying data-reveal: the reveal system animates transform and then sets
-        `transform: none` on .is-in, which silently ate the rotation — computed style
-        said `none` and the name quietly read top-to-bottom instead. Two elements, two
-        transforms, neither fighting the other. */}
-    <h1 className="jk-hero__title" data-reveal>
-      <span>{HERO.title}</span>
-    </h1>
+    {/* Info, not Decorative, and that is a colour decision with an accessibility
+        consequence attached rather than the other way round. Decorative is
+        --text-faint (3.97:1) and the component hides it from screen readers precisely
+        because it fails AA; darkening it to --text-dim (4.87:1) removes the reason it
+        was hidden, so the tone changes with the colour and the two annotations join
+        the accessibility tree. The coordinates are the only place on the page that
+        says where the work is done from, so that is the right outcome anyway. */}
+    <div className="jk-hero__top">
+      <Annotation tone={AnnotationTone.Info}>{HERO.kicker}</Annotation>
+      <Rule tick />
+      <Annotation tone={AnnotationTone.Info}>{HERO.coords}</Annotation>
+    </div>
 
-    {/* The thin rule that crosses the name's axis at a right angle. Decorative: it is
-        a mark, and there is nothing in it for a screen reader to announce. */}
+    {/* The thin rule between the annotation row and the name. Decorative: it is a
+        mark, and there is nothing in it for a screen reader to announce. */}
     <span aria-hidden="true" className="jk-hero__crossline" />
 
-    <div className="jk-hero__body">
-      <div className="jk-hero__top">
-        <Annotation tone={AnnotationTone.Decorative}>{HERO.kicker}</Annotation>
-        <Rule tick />
-        <Annotation tone={AnnotationTone.Decorative}>{HERO.coords}</Annotation>
-      </div>
+    <h1 className="jk-hero__title" data-reveal>
+      {titleLead}
+      <span className="jk-hero__accent">{HERO.title_accent}</span>
+    </h1>
 
-      <GlassPanel className="jk-hero__slab">
-        <DefinitionList items={HERO.slab} className="jk-hero__slab-list" />
-      </GlassPanel>
-
-      <div className="jk-hero__content">
-        <div className="jk-hero__row">
-          <p className="jk-hero__blurb" data-reveal data-delay="2">
-            {HERO.blurb} <s className="jk-struck">{HERO.struck.retired}</s> {HERO.struck.current}
-          </p>
-          <DefinitionList items={HERO.meta} className="jk-hero__meta" />
-        </div>
-        <HeroActions />
+    <div className="jk-hero__content">
+      <div className="jk-hero__row">
+        <p className="jk-hero__blurb" data-reveal data-delay="2">
+          {HERO.blurb} <s className="jk-struck">{HERO.struck.retired}</s> {HERO.struck.current}
+        </p>
+        <DefinitionList items={HERO.meta} className="jk-hero__meta" />
       </div>
+      <HeroActions />
     </div>
   </header>
 );

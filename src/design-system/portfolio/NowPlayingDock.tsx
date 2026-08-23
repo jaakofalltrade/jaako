@@ -27,6 +27,65 @@ import { Icon } from "../Icon";
  * paused-reports-as-Recent handling were already the right calls.
  */
 
+/**
+ * One line of a recent play — "title · album" — that scrolls itself when it does not
+ * fit, instead of ending in an ellipsis.
+ *
+ * Overflow is measured rather than guessed, because a marquee that runs on text which
+ * already fits is just motion for its own sake. scrollWidth against clientWidth is the
+ * measurement; a ResizeObserver repeats it, which matters because the panel changes
+ * width when it collapses to the sleeve and back.
+ *
+ * The distance travelled is exactly the overflow, and the duration is derived from it
+ * at a fixed reading speed, so a long title takes proportionally longer rather than
+ * every line racing at whatever pace suits the shortest one. The animation alternates,
+ * so the line slides to its end and comes back rather than looping through a seam —
+ * which is why nothing has to be duplicated in the markup here, unlike the ticker.
+ *
+ * Under prefers-reduced-motion the animation does not run and the line truncates, which
+ * is a real loss of information and still the right trade: see widgets/_dock.scss.
+ */
+const SCROLL_PX_PER_SECOND = 22;
+
+const RecentLine = ({ title, album }: { title: string; album: string }) => {
+  const frame = React.useRef<HTMLSpanElement>(null);
+  const line = React.useRef<HTMLSpanElement>(null);
+  const [overflow, setOverflow] = React.useState(0);
+
+  React.useEffect(() => {
+    const frameEl = frame.current;
+    const lineEl = line.current;
+    if (!frameEl || !lineEl) return;
+
+    const measure = () =>
+      setOverflow(Math.max(0, Math.ceil(lineEl.scrollWidth - frameEl.clientWidth)));
+
+    measure();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(frameEl);
+    return () => observer.disconnect();
+  }, [title, album]);
+
+  return (
+    <span ref={frame} className={cx("jk-dock__recent-title", overflow > 0 && "is-scrolling")}>
+      <span
+        ref={line}
+        className="jk-dock__recent-line"
+        style={
+          {
+            "--scroll-by": `${overflow}px`,
+            "--scroll-dur": `${Math.max(4, overflow / SCROLL_PX_PER_SECOND).toFixed(1)}s`,
+          } as CSSProperties
+        }
+      >
+        {title}
+        {album ? <span className="jk-dock__recent-album">{album}</span> : null}
+      </span>
+    </span>
+  );
+};
+
 /** Where the open/sleeve choice is remembered between visits. */
 const STORAGE_KEY = "jk-dock";
 
@@ -266,6 +325,10 @@ export const NowPlayingDock = () => {
             <a href={track.url} target="_blank" rel="noreferrer" className="jk-dock__track">
               <span className="jk-dock__title">{track.title}</span>
               <span className="jk-dock__artist">{track.artist}</span>
+              {/* Conditional, not optional-chained into an empty span: Spotify returns
+                  no album for a local file or a podcast episode, and the service maps
+                  that to "". An empty third row would leave a gap under the artist. */}
+              {track.album ? <span className="jk-dock__album">{track.album}</span> : null}
             </a>
           ) : (
             <span className="jk-dock__idle">
@@ -335,7 +398,7 @@ export const NowPlayingDock = () => {
                   rel="noreferrer"
                   className="jk-dock__recent-link"
                 >
-                  <span className="jk-dock__recent-title">{entry.title}</span>
+                  <RecentLine title={entry.title} album={entry.album} />
                   <span className="jk-dock__recent-artist">{entry.artist}</span>
                 </a>
               </li>
