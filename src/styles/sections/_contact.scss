@@ -55,6 +55,65 @@
   }
 }
 
+/* --- the fields, borderless -------------------------------------------------------
+   No edge, and a wash instead of a fill: the fields stop being five stacked boxes and
+   become the form's own surface, very slightly deepened where you type.
+
+   SCOPED HERE RATHER THAN IN forms/_input.scss ON PURPOSE. .jk-input and .jk-textarea
+   are the general-purpose controls, and what makes this safe is the sheet: these fields
+   sit on the form's glass, which is doing the work of separating them from the
+   photograph. The same treatment on the open ground would be a field you cannot find.
+   The bordered version stays the default so the next form to appear anywhere else gets
+   a control with an edge.
+
+   .18 IS ALMOST NOTHING AND THAT IS THE POINT, but it is worth being straight about
+   what it buys. Over the form's own .5 cream the field is 18 % of the remaining
+   distance to cream, which is plainly visible where the ground behind the glass is
+   dark and close to invisible where it is bright. So the wash is not what identifies
+   these as fields — the label above each one is, which is why every field here has a
+   real <label> and a placeholder rather than a placeholder standing in for a label.
+   Hover and focus are where the fill does real work.
+
+   WHAT REPLACES THE EDGE ON ERROR. --status-error was carried by border-color, and
+   removing the border removes the only mark an invalid field had. An inset shadow
+   redraws exactly that line without reintroducing a border in the layout: no box
+   changes size, nothing reflows, and aria-invalid still shows up as something a person
+   can see. box-shadow rather than outline because outline is spoken for by focus, and a
+   field can be focused and invalid at once.
+
+   The focus ring itself is untouched, inherited from forms/_input.scss. It is the one
+   affordance here that was never negotiable. */
+.jk-contact__form {
+  .jk-input,
+  .jk-textarea {
+    border: 0;
+    background: rgba(242, 239, 231, 0.18);
+    transition:
+      background-color var(--dur-base) var(--ease-out),
+      box-shadow var(--dur-base) var(--ease-out);
+
+    /* Deepens rather than drawing an edge — the same move .jk-btn--primary makes. */
+    &:hover {
+      background: rgba(242, 239, 231, 0.3);
+    }
+
+    &:focus-visible {
+      background: rgba(242, 239, 231, 0.34);
+    }
+
+    &[aria-invalid="true"] {
+      box-shadow: inset 0 0 0 var(--border-1) var(--status-error);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jk-contact__form {
+    .jk-input,
+    .jk-textarea { transition: none; }
+  }
+}
+
 /* --- compact ----------------------------------------------------------------------
    The form was tall enough to need its own scroll on a laptop. What made it tall was
    not any one thing: 44px controls, a gap between every label and its field, a gap

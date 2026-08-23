@@ -42,6 +42,7 @@
 // --- components --------------------------------------------------------------
 @use "components/button"; // Button
 @use "components/badge"; // Badge
+@use "components/employer"; // .jk-employer — the employer's name, in Hero and ExperienceEntry
 @use "components/marquee"; // Marquee
 @use "components/reveal"; // Reveal — scroll choreography
 @use "components/rule"; // Rule

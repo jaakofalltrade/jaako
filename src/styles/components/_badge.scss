@@ -15,21 +15,74 @@
   white-space: nowrap;
 }
 
-/* The accent tone. Named for the old cyan; it is the deep blue now. */
+/* FILLED VERSUS OUTLINE IS THE WHOLE DISTINCTION, and it is worth setting out once
+   because it is the thing four different lists are relying on.
+
+   Cyan and Ghost are the two ends of one axis: live and retired. A maintained project,
+   a project in progress, the job he currently holds, a track playing right now, a
+   message that just sent — all cyan. An archived project, a job he has left, a player
+   with nothing coming out of it — all ghost. The two used to differ by border alpha
+   and one step of ink, which is a difference you find by putting them side by side
+   rather than one you see. They differ by fill now.
+
+   THREE SIGNALS, NOT ONE, and none of them is colour on its own: a fill or no fill, a
+   solid marker or a hollow one, and the word itself, which was always the real
+   carrier. Deliberately not a fourth — no weight change, no size change. The badge is
+   a specimen label and it stays quiet.
+
+   The marker is a pseudo-element because it says nothing: it repeats the word beside
+   it for people who read shape before text. It rides the flex gap the badge already
+   sets. */
+.jk-badge--cyan::before,
+.jk-badge--ghost::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 5px;
+  height: 5px;
+  border-radius: var(--radius-pill);
+}
+
+/* Live. A tinted fill, a solid marker, and the strong ink.
+
+   THE INK IS --text-strong AND THAT IS THE FILL'S DOING. This tone used to be
+   --text-link on the bare ground, where it measures 4.66:1. Putting 14 % of --p-deep
+   behind it darkens the ground under the label, and against the dark end of the
+   photograph — the #bdbbb4 that tokens/_colors.scss quotes every number from — the
+   composite drops --text-link to 4.14:1, under the bar for 11px type. --text-strong on
+   the same composite is 7.5:1. The colour of the tone is carried by the fill, the
+   border and the marker; the label just has to be readable.
+
+   The marker keeps --text-link, which is where the blue went. It is decorative and
+   owes nothing, and it clears 3:1 on the tinted ground anyway. */
 .jk-badge--cyan {
-  border-color: color-mix(in srgb, var(--text-link) 45%, transparent);
-  color: var(--text-link);
+  background: color-mix(in srgb, var(--p-deep) 14%, transparent);
+  border-color: color-mix(in srgb, var(--p-deep) 55%, transparent);
+  color: var(--text-strong);
+
+  &::before { background: var(--text-link); }
 }
 
 .jk-badge--steel {
   color: var(--text-body);
 }
 
+/* Retired. No fill, a hollow marker, the dim ink — quieter than cyan at every one of
+   the three signals and still legible at all of them.
+ *
+ * A badge always says something — "archived" is the only thing marking a retired
+ * project as retired — so even the quietest tone has to clear AA. --text-dim is 4.87:1
+ * on the open ground, and unlike cyan there is no fill under it to erode that. */
 .jk-badge--ghost {
+  background: none;
   border-color: var(--hair);
-  // A badge always says something — "archived" is the only thing marking a retired
-  // project as retired — so even the quietest tone has to clear AA.
   color: var(--text-dim);
+
+  &::before {
+    /* A ring rather than a disc. box-shadow rather than a border, because a border on
+       a 5px box leaves a 3px hole that reads as a smudge; an inset shadow draws the
+       ring inside the full 5px and keeps the two markers the same size. */
+    box-shadow: inset 0 0 0 1px var(--text-dim);
+  }
 }
 
 .jk-badge--alert {

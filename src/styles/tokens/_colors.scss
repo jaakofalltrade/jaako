@@ -60,6 +60,47 @@
    the hue and this number change — re-measure rather than assuming. */
 --p-ember:#c2470c;
 
+/* The second rare accent: the employer's name, wherever it appears. Two places, the
+   same discipline as the ember — a colour that means something only stays meaning
+   something while it is spent on one thing.
+
+   THE REQUESTED COLOUR WAS #4cbba1 AND THIS IS NOT IT. Here are the measurements,
+   taken off the rendered page rather than off the table below — the ground was
+   reconstructed the way the browser composites it (the photograph, cover-fit to the
+   viewport, blurred 5px, scaled 1.02, under the 3 % navy of --bg-glass) and sampled
+   pixel by pixel under the word's own box:
+
+     ground under the word    relative luminance 0.307 → 0.510
+     #4cbba1                  1.25:1 at both ends
+     --text-body #22405c      3.65:1 → 5.73:1   (what the values beside it get)
+     this token               3.29:1 → 5.17:1
+
+   1.25:1 is not a near miss that a nudge recovers. It is a colour the same brightness
+   as what is behind it, and on screen it was exactly that: the word vanished. Nothing
+   at that lightness works here, because a light colour on a light ground has nowhere
+   to go.
+
+   SO THE BENCHMARK IS THE TEXT NEXT TO IT, not a fixed ratio. Note what the table
+   below would have demanded and why it is the wrong instrument: it is measured through
+   an .78 off-white pane that tokens/_effects.scss replaced with a 3 % navy tint, and
+   that file says outright that none of its ratios survive the change. Measured against
+   the real ground, --text-body itself only reaches 3.65:1 under this word. Holding one
+   accent to 4.5:1 while the prose around it sits at 3.65:1 would be arithmetic for its
+   own sake. This lands within a third of a stop of its neighbours, which is the honest
+   target.
+
+   WHY IT IS SATURATED RATHER THAN MERELY DARK. #4cbba1 is hsl(166, 45%, 52%). The
+   first attempt kept that saturation and walked the lightness down, and the result was
+   a colour that read as ink rather than as green — at this luminance a 45 % green and
+   the navy beside it are hard to tell apart. This is the same 166° at 80 % saturation
+   and 17 % lightness: identical contrast, unmistakably green. When a hue has to live
+   this dark, saturation is the only thing carrying it.
+
+   IF THE WORD EVER MOVES ONTO A SURFACE — a filled panel, a badge with a fill — this
+   can go a long way back toward the source value, because the ground stops being the
+   photograph. Re-measure rather than assuming. */
+--p-jade:#094e3e;
+
 /* --- Text: #3368a0's hue, darkened until it passes on the open ground. --- */
 --text-strong:#0f2136;   /* 8.44:1 worst — headings, display type */
 --text-body:#22405c;     /* 5.57:1 worst — prose */

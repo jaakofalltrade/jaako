@@ -37,19 +37,23 @@
    The pinned state is a class, not a selector: there is no :stuck in CSS, so
    SectionNav watches a sentinel and adds .is-stuck. See the comment there. */
 
-/* The PINNED bar's height plus a little air, for base/_reset.scss to hold hash jumps
-   clear of. It is the pinned height that matters and not the resting one, because the
-   only time a heading can land underneath this thing is when it is stuck.
+/* The bar's height plus a little air, for base/_reset.scss to hold hash jumps clear of.
 
-   That height is about 4.4rem — --space-6 twice on the inner element and a line of 11px
-   caps — so 5.5rem clears it with room. Coarse pointers get the touch floor on every
-   link and wrap to two rows on the narrowest phones, so theirs is measured from a
-   two-row bar.
+   ONE NUMBER NOW, because there is one height now. This used to have to be measured
+   from the pinned bar specifically, since the bar grew when it stuck and only the
+   pinned height could ever hide a heading. The bar no longer changes size — see the
+   note over .jk-nav__inner — so the resting height is the pinned height and this is
+   just that height plus room.
+
+   That height is about 2.6rem: --space-4 twice on the inner element and a line of 11px
+   caps. 4rem clears it comfortably. Coarse pointers get the touch floor on every link
+   and wrap to two rows on the narrowest phones, so theirs is still measured from a
+   two-row bar and is unchanged.
 
    Both are rounded up on purpose. Overshooting leaves a strip of whitespace above the
    heading; undershooting hides the heading, which is the failure that matters. */
 :root {
-  --nav-clear: 5.5rem;
+  --nav-clear: 4rem;
 }
 
 @media (pointer: coarse) {
@@ -91,41 +95,60 @@
 
    Bare until pinned. Stated rather than left to the initial value so the pair with
    .is-stuck reads as one decision in one place. */
+/* ONE HEIGHT, PINNED OR NOT, and nothing about the box changes when it sticks.
+
+   The bar used to grow from --space-4 to --space-6 as it pinned, on the theory that
+   four links on a photograph should not take up more room than they need. What that
+   actually bought was a size change and a glass fade arriving together, and the two do
+   not animate alike: padding is laid out, the fill is painted, and the result read as
+   the bar assembling itself rather than as a surface arriving. Holding the height fixed
+   leaves exactly one thing to change on pinning, which is the sheet — and the smoothest
+   pin available is the one where the only difference between the two states is opacity.
+
+   --space-4 is the height it keeps. About 2.6rem all in, which is also what --nav-clear
+   above is measured from.
+
+   position: relative is for the ::before. Nothing else needs it. */
 .jk-nav__inner {
+  position: relative;
   max-width: var(--page-max);
   margin-inline: auto;
   padding-inline: var(--gutter);
-  /* The resting height. It grows on pinning — see below — and the growth lives here
-     rather than on .jk-nav so that the page flow at the bar's inline position never
-     changes: the wrapper's box is the same height whether the sheet inside it is tall
-     or short, so nothing below the bar moves when it sticks. */
   padding-block: var(--space-4);
-  background: transparent;
-  box-shadow: none;
-  transition:
-    padding-block var(--dur-base) var(--ease-out),
-    background-color var(--dur-base) var(--ease-out),
-    box-shadow var(--dur-base) var(--ease-out);
 }
 
-/* Pinned: real glass, dissolving at both ends.
+/* The glass, on a pseudo-element rather than on the bar itself.
 
-   The fill and the blur are a single decision, exactly as in sections/_contact.scss —
+   THIS IS THE FIX FOR THE HARD EDGE ON PINNING. Everything below used to sit on
+   .jk-nav__inner under .is-stuck, and two of the properties involved cannot be
+   transitioned at all: mask-image and backdrop-filter both switch discretely, so the
+   soft ends and the blur snapped into existence in one frame while the fill was still
+   fading in over the transition duration. That is the "suddenly not soft, not blurred"
+   — the sheet arrived in two pieces, one of them instantly.
+
+   Moving the whole sheet onto its own layer turns four un-animatable changes into one
+   animatable one: the fill, the blur, the mask and the shadow are all permanently on
+   this element and it fades from opacity 0 to 1. Fading a layer that carries a
+   backdrop-filter fades the blur with it, because the filtered backdrop is part of what
+   the layer composites — which is the only way to get a blur to arrive gradually.
+
+   IT ALSO KEEPS THE MASK OFF THE LINKS. A mask on .jk-nav__inner masked its contents
+   too, so the first and last link sat inside the fade and dimmed at the ends. On the
+   ::before there is nothing in the fade but the sheet.
+
+   z-index: -1 puts it behind the links and no further: .jk-nav establishes a stacking
+   context (position: sticky with z-index: 50), so a negative index inside it cannot
+   escape past the bar and end up under the page.
+
+   THE FILL AND THE BLUR ARE A SINGLE DECISION, exactly as in sections/_contact.scss —
    .6 is buying its legibility from the blur behind it, and without one the other is
    wrong. It sits higher than the form's .5 because the type here is 11px caps rather
    than 16px prose, and it is moving relative to whatever is underneath it.
 
-   IT GROWS ON PINNING, from --space-4 to --space-6, which is about 54px to about 70px.
-   Only when pinned: at rest this is four links on a photograph and has no business
-   taking up more room than it needs, and the extra height would push the whole page
-   down. Padding is a layout property and animating it is not free, but this fires once
-   per pin rather than per frame, and it arrives on the same transition as the glass —
-   which is the point, the bar assembles itself in one gesture instead of two.
-
-   THE MASK IS WHAT MAKES THE EDGES SOFT, and it has to be a mask rather than a gradient
+   THE MASK IS WHAT MAKES THE ENDS SOFT, and it has to be a mask rather than a gradient
    in the background: backdrop-filter is clipped to the element's box, so a fill that
-   fades while the blur stops dead leaves a visible rectangle of sharpened backdrop
-   past the fade. Masking the element fades the fill and the blur together.
+   fades while the blur stops dead leaves a visible rectangle of sharpened backdrop past
+   the fade. Masking the layer fades the fill, the blur and the shadow together.
 
    ENDS ONLY. A vertical fade was tried across the top and bottom edges as well and
    taken straight back out: on a bar this short the two gradients leave very little
@@ -138,18 +161,28 @@
    illegible half of the trade with none of the payoff. One standard declaration; the
    prefixing is the toolchain's business. The full account is in _contact.scss.
 
-   The shadow is doing the same job as the fill: it is what says the bar is over the
-   page rather than in it. */
-.jk-nav.is-stuck .jk-nav__inner {
-  padding-block: var(--space-6);
+   --dur-slow rather than --dur-base. The old fade was quick because it was racing a
+   layout change it could not match anyway; with nothing else moving, the sheet can take
+   its time and read as a surface settling in rather than a colour switching on. */
+.jk-nav__inner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
   background: rgba(242, 239, 231, 0.6);
   box-shadow: var(--shadow-float);
   backdrop-filter: blur(20px) saturate(1.25);
   mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  opacity: 0;
+  transition: opacity var(--dur-slow) var(--ease-out);
+}
+
+.jk-nav.is-stuck .jk-nav__inner::before {
+  opacity: 1;
 }
 
 @supports not (backdrop-filter: blur(1px)) {
-  .jk-nav.is-stuck .jk-nav__inner { background: rgba(242, 239, 231, 0.88); }
+  .jk-nav__inner::before { background: rgba(242, 239, 231, 0.88); }
 }
 
 .jk-nav__list {
@@ -206,10 +239,14 @@
   .jk-nav__list { gap: var(--space-3) var(--space-5); }
 }
 
-/* .jk-nav__inner, not .jk-nav: the fill and shadow transition moved to the inner
-   element when the sheet did, and a reduced-motion rule aimed at the old element is a
-   rule that silently stops working. */
+/* .jk-nav__inner::before, not .jk-nav__inner: the sheet's transition moved onto the
+   pseudo-element with the sheet, and a reduced-motion rule aimed at the element that
+   used to carry it is a rule that silently stops working.
+
+   The sheet still appears and disappears — it has to, it is what makes the links
+   legible over body text — it just does it in one step rather than over half a second.
+   Nothing is lost but the fade. */
 @media (prefers-reduced-motion: reduce) {
-  .jk-nav__inner,
+  .jk-nav__inner::before,
   .jk-nav__link { transition: none; }
 }

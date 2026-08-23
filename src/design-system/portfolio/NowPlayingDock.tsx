@@ -9,22 +9,28 @@ import { Annotation } from "../core/Annotation";
 import { Icon } from "../Icon";
 
 /**
- * The persistent player, on the right-hand side.
+ * The persistent player, bottom right, on every page and from the first paint.
  *
  * Album art is the only live imagery the site has — a photograph that changes every
  * few minutes — so it earns permanent space.
  *
- * Two changes from the docked version. It sits on the right rather than the
- * bottom-left, and the three most recent plays are always on show instead of living
- * behind an expand toggle. The route has been returning them all along (RECENT_SHOWN
- * is 3 in constants/spotify.ts); they were just hidden by default.
+ * PERMANENT IS NEW, and it is what the rest of this round follows from. The panel used
+ * to wait for the masthead to scroll away before fading in, and it used to remember
+ * whether you had opened it. Both were answers to the same problem: the thing was
+ * either a 20rem sheet four tracks tall, which is too much to have hanging over a
+ * photograph, or a bare 44px cover, which tells you nothing worth keeping on screen.
  *
- * Dropping the toggle removed a control, a third enum member, an aria-expanded
- * relationship and a branch in the render, to save about 90px of height. The panel
- * has two states left: open, and shrunk to the bare sleeve.
+ * So the minimised state was made worth looking at instead. It is a cover you can
+ * actually see with the title and the artist beside it — the answer to "what is he
+ * listening to" without opening anything — and at that size it can be there the whole
+ * time, on the hero included. Opening it is now for the extras: the progress bar, the
+ * clock, the refresh, and the three most recent plays.
  *
- * The playback logic is unchanged — the local progress extrapolation and the
- * paused-reports-as-Recent handling were already the right calls.
+ * Two states, as before: minimised and open. What went is the machinery around the
+ * choice between them — see the note over the component — not the choice itself.
+ *
+ * The playback logic is untouched. The local progress extrapolation, the one-request-
+ * per-song schedule and the paused-reports-as-Recent handling were already right.
  */
 
 /**
@@ -86,85 +92,41 @@ const RecentLine = ({ title, album }: { title: string; album: string }) => {
   );
 };
 
-/** Where the open/sleeve choice is remembered between visits. */
-const STORAGE_KEY = "jk-dock";
-
 /** Server and client clocks disagree, and Spotify samples progress_ms. */
 const DRIFT_MS = 2000;
 
 /** Floor. Without it, a short interlude or rapid skipping becomes a request storm. */
 const MIN_REFETCH_MS = 10_000;
 
-const isDockState = (value: string | null): value is DockState =>
-  value === DockState.Open || value === DockState.Sleeve;
-
-/** Matches the $bp-sm breakpoint in base/_mixins.scss. */
-const MOBILE = "(max-width: 47.9375rem)";
-
 /**
- * What a visitor with no stored preference gets.
+ * IT ALWAYS STARTS MINIMISED, and the whole apparatus that used to decide otherwise is
+ * gone with the decision.
  *
- * Open on a desktop, the sleeve on a phone. The panel is now permanently four tracks
- * tall, and defaulting that open on a 390px screen would park a fixed sheet over most
- * of whatever section was being read — the recent list being always-on is what makes
- * this branch necessary, since the old collapsed default already covered it.
+ * What was here: a localStorage key, a useSyncExternalStore-backed store with its own
+ * subscriber set and a cross-tab `storage` listener, a type guard over the stored
+ * string, a matchMedia query against the small breakpoint, and a function that picked
+ * open on a desktop and the sleeve on a phone. All of it existed to answer one
+ * question — what state does this open in — and the answer is now the same for
+ * everyone every time, so none of it has anything left to do.
+ *
+ * That is not a feature being dropped so much as one being made unnecessary. The point
+ * of remembering the choice was that the collapsed state told you nothing: a bare
+ * 44px cover in the corner is not worth leaving open, so a visitor who expanded it
+ * once wanted it expanded next time. The minimised state now carries the title and the
+ * artist, which is the part anyone actually wanted, at a size you can read across a
+ * room. Opening it is for the progress bar and the last-played list, which is a thing
+ * you do when you are curious rather than a preference you hold.
+ *
+ * It also removes the one place on this page where the server rendered a guess. The
+ * store's getServerSnapshot returned the desktop default, so a phone drew the full
+ * panel and then swapped it for the sleeve on hydration. There is nothing to swap now.
  */
-const defaultDockState = (): DockState =>
-  window.matchMedia(MOBILE).matches ? DockState.Sleeve : DockState.Open;
-
-/**
- * The open/sleeve choice, read straight out of localStorage.
- *
- * useSyncExternalStore rather than useState-plus-useEffect because that is exactly
- * what localStorage is: an external store. It also solves the hydration problem for
- * free — getServerSnapshot returns the default, so the server and the first client
- * render agree, and React swaps in the stored value without a mismatch warning.
- *
- * The listener set exists because the `storage` event only fires in *other* tabs.
- * Notifying locally is what makes a write in this tab re-render this component; the
- * cross-tab sync that falls out of it is a small bonus rather than the point.
- */
-const dockStore = (() => {
-  const listeners = new Set<() => void>();
-
-  const notify = () => listeners.forEach((listener) => listener());
-
-  return {
-    subscribe: (listener: () => void) => {
-      listeners.add(listener);
-      window.addEventListener("storage", notify);
-      return () => {
-        listeners.delete(listener);
-        if (listeners.size === 0) window.removeEventListener("storage", notify);
-      };
-    },
-    read: (): DockState => {
-      const stored = window.localStorage.getItem(STORAGE_KEY);
-      return isDockState(stored) ? stored : defaultDockState();
-    },
-    // The server cannot know the viewport, so it renders the desktop default. That is
-    // not a hydration mismatch: getServerSnapshot is used for the server render and
-    // for hydration alike, and React then re-renders with the client snapshot — which
-    // is exactly the case useSyncExternalStore exists to handle.
-    readServer: (): DockState => DockState.Open,
-    write: (next: DockState) => {
-      window.localStorage.setItem(STORAGE_KEY, next);
-      notify();
-    },
-  };
-})();
-
 export const NowPlayingDock = () => {
   const [response, setResponse] = React.useState<Spotify.NowPlayingResponse | null>(null);
   /** Milliseconds since the response landed. Drives the progress bar locally. */
   const [elapsed, setElapsed] = React.useState(0);
   const [refreshing, setRefreshing] = React.useState(false);
-  const dock = React.useSyncExternalStore(
-    dockStore.subscribe,
-    dockStore.read,
-    dockStore.readServer,
-  );
-  const [pastHero, setPastHero] = React.useState(false);
+  const [dock, setDock] = React.useState<DockState>(DockState.Sleeve);
   const [tabVisible, setTabVisible] = React.useState(true);
 
   const track = response?.track ?? null;
@@ -192,39 +154,22 @@ export const NowPlayingDock = () => {
     return () => controller.abort();
   }, []);
 
-  /**
-   * The player appears only once the hero has scrolled away.
+  /*
+   * THE HERO GATE IS GONE. There used to be an IntersectionObserver here watching
+   * .jk-hero, deferred a frame so the hero was measured at its settled size, with a
+   * branch for the pages that have no hero at all — the whole thing so the player faded
+   * in only once the masthead had scrolled away.
    *
-   * Waiting makes the arrival read as deliberate rather than as something that was
-   * hiding there all along, and it keeps a fixed panel off the masthead, which is the
-   * one part of the page composed as a picture.
+   * The argument for it was that a fixed panel over the masthead spoils the one part of
+   * the page composed as a picture, and that was a fair argument about a 20rem sheet
+   * four tracks tall. It is not an argument about what is there now: minimised, this is
+   * a cover and two lines of text in the corner, roughly the footprint of the gag the
+   * strip below it is already making. Against that, a player that is not there when the
+   * page loads is a player most visitors never learn exists.
+   *
+   * So it is present from the first paint, on every page, in every state. Nothing waits
+   * on a scroll position any more.
    */
-  React.useEffect(() => {
-    let observer: IntersectionObserver | undefined;
-
-    // Deferred a frame rather than run in the effect body. Two reasons: the layout has
-    // settled by then, so the hero is measured at its real size; and it keeps the
-    // no-hero branch from being a synchronous setState during an effect.
-    const frame = requestAnimationFrame(() => {
-      const hero = document.querySelector(".jk-hero");
-
-      // Pages without a hero (/work, /work/[slug]) get the player immediately.
-      if (!hero) {
-        setPastHero(true);
-        return;
-      }
-
-      observer = new IntersectionObserver(([entry]) => setPastHero(!entry.isIntersecting), {
-        threshold: 0,
-      });
-      observer.observe(hero);
-    });
-
-    return () => {
-      cancelAnimationFrame(frame);
-      observer?.disconnect();
-    };
-  }, []);
 
   // Nothing is scheduled while the tab is in the background.
   React.useEffect(() => {
@@ -264,8 +209,6 @@ export const NowPlayingDock = () => {
     return () => clearInterval(id);
   }, [playing, track]);
 
-  const setDockState = (next: DockState) => dockStore.write(next);
-
   const refresh = async () => {
     if (refreshing) return;
     setRefreshing(true);
@@ -280,45 +223,86 @@ export const NowPlayingDock = () => {
   const sleeve = dock === DockState.Sleeve;
   const recent = response?.recent ?? [];
 
-  return (
-    <div
-      className={cx(
-        "jk-dock",
-        pastHero && "jk-dock--in",
-        sleeve && "jk-dock--sleeve",
-        !playing && "jk-dock--idle",
-      )}
-    >
-      <div className="jk-dock__body">
-        {/*
-          The sleeve is a button in every state: pressing it is what restores the
-          player once it has been collapsed down to the bare cover.
+  /*
+   * The cover. One expression, used by both states, because it is the same picture in
+   * both and the only difference is how big the frame around it is.
+   *
+   * Nothing is drawn over the artwork. The duotone filter it carried at rest — and the
+   * hover/focus/press bleed back to full colour that went with it — and the spindle
+   * span that put a record's centre hole over the middle are all gone. The cover is the
+   * cover.
+   */
+  const cover = track?.album_art ? (
+    /* eslint-disable-next-line @next/next/no-img-element */
+    <img src={track.album_art} alt="" className="jk-dock__art" />
+  ) : (
+    <Icon name={IconName.Disc} size={22} className="jk-dock__disc" />
+  );
 
-          Nothing is drawn over the artwork any more. The duotone filter it carried at
-          rest — and the hover/focus/press bleed back to full colour that went with it
-          — and the spindle span that put a record's centre hole over the middle are
-          both gone. The cover is the cover.
-        */}
+  /*
+   * MINIMISED IS A REAL STATE NOW, not the panel with most of it hidden.
+   *
+   * It used to be exactly that: the same markup, with CSS blanking the metadata, the
+   * controls and the recent list until all that was left was a 44px cover. Which is why
+   * it was worth remembering that someone had opened it — a bare cover says nothing,
+   * so anyone who wanted to know what was playing had to expand the thing and leave it
+   * expanded.
+   *
+   * A separate branch is what lets it carry the title and the artist beside a cover big
+   * enough to recognise, and it is a branch rather than more CSS because the collapsed
+   * state is a different control: the whole strip is one button that opens the panel.
+   * Under the old arrangement the text was a link to Spotify and only the cover opened
+   * the player, which would put a link inside a button the moment the text became
+   * visible — two targets in one strip, one of them navigating away from the page.
+   *
+   * The link is not lost. It is in the expanded panel, where the title has room to be a
+   * link and be seen to be one.
+   */
+  if (sleeve) {
+    return (
+      <div className={cx("jk-dock", "jk-dock--sleeve", !playing && "jk-dock--idle")}>
         <button
           type="button"
-          className="jk-dock__sleeve"
-          data-spin={playing ? "" : undefined}
-          onClick={() => sleeve && setDockState(DockState.Open)}
+          className="jk-dock__peek"
+          onClick={() => setDock(DockState.Open)}
+          aria-expanded={false}
           aria-label={
-            sleeve
-              ? "Show the player"
-              : track
-                ? `${track.title} by ${track.artist}`
-                : "Nothing playing"
+            track ? `${track.title} by ${track.artist}. Show the player` : "Show the player"
           }
         >
-          {track?.album_art ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img src={track.album_art} alt="" className="jk-dock__art" />
-          ) : (
-            <Icon name={IconName.Disc} size={18} className="jk-dock__disc" />
-          )}
+          <span className="jk-dock__sleeve" data-spin={playing ? "" : undefined}>
+            {cover}
+          </span>
+
+          {/* aria-hidden because the button's own label already says all of this, and
+              without it a screen reader reads the title and artist twice. */}
+          <span aria-hidden="true" className="jk-dock__peek-meta">
+            {track ? (
+              <>
+                <span className="jk-dock__title">{track.title}</span>
+                <span className="jk-dock__artist">{track.artist}</span>
+              </>
+            ) : (
+              <span className="jk-dock__idle">
+                {response ? "not listening" : "reading the turntable"}
+              </span>
+            )}
+          </span>
         </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className={cx("jk-dock", !playing && "jk-dock--idle")}>
+      <div className="jk-dock__body">
+        {/* A span, not a button. It was one in both states so that pressing the cover
+            could restore the collapsed player, and the collapsed player is its own
+            control now — which left this as a button whose handler could never fire and
+            whose label duplicated the link beside it. */}
+        <span className="jk-dock__sleeve" data-spin={playing ? "" : undefined}>
+          {cover}
+        </span>
 
         <div className="jk-dock__meta">
           {track ? (
@@ -366,13 +350,15 @@ export const NowPlayingDock = () => {
             <Icon name={IconName.RefreshCw} size={11} spin={refreshing} />
           </button>
           {/*
-            Collapses to the bare sleeve rather than unmounting. A dismissible element
-            with no visible way back needs a page reload to recover, which is not a
-            dismissal so much as a trap.
+            Collapses to the minimised strip rather than unmounting. A dismissible
+            element with no visible way back needs a page reload to recover, which is
+            not a dismissal so much as a trap — and the strip it collapses to still says
+            what is playing, so nothing is actually given up by pressing this.
           */}
           <button
             type="button"
-            onClick={() => setDockState(DockState.Sleeve)}
+            onClick={() => setDock(DockState.Sleeve)}
+            aria-expanded
             aria-label="Collapse the player"
             className="jk-dock__key"
           >

@@ -37,6 +37,33 @@
   flex: 0 0 auto;
 }
 
+/* The trailing arrow, centred as a box rather than hung off the label's baseline.
+
+   Both halves of this are corrections, not taste:
+
+   THE NEGATIVE MARGIN IS THE TRAILING LETTER-SPACE. The label mixin sets
+   --tracking-anno (.18em), and letter-spacing is added after every character including
+   the last one — so the flex line is .18em wider than the ink in it and
+   justify-content: center splits that surplus, hanging the whole label .09em to the
+   left of true centre. Pulling the same amount back off the end removes the phantom
+   column instead of guessing at a compensating offset.
+
+   THE BASELINE NUDGE IS THE FONT FALLBACK. → is in neither webfont (see the fallback
+   note in app/layout.tsx), so it renders out of whatever system face catches it, whose
+   baseline sits lower against these caps than the arrow's own optical centre wants.
+   line-height:1 collapses its box to the glyph so align-items can centre it, and the
+   .06em lift covers the residual difference between a symbol centred on the math axis
+   and letters centred on cap height.
+
+   Applies to any button given one, though only the masthead's has an arrow today. */
+.jk-btn__arrow {
+  display: inline-flex;
+  flex: 0 0 auto;
+  line-height: 1;
+  margin-right: calc(var(--tracking-anno) * -1);
+  transform: translateY(-0.06em);
+}
+
 /* --- sizes --- */
 .jk-btn--sm { min-height: var(--control-h-sm); padding: 0 var(--space-4); }
 .jk-btn--md { min-height: var(--control-h-md); padding: 0 var(--space-6); }

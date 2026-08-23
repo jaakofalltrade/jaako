@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PROJECT_STATUS_LABEL, PROJECT_STATUS_TONE } from "@/constants/ui";
+import { ProjectStatus } from "@/models";
 import type { Project } from "@/models";
 import { Badge } from "../core/Badge";
 
@@ -21,7 +22,20 @@ export type TracklistRowProps = {
  * one. The row's own hover treatment was always CSS.
  */
 export const TracklistRow = ({ project, index }: TracklistRowProps) => (
-  <Link href={`/work/${project.slug}`} className="jk-track">
+  <Link
+    href={`/work/${project.slug}`}
+    className="jk-track"
+    /* Retired work reads one step back from the rest of the list. The badge already
+       says "archived" and the badge is still the carrier — this is the same fact at
+       the scale of the row, so an archived entry is recognisable while scanning the
+       column of titles rather than only when the eye reaches the right-hand edge.
+
+       A data attribute rather than a modifier class because it is a state of the
+       project and not a variant of the row, and because it keeps the styling honest:
+       there is exactly one status that dims, and _tracklist.scss can only reach it
+       through the one selector. */
+    data-archived={project.status === ProjectStatus.Archived ? "" : undefined}
+  >
     <span aria-hidden="true" className="jk-track__index">
       {index}
     </span>

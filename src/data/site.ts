@@ -12,6 +12,21 @@ import type { ContactLink, HeroCopy, MetaPair, NavItem, SectionCopy } from "@/mo
 
 export const BRAND = "jaako";
 
+/**
+ * The current employer, named once so the two places that print it can agree.
+ *
+ * It is a constant rather than a flag on the data because the accent is a
+ * presentation decision, exactly as HERO.title_accent and ABOUT_LEAD_EMPHASIS are:
+ * this file says what the copy is, and Hero and ExperienceEntry decide which word
+ * gets the colour by matching against this. Compared case-insensitively — the hero
+ * meta sets it lowercase like everything else in that block, the experience entry
+ * uses the company's own capitalisation, and both are the same employer.
+ *
+ * See .jk-employer in styles/components/_employer.scss for the colour, and the
+ * --p-jade note in tokens/_colors.scss for why it is not the mint it started as.
+ */
+export const EMPLOYER = "restoplus";
+
 export const HERO: HeroCopy = {
   title: "jaako andes.",
   title_accent: "andes.",
@@ -77,7 +92,32 @@ export const CONTACT_SPEC = {
   availability: "Two evenings a week, plus weekends if the project is interesting.",
 } as const;
 
-/** Status ticker. Formerly the footer marquee; same lines, read out as instrument status. */
+/**
+ * The status cell of the instrument strip.
+ *
+ * It used to be a second copy of the footer ticker — the same four gag lines scrolling
+ * under a label that said "status". A marquee under that label is a joke about status
+ * rather than a status: nothing in it answered the question a visitor actually has,
+ * which is what hours this person keeps and whether they are available. So it is a
+ * readout now, and the jokes stay in the footer where they were already running.
+ *
+ * `local` is not here because it is not copy — it is the clock, and it comes from the
+ * reader's own machine at render time. See LocalClock.tsx.
+ *
+ * TIME_ZONE is an IANA name and not an offset on purpose: it is what Intl needs, and
+ * it is the only form that stays right across a DST change. The Philippines does not
+ * observe one, so `utc_offset` can be the flat string it is — if this ever moves
+ * somewhere that does, that field has to be derived from TIME_ZONE rather than typed.
+ */
+export const STATUS = {
+  time_zone: "Asia/Manila",
+  zone_label: "pht",
+  utc_offset: "gmt+8",
+  employment: "employed, still curious",
+  location: "sorsogon, ph",
+} as const;
+
+/** Footer ticker. The gag lines, still scrolling, still in the footer. */
 export const TICKER: string[] = [
   "sorsogon, ph",
   "display ▸ 1024×768 nominal",

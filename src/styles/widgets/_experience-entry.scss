@@ -22,6 +22,22 @@
   color: var(--text-strong);
 }
 
+/* A job he has left, one step back — the same rule the work tracklist applies to
+   archived projects, on the same reasoning: the "archived" badge in the meta column is
+   the carrier, and this makes the same distinction visible while scanning the column of
+   company names rather than only at the right-hand edge.
+
+   The company name only, and it stops at --text-body (5.57:1) rather than going to the
+   --text-dim the roles beneath it already use. A past job is still the record; this has
+   to be a difference you notice without being one that makes half the section harder to
+   read. Nothing else in the entry moves.
+
+   No :not(:hover) guard here, unlike the tracklist version — an experience entry is not
+   a link and has no hover state to lose the tie to. */
+.jk-xp[data-archived] .jk-xp__company {
+  color: var(--text-body);
+}
+
 .jk-xp__roles {
   margin: var(--space-3) 0 0;
   padding: 0;
