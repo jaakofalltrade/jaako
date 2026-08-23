@@ -96,41 +96,49 @@
    ring, which is untouched. The mint helps here too, being the only object on the page
    wearing that hue. Deliberate, not an oversight: do not "fix" it by putting the edge
    back. */
-/* THE FILL IS THE MINT NOW, not --p-deep, and the alpha went up with it. Same
-   construction as before — a see-through wash, no edge — but --p-jade at .55 rather
-   than the deep blue at .45. Two reasons for the extra ten points: the mint is a much
-   lighter colour than the blue and washes out faster against a bright photograph, and
-   the whole point of putting it here is that it reads as green rather than as a tinted
-   pane.
+/* THE FILL IS THE GREEN NOW, not --p-deep, and the ALPHA IS HIGH BECAUSE THE GREEN IS
+   DARK. That second half is the whole of this note, and it is not a taste decision.
 
-   IT MAKES THE LABEL EASIER, NOT HARDER, which is the reverse of the note above. A
-   light fill lightens the ground under the ink, so --text-strong GAINS contrast as the
-   alpha rises — deepening this fill is safe in a way deepening the blue one was not.
+   The colour arrived here light — #4cbba1 — and at .55 it cleared the label
+   comfortably, because a light fill lightens the ground under dark ink. It was then
+   taken a step down to #3a9d86, which reads far better on a photograph that is itself
+   bright cyan, and that inverted the arithmetic: a darker fill moves the ground TOWARD
+   the ink, and the label started losing contrast instead of gaining it.
 
-   Measured rather than derived: the composite under the button was reconstructed the
-   way the browser builds it and sampled pixel by pixel, taking the worst and best
-   points of the photograph behind it.
+   Measured rather than derived — the composite under the button was reconstructed the
+   way the browser builds it (photograph, cover-fit, blurred 5px, scaled 1.02, under
+   --bg-glass) and sampled pixel by pixel, worst and best point of the ground behind it:
 
-     no fill (bare ground)   3.44:1 → 12.68:1
-     .55, at rest            5.14:1 →  9.12:1
-     .68, on hover           5.61:1 →  8.42:1
+     no fill (bare ground)   3.14:1 → 10.87:1
+     .55                     4.05:1 →  7.16:1   ← under the bar
+     .70                     4.32:1 →  6.34:1   ← still under
+     .85, at rest            4.61:1 →  5.59:1
+     .96, on hover           4.83:1 →  5.09:1
+     fully opaque            4.92:1              (the colour's own ceiling)
 
-   Read the first row against the second: the fill RESCUES the label. On the open
-   ground the worst point is 3.44:1, under the 4.5:1 that 12px type owes; the mint
-   lifts it to 5.14:1 and hover lifts it again. There is no alpha in the usable range
-   where this label is the constraint, which is why the choice of .55 was made on how
-   the colour reads rather than on arithmetic. */
+   READ THE LAST ROW FIRST. #3a9d86 against --text-strong is 4.92:1 flat, so this colour
+   has about four tenths of a stop of headroom over the 4.5:1 that 12px type owes, TOTAL
+   — and every point of transparency spends some of it letting a dark photograph back
+   in. .55 lands at 4.05:1, which fails. That is why the wash is now thin rather than
+   generous: at .85 only about a sixth of the ground shows through, which is enough to
+   keep the button sitting in the picture rather than pasted on it, and enough contrast
+   to be legible over the worst of it.
+
+   DO NOT DARKEN --p-jade FURTHER WITHOUT REDOING THIS. The ceiling above is the thing
+   that binds: one more step down and no alpha rescues the label, and the fix stops
+   being the fill and becomes the ink — which means a light label, which means this
+   button stops matching every other control on the page.
+
+   Hover deepens rather than lifting, and with a dark fill that is also the
+   higher-contrast end: more green, less photograph, a more definite label. */
 .jk-btn--primary {
-  background: color-mix(in srgb, var(--p-jade) 55%, transparent);
+  background: color-mix(in srgb, var(--p-jade) 85%, transparent);
   border: 0;
   color: var(--text-strong);
   font-weight: var(--weight-medium);
 
-  /* Saturates rather than darkening. With a light fill "deeper" means more mint and
-     less photograph, so this is also the higher-contrast end for the label — the one
-     variant where hover is the safe direction rather than the binding constraint. */
   &:hover {
-    background: color-mix(in srgb, var(--p-jade) 68%, transparent);
+    background: color-mix(in srgb, var(--p-jade) 96%, transparent);
   }
 }
 

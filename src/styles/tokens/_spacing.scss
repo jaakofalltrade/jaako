@@ -14,9 +14,16 @@
 
 /* Sharp everywhere except controls. The page is square by design, but a button is a
    thing you press and a little softening on it reads as such — --radius-sm is that,
-   and it is used on .jk-btn and nowhere else. --radius-pill survives for the one
-   circular element left, the player's sleeve. */
---radius-none:0;--radius-xs:0;--radius-sm:.375rem;--radius-pill:50%;
+   and it is used on .jk-btn and nowhere else.
+
+   TWO ROUND ONES, AND THEY ARE NOT INTERCHANGEABLE. --radius-pill is 50 %, which makes
+   a circle out of a square and an ELLIPSE out of anything else — it is for the player's
+   sleeve, which is square, and for the 4-6px dots. --radius-stadium is the flat cap
+   that rounds the ends of a rectangle without bowing its sides, which is what the
+   minimised player needs: it is a wide strip, and 50 % on it would draw a lens. Any
+   value past half the element's height clamps to exactly half, so the number only has
+   to be comfortably larger than anything it is used on. */
+--radius-none:0;--radius-xs:0;--radius-sm:.375rem;--radius-pill:50%;--radius-stadium:999px;
 
 --border-1:1px;--border-2:2px;--border-3:3px;
 --control-h-sm:1.75rem;--control-h-md:2.25rem;--control-h-lg:2.75rem;

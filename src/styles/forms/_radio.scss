@@ -66,3 +66,31 @@
   outline: var(--border-2) solid var(--focus-ring);
   outline-offset: 2px;
 }
+
+/* An option on the list but not on offer. The strike is drawn by <s class="jk-struck">
+   in the markup — see Radio.tsx for why it is an element rather than a text-decoration
+   here — and this is everything else that has to agree with it.
+
+   THE BOX GOES QUIET BUT DOES NOT VANISH. An empty outline in the hairline tone still
+   reads as a control, which is the point: the row has to look like a choice that
+   exists and is closed, not like a stray line of text. Dropping it to --hair from
+   --edge is the same one-step-back move the archived work rows make.
+
+   --text-dim rather than the usual disabled fade. The convention for a disabled
+   control is to drop it to something like 45 % opacity, and that would take this to
+   roughly 2.2:1 — which is fine for a control nobody can use and wrong for this one,
+   because the words ARE the message. Somebody reading "who is this person and are they
+   available" needs to be able to read the two things they cannot pick. So it steps
+   back one tier and stops, still clearing AA at 4.87:1.
+
+   not-allowed rather than pointer: the cursor says the click will not land before the
+   click is spent finding out. */
+.jk-radio__option.is-disabled {
+  cursor: not-allowed;
+  color: var(--text-dim);
+
+  .jk-radio__box {
+    border-color: var(--hair);
+    background: none;
+  }
+}

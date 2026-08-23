@@ -44,8 +44,6 @@ export type ContactRequest = {
   reason: ContactReason;
   message: string;
   how: ContactHow;
-  /** Whether the sender asked to be copied. */
-  cc: boolean;
 };
 
 export type ContactResponse = {

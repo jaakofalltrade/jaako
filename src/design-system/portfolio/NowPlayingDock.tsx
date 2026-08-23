@@ -2,6 +2,7 @@
 
 import React, { type CSSProperties } from "react";
 import { spotifyApi } from "@/api/spotifyApi";
+import { PEEK_LOADING, PEEK_OFFLINE_LINES, PEEK_STATUS } from "@/constants/spotify";
 import { AnnotationTone, DockState, IconName, Spotify } from "@/models";
 import { clock } from "@/utils/format";
 import { cx } from "@/utils/cx";
@@ -259,6 +260,12 @@ export const NowPlayingDock = () => {
    * link and be seen to be one.
    */
   if (sleeve) {
+    /* The line above the track, and the only place the site speaks in the first
+       person. Three states rather than two: the response has not landed yet, it landed
+       with a track, or it landed with nothing. The first is not a playback state — see
+       PEEK_LOADING — so it cannot come out of the record. */
+    const status = response ? PEEK_STATUS[response.status] : PEEK_LOADING;
+
     return (
       <div className={cx("jk-dock", "jk-dock--sleeve", !playing && "jk-dock--idle")}>
         <button
@@ -266,8 +273,13 @@ export const NowPlayingDock = () => {
           className="jk-dock__peek"
           onClick={() => setDock(DockState.Open)}
           aria-expanded={false}
+          /* The whole pill read out in one string, because the visible text is
+             aria-hidden below — three separate lines announced in sequence is how a
+             screen reader turns a glanceable pill into a paragraph. */
           aria-label={
-            track ? `${track.title} by ${track.artist}. Show the player` : "Show the player"
+            track
+              ? `${status} ${track.title} by ${track.artist}. Show the player`
+              : `${status}. Show the player`
           }
         >
           <span className="jk-dock__sleeve" data-spin={playing ? "" : undefined}>
@@ -277,16 +289,16 @@ export const NowPlayingDock = () => {
           {/* aria-hidden because the button's own label already says all of this, and
               without it a screen reader reads the title and artist twice. */}
           <span aria-hidden="true" className="jk-dock__peek-meta">
-            {track ? (
-              <>
-                <span className="jk-dock__title">{track.title}</span>
-                <span className="jk-dock__artist">{track.artist}</span>
-              </>
-            ) : (
-              <span className="jk-dock__idle">
-                {response ? "not listening" : "reading the turntable"}
-              </span>
-            )}
+            <span className="jk-dock__peek-status">{status}</span>
+            {/* Two lines either way. When there is no track the offline copy fills the
+                same two slots rather than collapsing to one, so the pill keeps its
+                height whatever the answer is — see PEEK_OFFLINE_LINES. */}
+            <span className="jk-dock__title">
+              {track ? track.title : PEEK_OFFLINE_LINES.title}
+            </span>
+            <span className="jk-dock__artist">
+              {track ? track.artist : PEEK_OFFLINE_LINES.artist}
+            </span>
           </span>
         </button>
       </div>
