@@ -11,7 +11,7 @@ export * as Spotify from "./Spotify";
 export * from "./Contact";
 export * from "./Env";
 export * from "./Experience";
-export * from "./Guestbook";
+export * from "./Handle";
 export * from "./Http";
 export * from "./Project";
 export * from "./ServerConfig";

@@ -13,21 +13,17 @@ import type { ContactLink, HeroCopy, MetaPair, NavItem, SectionCopy } from "@/mo
 export const BRAND = "jaako";
 
 export const HERO: HeroCopy = {
-  title: "jaako_andes",
+  title: "jaako andes.",
+  title_accent: "andes.",
   blurb:
     "I think therefore I am. Full-stack odd jobs: Next.js, Django, Discord bots, and whatever else the week needs.",
   struck: { retired: "for hire", current: "employed, still curious" },
   kicker: "jaako andes · portfolio · rev 03",
-  coords: "Sorsogon City Coordinate",
+  coords: "12.9714° N · 123.9944° E",
   meta: [
     { term: "role", value: "technical lead" },
     { term: "at", value: "restoplus" },
     { term: "since", value: "2020 · 4 titles" },
-  ],
-  slab: [
-    { term: "status", value: "employed" },
-    { term: "local", value: "GMT+8" },
-    { term: "reply", value: "~14 h" },
   ],
 };
 
@@ -73,6 +69,8 @@ export const CONTACT_LINKS: ContactLink[] = [
 /** The pharmaceutical-label block. Dry on purpose — it is a contact section as a datasheet. */
 export const CONTACT_SPEC = {
   name: "jaako andes",
+  /** The tail of `name` that takes the warm accent, as HERO.title_accent does. */
+  name_accent: "andes",
   subtitle: "Full-stack engineer. Remote. Sorsogon, Philippines.",
   dosage: "1 message · ~14 h",
   footnote: "store below 25 °c · keep out of reach of recruiters",
@@ -97,7 +95,12 @@ export const SECTIONS: Record<"about" | "experience" | "work" | "contact", Secti
 };
 
 export const FOOTER = {
-  credit: "hand-built, no template",
+  // The old line was "hand-built, no template". Half of that stopped being true: the
+  // template part still holds, the hand-built part is doing a lot of work for a page
+  // most of which was talked into existence rather than typed. Saying so is funnier
+  // than the boast was, and it is the only line in the footer that is about how the
+  // thing was made rather than what it is made of.
+  credit: "80 % vibecoded · 20 % remorse · 0 % template",
   spec: "plate 01-05 · duotone c-2 · 6400 k",
 } as const;
 

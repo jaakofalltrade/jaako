@@ -31,12 +31,12 @@ export type SectionCopy = {
 
 export type HeroCopy = {
   title: string;
+  /** The tail of `title` that takes the warm accent. Must be a suffix of it. */
+  title_accent: string;
   blurb: string;
   /** Struck-through phrase and its replacement — the running joke, kept as data. */
   struck: { retired: string; current: string };
   meta: MetaPair[];
-  /** The frosted slab that floats on the hero plate. */
-  slab: MetaPair[];
   kicker: string;
   coords: string;
 };

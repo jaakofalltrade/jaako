@@ -6,10 +6,12 @@ import { SiteFooter } from "./SiteFooter";
 /**
  * The frame.
  *
- * The navigation used to be here, as a sticky bar above everything. It is not a
- * frame-level object any more: SectionNav renders once, inline, above the about
- * section, and the footer carries the cross-page copy of the same list so /work and
- * /work/<slug> still have a way back.
+ * The navigation is not here, and its being sticky again has not changed that.
+ * SectionNav renders once, inline, above the about section, and pins itself from
+ * there; the footer carries the cross-page copy of the same list so /work and
+ * /work/<slug> still have a way back. The difference from the bar that used to live
+ * in this file is that the masthead gets the viewport to itself before anything is
+ * pinned over it, and /work has no bar at all.
  *
  * The page ground is not here either. It is two fixed pseudo-elements on <body> — a
  * blurred photograph and the frost over it — which keeps this a frame and not a

@@ -55,7 +55,23 @@
 --shadow-float:0 14px 40px -24px rgba(15,33,54,.4);
 
 /* --- FILM ----------------------------------------------------------------------------
-   Only the duotone plates use this now; it came off the page ground with the wash. */
---grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+   One noise field, three strengths. It is the same feTurbulence in each — only the
+   rect's opacity differs — and they are separate tokens rather than one token plus an
+   opacity because a CSS background LAYER has no opacity of its own. The plates can use
+   `opacity` on a pseudo-element and do (--grain-opacity, below); the pane and the
+   masthead name paint their noise as a background layer, so for them the alpha has to
+   be baked into the image itself.
+
+   --grain        full strength. The duotone plates.
+   --grain-pane   .7 — the page ground. Was full strength, and it was doing more veiling
+                  than a tooth should: dialled back so the photograph reads as a
+                  photograph rather than as film stock.
+   --grain-ink    .45 — the masthead name, so the type carries the same tooth as the
+                  ground it sits on. Half strength because it is screened onto dark ink
+                  rather than laid over a picture, and noise that lightens type costs
+                  contrast in a way noise over a photograph does not. */
+--grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+--grain-pane:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.7'/%3E%3C/svg%3E");
+--grain-ink:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.45'/%3E%3C/svg%3E");
 --grain-opacity:.05;
 }

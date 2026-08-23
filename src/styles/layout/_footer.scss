@@ -44,11 +44,14 @@
   margin-bottom: var(--space-6);
 }
 
+/* --text-strong, matching the section index at the top of the page — see the note in
+   layout/_nav.scss. These sit on the open photograph too, and at this size --text-dim
+   was not surviving the bright end of it. */
 .jk-footer__nav-link {
   display: inline-flex;
   align-items: center;
   @include label($size: var(--text-3xs));
-  color: var(--text-dim);
+  color: var(--text-strong);
   text-decoration: none;
   border-bottom: var(--border-1) solid transparent;
   transition: color var(--dur-base) var(--ease-out),

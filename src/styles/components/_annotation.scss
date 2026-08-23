@@ -7,14 +7,15 @@
    Decorative is --text-faint (3.07:1, fails AA) and is aria-hidden by the component,
    so it can never be the only thing carrying a fact.
 
-   --text-3xs is 10px and is a floor. Nothing here goes below it, however tempting the
-   reference material is. */
+   --text-3xs is 11px and is a floor. Nothing here goes below it, however tempting the
+   reference material is. It was 10px until the small end of the scale went up a step —
+   see tokens/_typography.scss. */
 
 .jk-anno {
   @include label;
   color: var(--text-dim);
-  /* Tracked caps at 10px need the extra line-height or they optically collide with
-     whatever sits above them. */
+  /* Tracked caps at this size need the extra line-height or they optically collide
+     with whatever sits above them. */
   line-height: var(--leading-snug);
 }
 
