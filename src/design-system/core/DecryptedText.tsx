@@ -72,8 +72,16 @@ enum Phase {
 
 export type DecryptedTextProps = {
   text: string;
-  /** Which pool to scramble from. Match it to the face the target is set in. */
+  /** Which pool to scramble from. Match it to what the element actually renders. */
   alphabet?: DecryptAlphabet;
+  /**
+   * Run again roughly this often, in milliseconds. Omit for once-only.
+   *
+   * NEVER PUT THIS ON A VALUE THAT UPDATES ON ITS OWN. It composes badly with the
+   * late-arrival rerun below, and a per-second value like the clock would never be
+   * still. See the note on nextReplayAt for how instances stay in step.
+   */
+  replayEvery?: number;
   mode?: DecryptMode;
   /** Total run time in milliseconds. Independent of length — see FRAME_MS above. */
   duration?: number;
@@ -84,6 +92,32 @@ export type DecryptedTextProps = {
 };
 
 const pick = (pool: string) => pool.charAt(Math.floor(Math.random() * pool.length));
+
+/**
+ * When the next replay is due, as a wall-clock timestamp.
+ *
+ * THE JITTER IS DERIVED FROM THE CLOCK RATHER THAN DRAWN, SO THAT SEPARATE INSTANCES
+ * AGREE WITHOUT TALKING TO EACH OTHER. The masthead is two components — "jaako " and
+ * the ember "andes." own their own background clips and cannot be one — and two
+ * independent Math.random() delays would drift apart within a few minutes, leaving one
+ * half scrambling beside a half sitting perfectly still. That looks like a bug, because
+ * it is one.
+ *
+ * So the interval is cut into fixed buckets and each bucket's offset is hashed out of
+ * its own index. Every instance on the page computes the same answer from the same
+ * clock, with no shared state, no context and no coordination — and the run time still
+ * lands somewhere different inside each bucket, which is what "at random" was asking
+ * for. Mounting late changes nothing: a component that arrives mid-bucket computes the
+ * same next timestamp as one that has been there all along.
+ */
+const nextReplayAt = (interval: number, now: number) => {
+  const bucket = Math.floor(now / interval) + 1;
+  // xorshift-ish integer hash; only needs to be well-spread, not cryptographic.
+  let h = Math.imul(bucket ^ 0x9e3779b9, 0x85ebca6b) >>> 0;
+  h ^= h >>> 13;
+  h = Math.imul(h, 0xc2b2ae35) >>> 0;
+  return bucket * interval + (h / 0xffffffff) * interval;
+};
 
 /**
  * Spaces are never scrambled. That is what keeps word boundaries and therefore line
@@ -97,9 +131,10 @@ const scramble = (text: string, revealed: number, pool: string) =>
 
 export const DecryptedText = ({
   text,
-  alphabet = DecryptAlphabet.Display,
+  alphabet = DecryptAlphabet.Lower,
   mode = DecryptMode.Sequential,
   duration = DEFAULT_DURATION_MS,
+  replayEvery,
   className,
   scrambledClassName,
 }: DecryptedTextProps) => {
@@ -107,6 +142,25 @@ export const DecryptedText = ({
   const [phase, setPhase] = useState<Phase>(Phase.Idle);
   const [display, setDisplay] = useState<string>(text);
   const [revealed, setRevealed] = useState<number>(0);
+
+  /* LATE-ARRIVING TEXT SETTLES RATHER THAN APPEARING, which is the whole point in the
+     listening cell: the Spotify values are fetched, so they land a beat after the strip
+     has already run, and popping them in fully formed is the one thing on this rail
+     that would look like the instrument had skipped a step.
+   *
+   * Adjusting state during render rather than in an effect is deliberate and is the
+   * documented React pattern for reacting to a changed prop — an effect here would be a
+   * synchronous setState in an effect, which is what react-hooks/set-state-in-effect
+   * rejects, and it would also paint the new string once before scrambling it.
+   *
+   * Phase.Idle is left alone: text that changes before the element has ever been in
+   * view should just update, and start scrambled when its turn comes. */
+  const [seenText, setSeenText] = useState<string>(text);
+
+  if (text !== seenText) {
+    setSeenText(text);
+    if (phase === Phase.Done) setPhase(Phase.Running);
+  }
 
   // Arming. Reveal.tsx may have added `is-in` before this effect runs — it reveals
   // everything at once under reduced motion, and its failsafe can fire early — so the
@@ -179,6 +233,18 @@ export const DecryptedText = ({
 
     return () => window.clearTimeout(id);
   }, [phase, text, alphabet, mode, duration]);
+
+  /* Replay. Only ever scheduled from Done, so a run can never be restarted on top of
+     itself, and never scheduled at all under reduced motion — the arming effect returns
+     before Running in that case, so Done is unreachable and this stays inert. */
+  useEffect(() => {
+    if (phase !== Phase.Done || replayEvery === undefined) return;
+
+    const due = nextReplayAt(replayEvery, Date.now());
+    const id = window.setTimeout(() => setPhase(Phase.Running), Math.max(0, due - Date.now()));
+
+    return () => window.clearTimeout(id);
+  }, [phase, replayEvery]);
 
   /* THE WRAPPER'S className IS THE SAME STRING IN EVERY PHASE, AND THAT IS THE WHOLE
      REASON THE TRIGGER SURVIVES.

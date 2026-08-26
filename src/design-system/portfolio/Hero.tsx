@@ -55,11 +55,11 @@ export const Hero = () => (
         it illegible is a different cost from holding a set of coordinates illegible. */}
     <div className="jk-hero__top">
       <Annotation tone={AnnotationTone.Info}>
-        <DecryptedText text={HERO.kicker} alphabet={DecryptAlphabet.Mono} duration={1620} />
+        <DecryptedText text={HERO.kicker} alphabet={DecryptAlphabet.Upper} duration={1620} />
       </Annotation>
       <Rule tick />
       <Annotation tone={AnnotationTone.Info}>
-        <DecryptedText text={HERO.coords} alphabet={DecryptAlphabet.Mono} />
+        <DecryptedText text={HERO.coords} alphabet={DecryptAlphabet.Upper} />
       </Annotation>
     </div>
 
@@ -81,11 +81,21 @@ export const Hero = () => (
         Much shorter than the rest: the name is the one thing here nobody needs to read,
         because a returning visitor already knows it and a new one is about to have it
         told to them four more ways down the page. Holding the masthead illegible for
-        the 1.7s the coordinates get would be showing off. */}
+        the 1.7s the coordinates get would be showing off.
+
+        THE NAME IS THE ONLY THING ON THE PAGE THAT RUNS MORE THAN ONCE. Once a minute,
+        at an unpredictable moment inside that minute, it settles again — the masthead
+        as the one live instrument rather than a thing that happened during loading.
+        Both halves take the same replayEvery and DecryptedText derives the moment from
+        the wall clock instead of drawing it, so they fire on the same tick without
+        knowing about each other; see nextReplayAt for why that had to be deterministic.
+
+        Everything else stays once-only. A page where several things restart on their
+        own timers stops reading as an instrument and starts reading as a screensaver. */}
     <h1 className="jk-hero__title" data-reveal>
-      <DecryptedText text={titleLead} duration={920} />
+      <DecryptedText text={titleLead} duration={920} replayEvery={60_000} />
       <span className="jk-hero__accent">
-        <DecryptedText text={HERO.title_accent} duration={920} />
+        <DecryptedText text={HERO.title_accent} duration={920} replayEvery={60_000} />
       </span>
     </h1>
 

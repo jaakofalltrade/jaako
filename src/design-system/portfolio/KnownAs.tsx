@@ -1,8 +1,9 @@
 import { PRESENCE_CLASS, PRESENCE_LABEL } from "@/constants/ui";
 import { HANDLES } from "@/data/handles";
-import { AnnotationTone } from "@/models";
+import { AnnotationTone, DecryptAlphabet } from "@/models";
 import { cx } from "@/utils/cx";
 import { Annotation } from "../core/Annotation";
+import { DecryptedText } from "../core/DecryptedText";
 
 /**
  * The handles, under the label they earn.
@@ -22,13 +23,21 @@ export const KnownAs = () => (
     {HANDLES.map((handle) => (
       <li key={handle.name} className="jk-aka__row">
         <span aria-hidden="true" className={cx("jk-aka__dot", PRESENCE_CLASS[handle.status])} />
-        <span className="jk-aka__name">{handle.name}</span>
+        {/* Lower, not Upper: .jk-aka__name is mono but carries no text-transform, so it
+            renders exactly as authored. Scrambling it through the capitals pool would
+            show a column of capitals dropping to lowercase on the final frame. */}
+        <span className="jk-aka__name">
+          <DecryptedText text={handle.name} alphabet={DecryptAlphabet.Lower} />
+        </span>
         <span className="jk-sr-only">({PRESENCE_LABEL[handle.status]})</span>
       </li>
     ))}
     <li className="jk-aka__row jk-aka__row--total">
       <Annotation tone={AnnotationTone.Decorative}>
-        {HANDLES.length} handles, one person
+        <DecryptedText
+          text={`${HANDLES.length} handles, one person`}
+          alphabet={DecryptAlphabet.Upper}
+        />
       </Annotation>
     </li>
   </ul>

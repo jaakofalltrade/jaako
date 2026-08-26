@@ -42,18 +42,21 @@ export const InstrumentStrip = () => (
             one names what the readout under it is, and a bold heading that no screen
             reader announces is the worst of both. Info puts them in the accessibility
             tree at --text-dim, which is what they were always doing visually. */}
-        {/* THE LABELS SETTLE; THE READOUTS UNDER THEM DO NOT, AND THAT IS THE LINE.
-            Three of the four cells are live — the clock reticks every second, the
-            listening stats arrive from a fetch, the odometer counts. Scrambling a value
-            that is about to change on its own says the wrong thing: this effect reads as
-            an instrument acquiring a signal, and a signal that then keeps moving was
-            never acquired. The labels are the fixed part of the panel, so they are the
-            part that boots.
+        {/* The labels, and then the readouts under them — each cell wires its own; see
+            VisitorIndex, KnownAs, StatusReadout and ListeningStats.
 
-            All four share the default duration and all four are in view at once, so they
-            resolve together and the rail reads as one instrument rather than four. */}
+            ONE VALUE ON THE RAIL IS LEFT ALONE, AND IT IS A HARD CONSTRAINT RATHER THAN
+            A PREFERENCE. The clock in the status cell renders a new string every second,
+            and DecryptedText restarts when its text changes — that is what makes the
+            fetched listening values settle when they arrive instead of popping in. Point
+            it at a per-second value and the two features multiply: it would scramble,
+            settle, and be handed a new string before it finished, forever. The clock is
+            the one thing here that is already true; it does not need to be acquired.
+
+            Everything shares the default duration and the whole rail is in view at once,
+            so it resolves together and reads as one instrument rather than nine. */}
         <Annotation className="jk-strip__label">
-          <DecryptedText text={cell.label} alphabet={DecryptAlphabet.Mono} />
+          <DecryptedText text={cell.label} alphabet={DecryptAlphabet.Upper} />
         </Annotation>
         {cell.content}
       </section>

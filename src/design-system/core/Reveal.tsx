@@ -51,7 +51,12 @@ export const Reveal = () => {
     const root = document.documentElement;
     const nodes = Array.from(document.querySelectorAll(SELECTOR));
 
-    const revealAll = () => nodes.forEach((node) => node.classList.add(IN));
+    /* Queried live rather than from `nodes`, because the set is not fixed any more —
+       see the note on late arrivals below. Both of this function's callers are
+       last-resort releases, so they should cover whatever is on the page when they run,
+       not whatever was on it when this effect started. */
+    const revealAll = () =>
+      document.querySelectorAll(SELECTOR).forEach((node) => node.classList.add(IN));
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduced || typeof IntersectionObserver === "undefined") {
@@ -62,7 +67,9 @@ export const Reveal = () => {
     }
 
     root.classList.add(READY);
-    if (nodes.length === 0) return;
+
+    // No early return on an empty census any more: a route can start with nothing to
+    // reveal and render some later, and the observer below is what catches that.
 
     let fired = 0;
 
@@ -80,9 +87,33 @@ export const Reveal = () => {
       { threshold: 0.12, rootMargin: "0px 0px -6% 0px" },
     );
 
-    nodes.forEach((node) => {
+    const watch = (node: Element) => {
       if (!node.classList.contains(IN)) observer.observe(node);
+    };
+
+    nodes.forEach(watch);
+
+    /* LATE ARRIVALS. The set of things to reveal is no longer fixed at mount.
+     *
+     * The listening cell renders nothing but a placeholder until its fetch resolves,
+     * then swaps in three values that settle — and those elements are created a beat
+     * after this effect has already taken its census. Without this they are never
+     * observed, never get `is-in`, and sit as plain text beside eight readouts that
+     * visibly worked for theirs.
+     *
+     * Still one observer for the page, which is the rule this file exists to enforce.
+     * This only widens what gets fed to it. */
+    const watchAdded = new MutationObserver((records) => {
+      records.forEach(({ addedNodes }) =>
+        addedNodes.forEach((node) => {
+          if (!(node instanceof Element)) return;
+          if (node.matches(SELECTOR)) watch(node);
+          node.querySelectorAll(SELECTOR).forEach(watch);
+        }),
+      );
     });
+
+    watchAdded.observe(document.body, { childList: true, subtree: true });
 
     /* THE LAST LINE OF THE DOCUMENT CANNOT SATISFY THE RULE ABOVE, SO IT GETS ITS OWN.
      *
@@ -123,7 +154,7 @@ export const Reveal = () => {
     const releaseAtEnd = () => {
       if (!atEnd()) return;
       window.removeEventListener("scroll", releaseAtEnd);
-      nodes.forEach((node) => {
+      document.querySelectorAll(SELECTOR).forEach((node) => {
         if (node.classList.contains(IN)) return;
         node.classList.add(IN);
         observer.unobserve(node);
@@ -141,6 +172,7 @@ export const Reveal = () => {
     return () => {
       window.clearTimeout(failsafe);
       window.removeEventListener("scroll", releaseAtEnd);
+      watchAdded.disconnect();
       observer.disconnect();
     };
   }, [pathname]);

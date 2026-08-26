@@ -47,7 +47,7 @@ export const SiteFooter = () => (
           The longest run on the site, because nothing is waiting on it: a reader who has
           reached the last line of the page has arrived rather than passed through. */}
       <Annotation tone={AnnotationTone.Decorative} className="jk-footer__spec">
-        <DecryptedText text={FOOTER.spec} alphabet={DecryptAlphabet.Mono} duration={2200} />
+        <DecryptedText text={FOOTER.spec} alphabet={DecryptAlphabet.Upper} duration={2200} />
       </Annotation>
     </div>
   </footer>

@@ -124,19 +124,27 @@ export enum DecryptMode {
 /**
  * The pool a settling readout scrambles from.
  *
- * The casing is about metrics rather than about what the reader sees — base/_reset.scss
- * lowercases the display face and the label mixin uppercases the mono one, so a pool in
- * the wrong case is silently transformed on the way to the screen and only its widths
- * survive. Each member is the set that matches the face its targets are set in.
+ * THESE ARE NAMED FOR CASE AND CHARSET, NOT FOR A TYPEFACE, AND THE FIRST VERSION GOT
+ * THAT WRONG. It had Display and Mono, on the assumption that the display face is always
+ * lowercase (base/_reset.scss) and the mono face always uppercase (the label mixin).
+ * That holds for headings and annotations and breaks everywhere else: .jk-dl__value and
+ * .jk-aka__name are mono and take no text-transform at all, so they render exactly as
+ * authored, which is lowercase. A pool picked by face would have scrambled them into
+ * capitals and then dropped to lowercase on the last frame.
+ *
+ * Pick by what the element actually renders. Case matters because a pool in the wrong
+ * one is silently transformed on the way to the screen and only its widths survive.
  *
  * There is deliberately no punctuation pool. The React Bits default includes
  * !@#$%^&*()_+, which reads as terminal-hacker and pulls against the editorial tone.
  */
 export enum DecryptAlphabet {
-  /** Lowercase latin, for the display face. */
-  Display = "DISPLAY",
-  /** Uppercase latin and digits, for the mono annotations. */
-  Mono = "MONO",
+  /** Lowercase latin: headings, and any mono value with no text-transform on it. */
+  Lower = "LOWER",
+  /** Uppercase latin and digits: anything through the label mixin. */
+  Upper = "UPPER",
+  /** Digits only, so a numeric readout never scrambles into letters. */
+  Digits = "DIGITS",
 }
 
 export type NavItem = {

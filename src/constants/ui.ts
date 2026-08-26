@@ -84,16 +84,19 @@ export const PROJECT_STATUS_TONE: Record<ProjectStatus, BadgeTone> = {
 };
 
 /**
- * The characters a settling readout scrambles from. See models/Ui.ts for why each
- * pool is the case it is, and design-system/core/DecryptedText.tsx for the rest.
+ * The characters a settling readout scrambles from. See models/Ui.ts for why these are
+ * named by case rather than by typeface, and core/DecryptedText.tsx for the rest.
  *
- * Mono carries digits because two of its three targets are mostly numeric — the
- * coordinates and the plate spec — and a numeric string that scrambles into pure
- * letters stops reading as the same kind of value while it settles.
+ * Upper carries digits because most of what goes through it is part number rather than
+ * word — coordinates, the plate spec, a revision — and a mostly-numeric string that
+ * scrambles into pure letters stops reading as the same kind of value while it settles.
+ * Digits is the other end of that: the odometer is only ever a count, so letting a
+ * letter through it would say the readout had broken rather than that it was working.
  */
 export const DECRYPT_CHARS: Record<DecryptAlphabet, string> = {
-  [DecryptAlphabet.Display]: "abcdefghijklmnopqrstuvwxyz",
-  [DecryptAlphabet.Mono]: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+  [DecryptAlphabet.Lower]: "abcdefghijklmnopqrstuvwxyz",
+  [DecryptAlphabet.Upper]: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+  [DecryptAlphabet.Digits]: "0123456789",
 };
 
 export const TECH_LABEL: Record<TechName, string> = {
