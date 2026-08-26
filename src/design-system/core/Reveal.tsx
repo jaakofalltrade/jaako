@@ -104,8 +104,24 @@ export const Reveal = () => {
      */
     const scroller = document.scrollingElement ?? document.documentElement;
 
+    /* `max > SLACK` IS A PRECONDITION, NOT A ROUNDING ALLOWANCE.
+     *
+     * On a page with nothing to scroll, scrollHeight - clientHeight is 0, and then
+     * "no scroll left" is trivially true from the first paint — so a single stray scroll
+     * event, of the kind an in-page anchor produces, would release every remaining
+     * reveal at once. Requiring the page to be scrollable at all closes that, and it
+     * also implies scrollTop > 0 wherever this passes, which is the real condition: you
+     * cannot be at the end of something you never started. A page too short to scroll
+     * does not need this anyway, because it has no end that is not already on screen. */
+    const SLACK = 2;
+
+    const atEnd = () => {
+      const max = scroller.scrollHeight - scroller.clientHeight;
+      return max > SLACK && max - scroller.scrollTop <= SLACK;
+    };
+
     const releaseAtEnd = () => {
-      if (scroller.scrollHeight - scroller.clientHeight - scroller.scrollTop > 2) return;
+      if (!atEnd()) return;
       window.removeEventListener("scroll", releaseAtEnd);
       nodes.forEach((node) => {
         if (node.classList.contains(IN)) return;

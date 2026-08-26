@@ -1,4 +1,6 @@
+import { DecryptAlphabet } from "@/models";
 import { Annotation } from "../core/Annotation";
+import { DecryptedText } from "../core/DecryptedText";
 import { KnownAs } from "./KnownAs";
 import { ListeningStats } from "./ListeningStats";
 import { StatusReadout } from "./StatusReadout";
@@ -40,7 +42,19 @@ export const InstrumentStrip = () => (
             one names what the readout under it is, and a bold heading that no screen
             reader announces is the worst of both. Info puts them in the accessibility
             tree at --text-dim, which is what they were always doing visually. */}
-        <Annotation className="jk-strip__label">{cell.label}</Annotation>
+        {/* THE LABELS SETTLE; THE READOUTS UNDER THEM DO NOT, AND THAT IS THE LINE.
+            Three of the four cells are live — the clock reticks every second, the
+            listening stats arrive from a fetch, the odometer counts. Scrambling a value
+            that is about to change on its own says the wrong thing: this effect reads as
+            an instrument acquiring a signal, and a signal that then keeps moving was
+            never acquired. The labels are the fixed part of the panel, so they are the
+            part that boots.
+
+            All four share the default duration and all four are in view at once, so they
+            resolve together and the rail reads as one instrument rather than four. */}
+        <Annotation className="jk-strip__label">
+          <DecryptedText text={cell.label} alphabet={DecryptAlphabet.Mono} />
+        </Annotation>
         {cell.content}
       </section>
     ))}

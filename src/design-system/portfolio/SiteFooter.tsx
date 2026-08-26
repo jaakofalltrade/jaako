@@ -44,10 +44,10 @@ export const SiteFooter = () => (
           scroll observer rather than page load. Decorative, so Annotation puts
           aria-hidden on the wrapper and the component's screen-reader copy inside it is
           inert; that is the right outcome for a line that is texture by definition.
-          Default speed: 34 mono characters at 50ms is 1.7s, and nothing is waiting on
-          it down here. */}
+          The longest run on the site, because nothing is waiting on it: a reader who has
+          reached the last line of the page has arrived rather than passed through. */}
       <Annotation tone={AnnotationTone.Decorative} className="jk-footer__spec">
-        <DecryptedText text={FOOTER.spec} alphabet={DecryptAlphabet.Mono} />
+        <DecryptedText text={FOOTER.spec} alphabet={DecryptAlphabet.Mono} duration={2200} />
       </Annotation>
     </div>
   </footer>

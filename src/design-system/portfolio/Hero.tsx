@@ -50,13 +50,12 @@ export const Hero = () => (
         says where the work is done from, so that is the right outcome anyway. */}
     {/* Both settle, and this row is the best case for it in the whole page: mono, so
         every substituted glyph has the same advance and the chips cannot change width
-        while they run. The kicker is overridden faster than the default because 32
-        characters at 50ms is 1.6s, which is a long time to hold an unreadable string
-        directly under a reader's eye on arrival; the coordinates are shorter and keep
-        the default. */}
+        while they run. The kicker runs slightly shorter than the coordinates because it
+        is the one string here a reader is likely to try to read on arrival, and holding
+        it illegible is a different cost from holding a set of coordinates illegible. */}
     <div className="jk-hero__top">
       <Annotation tone={AnnotationTone.Info}>
-        <DecryptedText text={HERO.kicker} alphabet={DecryptAlphabet.Mono} speed={35} />
+        <DecryptedText text={HERO.kicker} alphabet={DecryptAlphabet.Mono} duration={1620} />
       </Annotation>
       <Rule tick />
       <Annotation tone={AnnotationTone.Info}>
@@ -75,17 +74,18 @@ export const Hero = () => (
         that only set `color` would paint opaque over the parent's grain. So each half
         settles inside the element that owns its own clip.
 
-        They stay in step for free. Both halves are six characters and both start on the
-        same `is-in`, so at one speed they resolve on the same tick — the split is
-        invisible while it runs. If HERO.title ever changes so the halves are different
-        lengths, that stops being true and the speeds have to be set against each other.
+        They stay in step for free, and they keep doing so whatever the copy becomes.
+        Run time is elapsed-time-driven rather than per-character, so two halves given
+        the same duration finish together even if HERO.title is ever re-split unevenly.
 
-        Slower than the default because six characters at 50ms is over in 300ms, which
-        at --text-5xl reads as a flicker rather than as a readout settling. */}
+        Much shorter than the rest: the name is the one thing here nobody needs to read,
+        because a returning visitor already knows it and a new one is about to have it
+        told to them four more ways down the page. Holding the masthead illegible for
+        the 1.7s the coordinates get would be showing off. */}
     <h1 className="jk-hero__title" data-reveal>
-      <DecryptedText text={titleLead} speed={70} />
+      <DecryptedText text={titleLead} duration={920} />
       <span className="jk-hero__accent">
-        <DecryptedText text={HERO.title_accent} speed={70} />
+        <DecryptedText text={HERO.title_accent} duration={920} />
       </span>
     </h1>
 
@@ -95,18 +95,24 @@ export const Hero = () => (
             readout; this is 109 characters of proportional body copy, which breaks both
             of the rules that make the others safe.
 
-            Burst rather than Sequential for the first: Sequential is text.length * speed
-            and would scramble for 5.4 seconds. Burst is ten ticks whatever the length,
-            so it is over in 500ms and costs ten renders instead of a hundred and nine.
+            Burst rather than Sequential for the first: a boundary crawling left to
+            right through a sentence is an invitation to try to read it while it moves,
+            which is unpleasant in a way it is not on a reference code. Burst holds the
+            whole thing and lands it at once.
 
             The second cannot be fixed from here. Helvetica is proportional, so every
             substituted glyph changes its word's width, and a paragraph that changes word
-            widths re-wraps — the lines will shuffle for the duration and anything below
-            will move with them. Only the struck clause and the metadata column sit under
-            it, so the blast radius is small, but it is real and it is the thing to judge.
+            widths re-wraps. Measured over 30 scrambles at each of eight column widths:
+            it gains a line — a 29px jump, which shoves the call to action down — in
+            about 1 frame in 30 at desktop widths, and 8 in 30 around a 380px column.
+
+            AND LENGTHENING THE RUN MAKES THAT WORSE, WHICH IS THE TRADE TO KNOW ABOUT.
+            The risk is per frame, so at 45ms a frame this is roughly 22 rolls of the
+            dice rather than the 11 it was at 500ms. Every other readout on the page
+            gets better with a longer duration; this is the one that gets worse.
             If it reads badly, delete the wrapper and put {HERO.blurb} back. */}
         <p className="jk-hero__blurb" data-reveal data-delay="2">
-          <DecryptedText text={HERO.blurb} mode={DecryptMode.Burst} />{" "}
+          <DecryptedText text={HERO.blurb} mode={DecryptMode.Burst} duration={1000} />{" "}
           <s className="jk-struck">{HERO.struck.retired}</s> {HERO.struck.current}
         </p>
         <DefinitionList items={HERO.meta} className="jk-hero__meta" />

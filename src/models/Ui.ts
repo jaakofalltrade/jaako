@@ -108,10 +108,13 @@ export enum TechName {
 /**
  * How a settling readout resolves. See design-system/core/DecryptedText.tsx.
  *
- * Sequential resolves one character at a time from the left, so its duration is
- * text.length * speed — right for a short readout, unusable for prose. Burst holds the
- * whole string scrambled for a fixed number of ticks and then snaps, so it costs the
- * same whether it is twelve characters or two hundred.
+ * Sequential walks a boundary along the string, so the reader watches it resolve from
+ * the left. Burst holds the whole thing scrambled and lands it in one go at the end.
+ *
+ * Neither one's run time depends on length: both are driven by elapsed time against
+ * `duration`, so the choice here is purely what the settling looks like. Sequential
+ * suits a readout the eye tracks along; Burst suits prose, where a boundary crawling
+ * through a sentence invites the reader to try to read it while it moves.
  */
 export enum DecryptMode {
   Sequential = "SEQUENTIAL",

@@ -48,10 +48,20 @@ const HOOK = "jk-decrypt";
 
 const IN = "is-in";
 
-/** Ticks a Burst-mode string stays scrambled before it snaps. */
-const BURST_TICKS = 10;
+/* THE FRAME RATE AND THE DURATION ARE SEPARATE NUMBERS, WHICH IS THE WHOLE POINT.
+ *
+ * React Bits ties them together: its `speed` is milliseconds per tick and Sequential
+ * advances one character per tick, so the run time is text.length * speed and the only
+ * way to make a short string last longer is to slow the scramble until it visibly
+ * steps. Six characters over 920ms that way is 153ms a frame, which at --text-5xl
+ * reads as a stutter rather than as a readout working.
+ *
+ * So the scramble redraws at a constant FRAME_MS and the reveal is driven by elapsed
+ * time against `duration`. Length and run time are independent: the name and the plate
+ * spec settle at the same smoothness, whatever their length or however long they run. */
+const FRAME_MS = 45;
 
-const DEFAULT_SPEED_MS = 50;
+const DEFAULT_DURATION_MS = 1700;
 
 /** Idle and Done both render plain text; only Running splits into spans. */
 enum Phase {
@@ -65,8 +75,8 @@ export type DecryptedTextProps = {
   /** Which pool to scramble from. Match it to the face the target is set in. */
   alphabet?: DecryptAlphabet;
   mode?: DecryptMode;
-  /** Milliseconds per tick. Sequential total = text.length * this. */
-  speed?: number;
+  /** Total run time in milliseconds. Independent of length — see FRAME_MS above. */
+  duration?: number;
   /** Goes on the wrapper, in every phase. See the note above the return. */
   className?: string;
   /** Goes on the characters that have not resolved yet. Omit inside clipped text. */
@@ -89,7 +99,7 @@ export const DecryptedText = ({
   text,
   alphabet = DecryptAlphabet.Display,
   mode = DecryptMode.Sequential,
-  speed = DEFAULT_SPEED_MS,
+  duration = DEFAULT_DURATION_MS,
   className,
   scrambledClassName,
 }: DecryptedTextProps) => {
@@ -139,35 +149,36 @@ export const DecryptedText = ({
     if (phase !== Phase.Running) return;
 
     const pool = DECRYPT_CHARS[alphabet];
-    let tick = 0;
+    const startedAt = performance.now();
     let id = 0;
 
+    /* Progress comes from the clock, not from a frame count, so a dropped frame or a
+       backgrounded tab costs smoothness rather than correctness: the run still ends
+       when it said it would instead of stretching by however long the tab was away. */
     const step = () => {
-      if (mode === DecryptMode.Sequential) {
-        if (tick >= text.length) {
-          setRevealed(text.length);
-          setPhase(Phase.Done);
-          return;
-        }
-        setRevealed(tick);
-        setDisplay(scramble(text, tick, pool));
-      } else {
-        if (tick >= BURST_TICKS) {
-          setRevealed(text.length);
-          setPhase(Phase.Done);
-          return;
-        }
-        setDisplay(scramble(text, 0, pool));
+      const progress = Math.min(1, (performance.now() - startedAt) / duration);
+
+      if (progress >= 1) {
+        setRevealed(text.length);
+        setPhase(Phase.Done);
+        return;
       }
 
-      tick += 1;
-      id = window.setTimeout(step, speed);
+      // Burst holds everything scrambled and resolves in one go at the end; Sequential
+      // walks the boundary along the string. Same clock, same exit.
+      const resolved =
+        mode === DecryptMode.Sequential ? Math.floor(progress * text.length) : 0;
+
+      setRevealed(resolved);
+      setDisplay(scramble(text, resolved, pool));
+
+      id = window.setTimeout(step, FRAME_MS);
     };
 
     id = window.setTimeout(step, 0);
 
     return () => window.clearTimeout(id);
-  }, [phase, text, alphabet, mode, speed]);
+  }, [phase, text, alphabet, mode, duration]);
 
   /* THE WRAPPER'S className IS THE SAME STRING IN EVERY PHASE, AND THAT IS THE WHOLE
      REASON THE TRIGGER SURVIVES.
