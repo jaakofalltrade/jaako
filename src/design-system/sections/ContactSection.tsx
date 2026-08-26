@@ -8,8 +8,18 @@ import {
   CONTACT_REASONS,
   CONTACT_REASONS_CLOSED,
   CONTACT_REASON_LABEL,
+  EMAIL_PATTERN,
+  FIELD_LIMITS,
+  VALIDATION_MESSAGE,
 } from "@/constants/contact";
-import { BadgeTone, ButtonVariant, ContactHow, ContactReason, SubmissionStatus } from "@/models";
+import {
+  BadgeTone,
+  ButtonVariant,
+  ContactHow,
+  ContactReason,
+  SubmissionStatus,
+  ValidationFailure,
+} from "@/models";
 import { CONTACT_LINKS, CONTACT_SPEC, SECTIONS } from "@/data/site";
 import { Badge } from "../core/Badge";
 import { Button } from "../core/Button";
@@ -56,29 +66,112 @@ const EMPTY_FORM = {
   website: "",
 };
 
+/**
+ * The fields the browser checks.
+ *
+ * reason and how are radio groups whose options come from the enums themselves, so the
+ * only values they can hold are ones this form put there. The route still checks them,
+ * for a request that never came from this form.
+ */
+type CheckedField = "name" | "email" | "message";
+
+/** One message per field that failed. No key, no message. */
+type FormErrors = Partial<Record<CheckedField, string>>;
+
+/** One id per field, so a control can point at its own message with aria-describedby. */
+const errorId = (field: CheckedField) => `contact-error-${field}`;
+
+/**
+ * The same rules contactService enforces, run here so a missing name is answered in
+ * the moment instead of after a round trip. A courtesy, not a control: the route
+ * validates everything again, because anything running in a browser can be skipped.
+ *
+ * Plain reads off the form state. The copy is VALIDATION_MESSAGE, the same map the
+ * route answers with, so the two cannot word one rejection two ways, and the limits
+ * are FIELD_LIMITS, so neither can move without the other.
+ *
+ * Trimmed before it is measured, exactly as the route does it: a name typed as spaces
+ * is an empty name, and a message padded out with them is not a long message.
+ */
+const validate = (form: typeof EMPTY_FORM): FormErrors => {
+  const errors: FormErrors = {};
+
+  const name = form.name.trim();
+  const email = form.email.trim();
+  const message = form.message.trim();
+
+  if (!name) {
+    errors.name = VALIDATION_MESSAGE[ValidationFailure.NameRequired];
+  } else if (name.length > FIELD_LIMITS.name) {
+    errors.name = VALIDATION_MESSAGE[ValidationFailure.NameTooLong];
+  }
+
+  if (!email) {
+    errors.email = VALIDATION_MESSAGE[ValidationFailure.EmailRequired];
+  } else if (email.length > FIELD_LIMITS.email || !EMAIL_PATTERN.test(email)) {
+    errors.email = VALIDATION_MESSAGE[ValidationFailure.EmailInvalid];
+  }
+
+  if (!message) {
+    errors.message = VALIDATION_MESSAGE[ValidationFailure.MessageRequired];
+  } else if (message.length > FIELD_LIMITS.message) {
+    errors.message = VALIDATION_MESSAGE[ValidationFailure.MessageTooLong];
+  }
+
+  return errors;
+};
+
 export const ContactSection = () => {
   const [form, setForm] = React.useState(EMPTY_FORM);
   const [status, setStatus] = React.useState(SubmissionStatus.Idle);
   const [error, setError] = React.useState<string | null>(null);
+  const [errors, setErrors] = React.useState<FormErrors>({});
   const errorRef = React.useRef<HTMLParagraphElement>(null);
 
   const sent = status === SubmissionStatus.Sent;
   const sending = status === SubmissionStatus.Sending;
 
-  const set = <K extends keyof typeof EMPTY_FORM>(key: K, value: (typeof EMPTY_FORM)[K]) =>
+  const set = <K extends keyof typeof EMPTY_FORM>(key: K, value: (typeof EMPTY_FORM)[K]) => {
     setForm((previous) => ({ ...previous, [key]: value }));
+    // Clears this field's message as it is edited. Leaving it up while someone is
+    // visibly fixing the thing it complains about is the form arguing with them.
+    setErrors((previous) => {
+      const field = key as CheckedField;
+      if (previous[field] === undefined) return previous;
+
+      const next = { ...previous };
+      delete next[field];
+      return next;
+    });
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (sending) return;
 
+    const found = validate(form);
+
+    // The banner stays quiet while the failures are sitting under their own inputs.
+    // Repeating the first one at the top of the form says the same thing twice and
+    // moves the summary away from the field it describes.
+    if (Object.keys(found).length > 0) {
+      setErrors(found);
+      setError(null);
+      return;
+    }
+
     setStatus(SubmissionStatus.Sending);
     setError(null);
+    setErrors({});
 
     const { website, ...request } = form;
     const response = await contactApi.send({ request, website });
 
     if (!response.ok) {
+      // What the route can answer with belongs to no single field: the throttle, an
+      // unconfigured form, a Resend outage, and the field rules the browser already
+      // checked, which only a caller that is not this form can still trip. The banner
+      // is where all of those are said.
       setError(response.error ?? "Something went wrong.");
       setStatus(SubmissionStatus.Idle);
       return;
@@ -90,6 +183,7 @@ export const ContactSection = () => {
   const reset = () => {
     setForm(EMPTY_FORM);
     setError(null);
+    setErrors({});
     setStatus(SubmissionStatus.Idle);
   };
 
@@ -141,21 +235,31 @@ export const ContactSection = () => {
               </p>
             ) : null}
 
-            <Field label="name" required>
+            <Field label="name" required error={errors.name} errorId={errorId("name")}>
               <Input
                 name="name"
                 placeholder="your name"
                 autoComplete="name"
+                invalid={Boolean(errors.name)}
+                aria-describedby={errors.name ? errorId("name") : undefined}
                 value={form.name}
                 onChange={(event) => set("name", event.target.value)}
               />
             </Field>
-            <Field label="e-mail" required hint="i reply within a week, probably">
+            <Field
+              label="e-mail"
+              required
+              hint="i reply within a week, probably"
+              error={errors.email}
+              errorId={errorId("email")}
+            >
               <Input
                 name="email"
                 type="email"
                 placeholder="you@somewhere.net"
                 autoComplete="email"
+                invalid={Boolean(errors.email)}
+                aria-describedby={errors.email ? errorId("email") : undefined}
                 value={form.email}
                 onChange={(event) => set("email", event.target.value)}
               />
@@ -185,11 +289,13 @@ export const ContactSection = () => {
                 start typing. It says no to the work and yes to the message in one
                 breath — the point is not to close the form, it is to stop someone
                 drafting a job offer that was never going to land. */}
-            <Field label="message" required>
+            <Field label="message" required error={errors.message} errorId={errorId("message")}>
               <TextArea
                 name="message"
                 rows={3}
                 placeholder="the queue is closed, but the inbox isn't — say what's on your mind"
+                invalid={Boolean(errors.message)}
+                aria-describedby={errors.message ? errorId("message") : undefined}
                 value={form.message}
                 onChange={(event) => set("message", event.target.value)}
               />

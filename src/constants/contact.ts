@@ -69,6 +69,17 @@ export const VALIDATION_MESSAGE: Record<ValidationFailure, string> = {
 export const FIELD_LIMITS = { name: 80, email: 160, message: 4000 } as const;
 
 /**
+ * Not an RFC-complete address parser, and not trying to be — the only thing riding on
+ * it is whether Reply-To will work. Anything shaped wrong gets caught here; anything
+ * shaped right but fake bounces on the reply, which is the sender's problem.
+ *
+ * Here rather than in contactService because the form checks it too, and a browser and
+ * a route that disagree about what an address looks like would be a rejection the
+ * visitor cannot see coming.
+ */
+export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+/**
  * Hard cap on the request body. Comfortably above FIELD_LIMITS.
  *
  * Enforced on the received body, with content-length used only as a fast reject —
