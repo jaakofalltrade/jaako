@@ -1,4 +1,4 @@
-import { AnnotationTone, BadgeTone, ButtonSize, ButtonVariant, IconName, MarqueeTone, PlateRatio, PresenceStatus, ProjectStatus, TechName } from "@/models";
+import { AnnotationTone, BadgeTone, ButtonSize, ButtonVariant, DecryptAlphabet, IconName, MarqueeTone, PlateRatio, PresenceStatus, ProjectStatus, TechName } from "@/models";
 
 /**
  * Enum member → the string that actually reaches the DOM.
@@ -81,6 +81,22 @@ export const PROJECT_STATUS_TONE: Record<ProjectStatus, BadgeTone> = {
   [ProjectStatus.Archived]: BadgeTone.Ghost,
   [ProjectStatus.Done]: BadgeTone.Steel,
   [ProjectStatus.Wip]: BadgeTone.Cyan,
+};
+
+/**
+ * The characters a settling readout scrambles from. See models/Ui.ts for why these are
+ * named by case rather than by typeface, and core/DecryptedText.tsx for the rest.
+ *
+ * Upper carries digits because most of what goes through it is part number rather than
+ * word — coordinates, the plate spec, a revision — and a mostly-numeric string that
+ * scrambles into pure letters stops reading as the same kind of value while it settles.
+ * Digits is the other end of that: the odometer is only ever a count, so letting a
+ * letter through it would say the readout had broken rather than that it was working.
+ */
+export const DECRYPT_CHARS: Record<DecryptAlphabet, string> = {
+  [DecryptAlphabet.Lower]: "abcdefghijklmnopqrstuvwxyz",
+  [DecryptAlphabet.Upper]: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+  [DecryptAlphabet.Digits]: "0123456789",
 };
 
 export const TECH_LABEL: Record<TechName, string> = {

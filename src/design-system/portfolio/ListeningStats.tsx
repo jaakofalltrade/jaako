@@ -2,8 +2,9 @@
 
 import React from "react";
 import { spotifyTopApi } from "@/api/spotifyTopApi";
-import { Spotify } from "@/models";
+import { DecryptAlphabet, Spotify } from "@/models";
 import { Annotation } from "../core/Annotation";
+import { DecryptedText } from "../core/DecryptedText";
 import { DefinitionList } from "../core/DefinitionList";
 
 /**
@@ -36,18 +37,52 @@ export const ListeningStats = () => {
       // Informational, not decorative: this is the only thing telling a reader why
       // the cell is empty, so it stays in the accessibility tree and clears AA.
       <Annotation className="jk-stats__idle">
-        {stats ? "no data" : "reading"}
+        {/* "reading" becomes "no data" when the fetch resolves, and DecryptedText
+            restarts on a changed string — so the placeholder settles once on arrival
+            and then once more as it is answered, which is the cell doing exactly what
+            it says. */}
+        <DecryptedText text={stats ? "no data" : "reading"} alphabet={DecryptAlphabet.Upper} />
       </Annotation>
     );
   }
 
+  /* THIS IS THE CELL THE LATE-ARRIVAL RERUN WAS FOR. These three values are fetched, so
+     they land a beat after the rest of the rail has already settled. Without the rerun
+     they would pop in fully formed next to eight readouts that had visibly worked for
+     theirs; with it, the cell acquires its signal when the signal actually arrives,
+     which is the only honest order for it to happen in. */
   return (
     <DefinitionList
       className="jk-stats"
       items={[
-        ...(stats.artist ? [{ term: "top artist", value: stats.artist.name }] : []),
-        ...(stats.track ? [{ term: "top track", value: stats.track.title }] : []),
-        ...(stats.genre ? [{ term: "top genre", value: stats.genre }] : []),
+        ...(stats.artist
+          ? [
+              {
+                term: "top artist",
+                value: (
+                  <DecryptedText text={stats.artist.name} alphabet={DecryptAlphabet.Lower} />
+                ),
+              },
+            ]
+          : []),
+        ...(stats.track
+          ? [
+              {
+                term: "top track",
+                value: (
+                  <DecryptedText text={stats.track.title} alphabet={DecryptAlphabet.Lower} />
+                ),
+              },
+            ]
+          : []),
+        ...(stats.genre
+          ? [
+              {
+                term: "top genre",
+                value: <DecryptedText text={stats.genre} alphabet={DecryptAlphabet.Lower} />,
+              },
+            ]
+          : []),
       ]}
     />
   );

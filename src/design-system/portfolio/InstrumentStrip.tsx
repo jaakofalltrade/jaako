@@ -1,4 +1,6 @@
+import { DecryptAlphabet } from "@/models";
 import { Annotation } from "../core/Annotation";
+import { DecryptedText } from "../core/DecryptedText";
 import { KnownAs } from "./KnownAs";
 import { ListeningStats } from "./ListeningStats";
 import { StatusReadout } from "./StatusReadout";
@@ -40,7 +42,22 @@ export const InstrumentStrip = () => (
             one names what the readout under it is, and a bold heading that no screen
             reader announces is the worst of both. Info puts them in the accessibility
             tree at --text-dim, which is what they were always doing visually. */}
-        <Annotation className="jk-strip__label">{cell.label}</Annotation>
+        {/* The labels, and then the readouts under them — each cell wires its own; see
+            VisitorIndex, KnownAs, StatusReadout and ListeningStats.
+
+            ONE VALUE ON THE RAIL IS LEFT ALONE, AND IT IS A HARD CONSTRAINT RATHER THAN
+            A PREFERENCE. The clock in the status cell renders a new string every second,
+            and DecryptedText restarts when its text changes — that is what makes the
+            fetched listening values settle when they arrive instead of popping in. Point
+            it at a per-second value and the two features multiply: it would scramble,
+            settle, and be handed a new string before it finished, forever. The clock is
+            the one thing here that is already true; it does not need to be acquired.
+
+            Everything shares the default duration and the whole rail is in view at once,
+            so it resolves together and reads as one instrument rather than nine. */}
+        <Annotation className="jk-strip__label">
+          <DecryptedText text={cell.label} alphabet={DecryptAlphabet.Upper} />
+        </Annotation>
         {cell.content}
       </section>
     ))}

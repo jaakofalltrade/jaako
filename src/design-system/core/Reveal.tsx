@@ -27,7 +27,14 @@ import { useEffect } from "react";
  *      scrolled yet", so a working page keeps its choreography.
  */
 
-const SELECTOR = "[data-reveal],.jk-rule--draw,.jk-mask,.jk-plate-reveal";
+/* .jk-decrypt is the fifth behaviour and the only one with no matching rule in
+   components/_reveal.scss, which is correct rather than an omission: it has no hidden
+   initial state to gate, because DecryptedText renders its real text until it is told
+   to start. It is listed here so the settling readouts run off the page's one observer
+   instead of mounting an IntersectionObserver each, which is the rule this whole file
+   exists to enforce. The class is the entire contract — that component watches its own
+   classList for the `is-in` below. */
+const SELECTOR = "[data-reveal],.jk-rule--draw,.jk-mask,.jk-plate-reveal,.jk-decrypt";
 
 const IN = "is-in";
 
@@ -44,7 +51,12 @@ export const Reveal = () => {
     const root = document.documentElement;
     const nodes = Array.from(document.querySelectorAll(SELECTOR));
 
-    const revealAll = () => nodes.forEach((node) => node.classList.add(IN));
+    /* Queried live rather than from `nodes`, because the set is not fixed any more —
+       see the note on late arrivals below. Both of this function's callers are
+       last-resort releases, so they should cover whatever is on the page when they run,
+       not whatever was on it when this effect started. */
+    const revealAll = () =>
+      document.querySelectorAll(SELECTOR).forEach((node) => node.classList.add(IN));
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduced || typeof IntersectionObserver === "undefined") {
@@ -55,7 +67,9 @@ export const Reveal = () => {
     }
 
     root.classList.add(READY);
-    if (nodes.length === 0) return;
+
+    // No early return on an empty census any more: a route can start with nothing to
+    // reveal and render some later, and the observer below is what catches that.
 
     let fired = 0;
 
@@ -73,9 +87,81 @@ export const Reveal = () => {
       { threshold: 0.12, rootMargin: "0px 0px -6% 0px" },
     );
 
-    nodes.forEach((node) => {
+    const watch = (node: Element) => {
       if (!node.classList.contains(IN)) observer.observe(node);
+    };
+
+    nodes.forEach(watch);
+
+    /* LATE ARRIVALS. The set of things to reveal is no longer fixed at mount.
+     *
+     * The listening cell renders nothing but a placeholder until its fetch resolves,
+     * then swaps in three values that settle — and those elements are created a beat
+     * after this effect has already taken its census. Without this they are never
+     * observed, never get `is-in`, and sit as plain text beside eight readouts that
+     * visibly worked for theirs.
+     *
+     * Still one observer for the page, which is the rule this file exists to enforce.
+     * This only widens what gets fed to it. */
+    const watchAdded = new MutationObserver((records) => {
+      records.forEach(({ addedNodes }) =>
+        addedNodes.forEach((node) => {
+          if (!(node instanceof Element)) return;
+          if (node.matches(SELECTOR)) watch(node);
+          node.querySelectorAll(SELECTOR).forEach(watch);
+        }),
+      );
     });
+
+    watchAdded.observe(document.body, { childList: true, subtree: true });
+
+    /* THE LAST LINE OF THE DOCUMENT CANNOT SATISFY THE RULE ABOVE, SO IT GETS ITS OWN.
+     *
+     * The negative bottom margin means an element has to clear the bottom 6% of the
+     * viewport before it counts as in frame. Nothing in the final 6% of the *page* ever
+     * can: scroll to the very end and it is still sitting in that strip, with no scroll
+     * left to lift it out. On a 867px viewport that is a dead band about 52px tall, and
+     * .jk-footer__bar lives in it — measured at 821-835 against a cutoff of 815.
+     *
+     * This went unnoticed because nothing in the footer bar opted into the choreography
+     * until the plate spec started settling; the failsafe does not cover it either,
+     * since that only fires when the observer has delivered *nothing* at all.
+     *
+     * So: when there is no scroll left, anything still waiting is as in frame as it is
+     * ever going to be, and it is released. This cannot affect the timing of the other
+     * elements — by the time it runs they have all long since fired and been
+     * unobserved — and it leaves the tuned rootMargin alone, which is the whole point.
+     * Reveals still happen once and only once.
+     */
+    const scroller = document.scrollingElement ?? document.documentElement;
+
+    /* `max > SLACK` IS A PRECONDITION, NOT A ROUNDING ALLOWANCE.
+     *
+     * On a page with nothing to scroll, scrollHeight - clientHeight is 0, and then
+     * "no scroll left" is trivially true from the first paint — so a single stray scroll
+     * event, of the kind an in-page anchor produces, would release every remaining
+     * reveal at once. Requiring the page to be scrollable at all closes that, and it
+     * also implies scrollTop > 0 wherever this passes, which is the real condition: you
+     * cannot be at the end of something you never started. A page too short to scroll
+     * does not need this anyway, because it has no end that is not already on screen. */
+    const SLACK = 2;
+
+    const atEnd = () => {
+      const max = scroller.scrollHeight - scroller.clientHeight;
+      return max > SLACK && max - scroller.scrollTop <= SLACK;
+    };
+
+    const releaseAtEnd = () => {
+      if (!atEnd()) return;
+      window.removeEventListener("scroll", releaseAtEnd);
+      document.querySelectorAll(SELECTOR).forEach((node) => {
+        if (node.classList.contains(IN)) return;
+        node.classList.add(IN);
+        observer.unobserve(node);
+      });
+    };
+
+    window.addEventListener("scroll", releaseAtEnd, { passive: true });
 
     const failsafe = window.setTimeout(() => {
       if (fired > 0) return;
@@ -85,6 +171,8 @@ export const Reveal = () => {
 
     return () => {
       window.clearTimeout(failsafe);
+      window.removeEventListener("scroll", releaseAtEnd);
+      watchAdded.disconnect();
       observer.disconnect();
     };
   }, [pathname]);

@@ -1,0 +1,49 @@
+/* The settling readout. See design-system/core/DecryptedText.tsx.
+
+   Only one rule, and the two things that are absent are the decisions worth recording.
+
+   NO white-space DECLARATION. React Bits sets `white-space: pre-wrap` on its wrapper
+   to protect the spaces in the scrambled string. That would be a bug here: the
+   masthead sets `white-space: nowrap` on .jk-hero__title precisely so the name cannot
+   break as "jaako / andes.", and pre-wrap on a descendant would hand that break
+   opportunity straight back. It is also unnecessary — the component never scrambles a
+   space, so every space sits at the same index in the scrambled string as in the final
+   one, and normal collapsing preserves a single space between two words either way.
+   The gaps do not move, so there is nothing to protect.
+
+   NO COLOUR, AND NO OPACITY OR TRANSFORM ANYWHERE. Two of the five targets sit inside
+   .jk-hero__title, which paints a grain sheet through `background-clip: text` and then
+   blends the result with `mix-blend-mode: multiply`. Both effects are conditional on
+   what is inside and around that heading: a coloured descendant paints opaque over the
+   clipped sheet and loses the grain with it, and anything that establishes a stacking
+   context between the heading and <body> switches the blend off silently. The
+   character spans inherit `color: transparent` from the heading instead and let the
+   parent's background paint through them, which is the trick .jk-hero__accent already
+   uses and for the same reason. Read both notes in widgets/_hero.scss before adding
+   anything to this file.
+
+   .jk-decrypt itself gets no declarations. It is a hook: Reveal.tsx finds it through
+   that class (it is in that file's SELECTOR) and the component watches its own
+   classList for the `is-in` that follows. */
+
+/* The real string, for assistive technology, while the visible one is scrambled.
+
+   The visible characters are aria-hidden for the duration, so without this a screen
+   reader traversing mid-animation would read the scramble aloud. It is rendered only
+   in the running phase — at rest the component is a single plain text node, so there
+   is nothing to duplicate and nothing to hide.
+
+   Absolutely positioned and clipped rather than display:none, which would take it out
+   of the accessibility tree along with the layout. Out of flow is also what keeps it
+   from contributing to the masthead's text clip or to its line box. */
+.jk-decrypt__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
