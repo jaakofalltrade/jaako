@@ -24,3 +24,13 @@
   /* --text-dim, not --text-faint: a hint is information, and --text-faint fails AA. */
   color: var(--text-dim);
 }
+
+/* Occupies the hint's slot, in the hint's type, in the warning colour. Same size and
+   position on purpose: the row does not change height when a message replaces a hint,
+   so nothing below the field moves as the visitor fixes things. */
+.jk-field__error {
+  font-family: var(--font-mono);
+  font-size: var(--text-3xs);
+  letter-spacing: var(--tracking-wide);
+  color: var(--status-error);
+}

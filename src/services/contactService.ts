@@ -3,6 +3,7 @@ import { serverConfig } from "@/config/serverConfig";
 import {
   CONTACT_HOW_LABEL,
   CONTACT_REASON_LABEL,
+  EMAIL_PATTERN,
   FIELD_LIMITS,
   RATE_LIMIT,
 } from "@/constants/contact";
@@ -68,13 +69,6 @@ const isHow = (value: string): value is ContactHow =>
   (Object.values(ContactHow) as string[]).includes(value);
 
 /**
- * Not an RFC-complete address parser, and not trying to be — the only thing riding
- * on it is whether Reply-To will work. Anything shaped wrong gets caught here;
- * anything shaped right but fake bounces on the reply, which is the sender's problem.
- */
-const looksLikeEmail = (value: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value);
-
-/**
  * Validates one raw JSON body.
  *
  * The honeypot check lives here too: `website` is a field the form renders
@@ -106,7 +100,7 @@ const validate = (args: { body: unknown }): ValidationResult => {
   }
 
   if (!email) return { ok: false, failure: ValidationFailure.EmailRequired };
-  if (email.length > FIELD_LIMITS.email || !looksLikeEmail(email)) {
+  if (email.length > FIELD_LIMITS.email || !EMAIL_PATTERN.test(email)) {
     return { ok: false, failure: ValidationFailure.EmailInvalid };
   }
 
