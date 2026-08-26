@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { AnnotationTone, MarqueeTone } from "@/models";
+import { AnnotationTone, DecryptAlphabet, MarqueeTone } from "@/models";
 import { FOOTER, NAV_ITEMS, TICKER, TICKER_STRUCK } from "@/data/site";
 import { Annotation } from "../core/Annotation";
+import { DecryptedText } from "../core/DecryptedText";
 import { Marquee } from "../core/Marquee";
 
 /**
@@ -38,8 +39,15 @@ export const SiteFooter = () => (
     <div className="jk-footer__bar">
       <Annotation>© 2026 jaako andes</Annotation>
       <Annotation>{FOOTER.credit}</Annotation>
+      {/* The plate spec settles too, and it is the only one of the five that is below
+          the fold — so it is also the only one that proves the trigger is the page's
+          scroll observer rather than page load. Decorative, so Annotation puts
+          aria-hidden on the wrapper and the component's screen-reader copy inside it is
+          inert; that is the right outcome for a line that is texture by definition.
+          Default speed: 34 mono characters at 50ms is 1.7s, and nothing is waiting on
+          it down here. */}
       <Annotation tone={AnnotationTone.Decorative} className="jk-footer__spec">
-        {FOOTER.spec}
+        <DecryptedText text={FOOTER.spec} alphabet={DecryptAlphabet.Mono} />
       </Annotation>
     </div>
   </footer>

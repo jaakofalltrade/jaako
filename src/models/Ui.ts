@@ -105,6 +105,37 @@ export enum TechName {
   Gcp = "GCP",
 }
 
+/**
+ * How a settling readout resolves. See design-system/core/DecryptedText.tsx.
+ *
+ * Sequential resolves one character at a time from the left, so its duration is
+ * text.length * speed — right for a short readout, unusable for prose. Burst holds the
+ * whole string scrambled for a fixed number of ticks and then snaps, so it costs the
+ * same whether it is twelve characters or two hundred.
+ */
+export enum DecryptMode {
+  Sequential = "SEQUENTIAL",
+  Burst = "BURST",
+}
+
+/**
+ * The pool a settling readout scrambles from.
+ *
+ * The casing is about metrics rather than about what the reader sees — base/_reset.scss
+ * lowercases the display face and the label mixin uppercases the mono one, so a pool in
+ * the wrong case is silently transformed on the way to the screen and only its widths
+ * survive. Each member is the set that matches the face its targets are set in.
+ *
+ * There is deliberately no punctuation pool. The React Bits default includes
+ * !@#$%^&*()_+, which reads as terminal-hacker and pulls against the editorial tone.
+ */
+export enum DecryptAlphabet {
+  /** Lowercase latin, for the display face. */
+  Display = "DISPLAY",
+  /** Uppercase latin and digits, for the mono annotations. */
+  Mono = "MONO",
+}
+
 export type NavItem = {
   label: string;
   href: string;

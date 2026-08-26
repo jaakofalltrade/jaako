@@ -1,4 +1,4 @@
-import { AnnotationTone, BadgeTone, ButtonSize, ButtonVariant, IconName, MarqueeTone, PlateRatio, PresenceStatus, ProjectStatus, TechName } from "@/models";
+import { AnnotationTone, BadgeTone, ButtonSize, ButtonVariant, DecryptAlphabet, IconName, MarqueeTone, PlateRatio, PresenceStatus, ProjectStatus, TechName } from "@/models";
 
 /**
  * Enum member → the string that actually reaches the DOM.
@@ -81,6 +81,19 @@ export const PROJECT_STATUS_TONE: Record<ProjectStatus, BadgeTone> = {
   [ProjectStatus.Archived]: BadgeTone.Ghost,
   [ProjectStatus.Done]: BadgeTone.Steel,
   [ProjectStatus.Wip]: BadgeTone.Cyan,
+};
+
+/**
+ * The characters a settling readout scrambles from. See models/Ui.ts for why each
+ * pool is the case it is, and design-system/core/DecryptedText.tsx for the rest.
+ *
+ * Mono carries digits because two of its three targets are mostly numeric — the
+ * coordinates and the plate spec — and a numeric string that scrambles into pure
+ * letters stops reading as the same kind of value while it settles.
+ */
+export const DECRYPT_CHARS: Record<DecryptAlphabet, string> = {
+  [DecryptAlphabet.Display]: "abcdefghijklmnopqrstuvwxyz",
+  [DecryptAlphabet.Mono]: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
 };
 
 export const TECH_LABEL: Record<TechName, string> = {

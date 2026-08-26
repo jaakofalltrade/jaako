@@ -27,7 +27,14 @@ import { useEffect } from "react";
  *      scrolled yet", so a working page keeps its choreography.
  */
 
-const SELECTOR = "[data-reveal],.jk-rule--draw,.jk-mask,.jk-plate-reveal";
+/* .jk-decrypt is the fifth behaviour and the only one with no matching rule in
+   components/_reveal.scss, which is correct rather than an omission: it has no hidden
+   initial state to gate, because DecryptedText renders its real text until it is told
+   to start. It is listed here so the settling readouts run off the page's one observer
+   instead of mounting an IntersectionObserver each, which is the rule this whole file
+   exists to enforce. The class is the entire contract — that component watches its own
+   classList for the `is-in` below. */
+const SELECTOR = "[data-reveal],.jk-rule--draw,.jk-mask,.jk-plate-reveal,.jk-decrypt";
 
 const IN = "is-in";
 
@@ -77,6 +84,38 @@ export const Reveal = () => {
       if (!node.classList.contains(IN)) observer.observe(node);
     });
 
+    /* THE LAST LINE OF THE DOCUMENT CANNOT SATISFY THE RULE ABOVE, SO IT GETS ITS OWN.
+     *
+     * The negative bottom margin means an element has to clear the bottom 6% of the
+     * viewport before it counts as in frame. Nothing in the final 6% of the *page* ever
+     * can: scroll to the very end and it is still sitting in that strip, with no scroll
+     * left to lift it out. On a 867px viewport that is a dead band about 52px tall, and
+     * .jk-footer__bar lives in it — measured at 821-835 against a cutoff of 815.
+     *
+     * This went unnoticed because nothing in the footer bar opted into the choreography
+     * until the plate spec started settling; the failsafe does not cover it either,
+     * since that only fires when the observer has delivered *nothing* at all.
+     *
+     * So: when there is no scroll left, anything still waiting is as in frame as it is
+     * ever going to be, and it is released. This cannot affect the timing of the other
+     * elements — by the time it runs they have all long since fired and been
+     * unobserved — and it leaves the tuned rootMargin alone, which is the whole point.
+     * Reveals still happen once and only once.
+     */
+    const scroller = document.scrollingElement ?? document.documentElement;
+
+    const releaseAtEnd = () => {
+      if (scroller.scrollHeight - scroller.clientHeight - scroller.scrollTop > 2) return;
+      window.removeEventListener("scroll", releaseAtEnd);
+      nodes.forEach((node) => {
+        if (node.classList.contains(IN)) return;
+        node.classList.add(IN);
+        observer.unobserve(node);
+      });
+    };
+
+    window.addEventListener("scroll", releaseAtEnd, { passive: true });
+
     const failsafe = window.setTimeout(() => {
       if (fired > 0) return;
       observer.disconnect();
@@ -85,6 +124,7 @@ export const Reveal = () => {
 
     return () => {
       window.clearTimeout(failsafe);
+      window.removeEventListener("scroll", releaseAtEnd);
       observer.disconnect();
     };
   }, [pathname]);
