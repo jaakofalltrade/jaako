@@ -131,10 +131,24 @@
     gap: var(--space-4);
   }
 
-  /* The metadata column drops under the title rather than being cut off. */
+  /* The metadata column drops under the title rather than being cut off.
+
+     flex-wrap IS LOAD-BEARING, and its absence was the page's only horizontal
+     overflow. Turning this column into a row puts two nowrap items side by side — the
+     badge (white-space:nowrap, components/_badge.scss) and .jk-track__stack (the same)
+     — inside a grid track that is minmax(0, 1fr). Neither can shrink and, without
+     wrapping, neither can drop, so the pair simply overflowed the track: 45px past a
+     320px viewport and still 5px past a 375px one. Body's overflow-x:hidden does not
+     save the layout there, it only hides the evidence, and on iOS the page pans
+     sideways anyway — which is what made the footer look like it had gone missing off
+     the right-hand edge.
+
+     .jk-xp__meta in widgets/_experience-entry.scss is the same row doing the same job
+     and it has always wrapped. This is that rule, and the two should stay in step. */
   .jk-track__meta {
     grid-column: 2;
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: flex-start;
     text-align: left;

@@ -15,8 +15,16 @@
 .jk-hero {
   position: relative;
   /* Deliberately not 100dvh. A masthead that fills the viewport tells a reader there
-     is nothing below it; leaving the next block's edge visible does the opposite. */
-  min-height: clamp(22rem, 16rem + 24vh, 30rem);
+     is nothing below it; leaving the next block's edge visible does the opposite.
+
+     dvh rather than vh for the same reason base/_reset.scss gives: on mobile vh is the
+     LARGEST viewport height, the one with the browser chrome hidden, so a masthead
+     measured in vh is sized for a window the reader cannot see yet and stands taller
+     than intended for as long as the URL bar is showing. The fraction is small enough
+     that this is a correction rather than a redesign — it only moves the value at all
+     between the two ends of the clamp — but the unit should agree with the policy the
+     rest of the page is written to. */
+  min-height: clamp(22rem, 16rem + 24dvh, 30rem);
   display: flex;
   flex-direction: column;
   justify-content: flex-end;

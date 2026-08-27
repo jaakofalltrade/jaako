@@ -31,4 +31,25 @@
 /* Touch floor. Every interactive element resolves to at least this in its own rule;
    the token exists so the number is stated once. */
 --touch-min:2.75rem;     /* 44px */
+
+/* THE PLAYER'S FOOTPRINT, AND WHY ANYTHING NEEDS TO KNOW IT.
+
+   .jk-dock rests in the Sleeve state at every width — NowPlayingDock opens in it and
+   nothing on load changes that — so a fixed pill is parked in the bottom-right corner
+   of the viewport permanently. Content scrolling underneath is the arrangement working
+   as intended: it moves on, and the reader can always bring it back out.
+
+   The exception is the very bottom of the document, which is the one place there is no
+   scrolling past. Whatever ends the page ends it underneath the pill and STAYS there —
+   which is exactly what happened to the footer's copyright and credit lines, and is why
+   the footer read as missing on a phone. So the footer reserves this much, and it is
+   the only thing that has to.
+
+   --dock-h is the pill measured rather than guessed: a 4rem cover (widgets/_dock.scss,
+   .jk-dock--sleeve .jk-dock__sleeve) with --space-3 of .jk-dock__peek padding above and
+   below it. --dock-clear adds the gap the pill keeps from the viewport edge, which is
+   --gutter plus the iOS home indicator the dock's own mobile rule already clears.
+   If the sleeve's cover size changes, this changes with it. */
+--dock-h:5rem;           /* 80px — 4rem cover + --space-3 twice */
+--dock-clear:calc(var(--dock-h) + var(--gutter) + env(safe-area-inset-bottom, 0px));
 }
