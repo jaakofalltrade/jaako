@@ -86,12 +86,18 @@ const tileColour = (svg) => {
   return match[1];
 };
 
-/** A missing directory is a normal state here rather than a failure: see loadSharp. */
+/**
+ * A missing store is a normal state here rather than a failure: see loadSharp. Nothing
+ * else is. This tree lives under Documents, which on Windows is routinely redirected
+ * into OneDrive, so EACCES and an unhydrated placeholder are both live possibilities —
+ * and swallowing either would send the reader to `pnpm install`, which fixes neither.
+ */
 const entriesIn = (dir) => {
   try {
     return readdirSync(dir);
-  } catch {
-    return [];
+  } catch (error) {
+    if (error.code === "ENOENT") return [];
+    throw error;
   }
 };
 
@@ -108,7 +114,14 @@ const entriesIn = (dir) => {
 const loadSharp = () => {
   const require = createRequire(import.meta.url);
   const store = path.join(root, "node_modules/.pnpm");
-  const versioned = entriesIn(store).find((entry) => entry.startsWith("sharp@"));
+  // Newest first. readdir hands these back alphabetically, which would put an older
+  // sharp@0.34.0 ahead of sharp@0.35.3 and build the icons with the older renderer
+  // without saying so — two versions in one store is what a second dependency pinning
+  // its own sharp looks like. Numeric collation also gets 0.9 and 0.10 the right way
+  // round, which a plain sort does not.
+  const versioned = entriesIn(store)
+    .filter((entry) => entry.startsWith("sharp@"))
+    .sort((a, b) => b.localeCompare(a, undefined, { numeric: true }))[0];
   const candidates = [
     versioned && path.join(store, versioned, "node_modules/sharp"),
     path.join(store, "node_modules/sharp"),
@@ -142,12 +155,17 @@ const loadSharp = () => {
  * The viewBox is 64 units wide and sharp rasterises SVG at 72dpi, so units land on
  * pixels 1:1 at that default. Scaling the density is what renders the curves at the
  * target size rather than rendering them once and resampling a 64px bitmap.
+ *
+ * Both outputs go through here rather than each inlining its own chain, so that a
+ * change to how one is rendered cannot quietly leave the other behind. `background` is
+ * the only difference between them, and it is what squares the apple tile.
  */
-const render = (sharp, svg, size) =>
-  sharp(svg, { density: Math.round((72 * size) / 64) })
-    .resize(size, size)
+const render = (sharp, svg, size, background) => {
+  const image = sharp(svg, { density: Math.round((72 * size) / 64) }).resize(size, size);
+  return (background ? image.flatten({ background }) : image)
     .png({ compressionLevel: 9 })
     .toBuffer();
+};
 
 /**
  * An .ico is a six-byte header, one sixteen-byte directory entry per image, then the
@@ -164,8 +182,8 @@ const ico = (images) => {
   let offset = 6 + images.length * 16;
   const directory = images.map(({ size, data }) => {
     const entry = Buffer.alloc(16);
-    entry.writeUInt8(size, 0);
-    entry.writeUInt8(size, 1);
+    entry.writeUInt8(size & 0xff, 0); // 256 is written as 0, which is why this masks
+    entry.writeUInt8(size & 0xff, 1);
     entry.writeUInt8(0, 2); // palette size, 0 for truecolour
     entry.writeUInt8(0, 3); // reserved
     entry.writeUInt16LE(1, 4); // colour planes
@@ -182,17 +200,19 @@ const ico = (images) => {
 const sharp = loadSharp();
 const svg = readFileSync(source);
 
+// Everything that can fail on the source is resolved before anything is written. The
+// two files are a pair, and a throw between the two writes would leave a fresh .ico
+// beside a stale tile with nothing to say so.
+const tile = tileColour(svg.toString());
+
 const images = await Promise.all(
   ICO_SIZES.map(async (size) => ({ size, data: await render(sharp, svg, size) })),
 );
-writeFileSync(path.join(root, "src/app/favicon.ico"), ico(images));
+const apple = await render(sharp, svg, APPLE_SIZE, tile);
 
-const apple = await sharp(svg, { density: Math.round((72 * APPLE_SIZE) / 64) })
-  .resize(APPLE_SIZE, APPLE_SIZE)
-  .flatten({ background: tileColour(svg.toString()) })
-  .png({ compressionLevel: 9 })
-  .toBuffer();
+writeFileSync(path.join(root, "src/app/favicon.ico"), ico(images));
 writeFileSync(path.join(root, "src/app/apple-icon.png"), apple);
 
-console.log(`favicon.ico  ${ICO_SIZES.join(" + ")}`);
-console.log(`apple-icon.png  ${APPLE_SIZE}x${APPLE_SIZE}`);
+console.log(`favicon.ico     ${ICO_SIZES.join(" + ")}`);
+console.log(`apple-icon.png  ${APPLE_SIZE}x${APPLE_SIZE} on ${tile}`);
+console.log(`rendered by sharp ${sharp.versions.sharp}`);
