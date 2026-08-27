@@ -1,39 +1,7 @@
-<!-- The site mark: a J and an A run together into one continuous stroke.
-
-     The J is the cup on the left, the A is the arch on the right, and they share the
-     middle riser, so the pair is drawn without lifting the pen. It reads as a letter
-     pair up close and as a worm at a glance, which is the intent. The two terminals
-     say which way to read it: the short one is capped at the top left where a J starts,
-     the long one runs to the foot of the tile where the A's right leg ends.
-
-     COLOURS ARE THE MASTHEAD'S OWN PAIRING, #0f2136 (text-strong, the ink the name is
-     set in) against #c2470c (p-ember, the colour of the word "andes."). Nothing else on
-     the site puts those two together at this size, which is the point of using them
-     here. The ember stays verbatim rather than being brightened for the small sizes;
-     tokens/_colors.scss chose that value through the multiply blend it sits in on the
-     page, and this tile is the flat case that file describes as reading clean.
-
-     3.25:1, AND THAT IS THE FLOOR. Ember on this ink clears the 3:1 non-text bar and
-     nothing else in the palette does better while staying dark: the same ember on
-     #1d3f63 measures 2.16:1 and the mark turns to a smudge. If the ink ever lightens,
-     re-measure — there are only about two hundredths of headroom here.
-
-     THE TILE IS FILLED because the tab strip is whatever colour the browser theme says
-     it is, and a mark on transparency loses one of those two themes.
-
-     GEOMETRY IS PLAIN ARITHMETIC. Three parallel risers 20 apart, joined by two
-     half-circles of r=10, so each turn is tangent to the risers it joins and no join is
-     visible at an 11 stroke. Round caps stand in for the rounded terminals of the
-     display face.
-
-     WHAT CONSTRAINS EVERY NUMBER IS THE 16px RENDER, where one viewBox unit is a
-     quarter of a pixel. The counters are 9 units, a hair over 2px there, and the stroke
-     is 11 rather than the 12 the drawing wants because at 12 the counters close up and
-     the three risers merge into one orange block. Check them first if any of this
-     moves.
-
-     src/app/favicon.ico and src/app/apple-icon.png are rasterised from this file by
-     scripts/build-icons.mjs. Re-run it after editing. -->
+<!-- The site mark. It is drawn, argued for and measured in scripts/build-icons.mjs,
+     which also rasterises favicon.ico and apple-icon.png from this file; re-run it
+     after editing. The commentary lives there rather than here because this file is
+     served verbatim to every visitor. -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="jaako andes">
   <rect width="64" height="64" rx="14" fill="#0f2136" />
   <path
