@@ -42,8 +42,9 @@
    The exception is the very bottom of the document, which is the one place there is no
    scrolling past. Whatever ends the page ends it underneath the pill and STAYS there —
    which is exactly what happened to the footer's copyright and credit lines, and is why
-   the footer read as missing on a phone. So the footer reserves this much, and it is
-   the only thing that has to.
+   the footer read as missing on a phone. So the footer reserves this much below $bp-sm,
+   and it is the only thing that has to; see layout/_footer.scss for why the reservation
+   stops at that breakpoint rather than applying at every width.
 
    --dock-h is the pill measured rather than guessed: a 4rem cover (widgets/_dock.scss,
    .jk-dock--sleeve .jk-dock__sleeve) with --space-3 of .jk-dock__peek padding above and
