@@ -15,7 +15,39 @@
 .jk-hero {
   position: relative;
   /* Deliberately not 100dvh. A masthead that fills the viewport tells a reader there
-     is nothing below it; leaving the next block's edge visible does the opposite. */
+     is nothing below it; leaving the next block's edge visible does the opposite.
+
+     svh rather than vh: on mobile vh is the LARGEST viewport height, the one with the
+     browser chrome hidden, so a masthead measured in vh is sized for a window the
+     reader cannot see yet and stands taller than intended for as long as the URL bar
+     is showing. svh is the small viewport — the conservative end — which is the one
+     that keeps the next block's edge in view when it matters.
+
+     AND svh RATHER THAN dvh, which is the trap here and the reason this is not simply
+     the 100dvh from base/_reset.scss with a smaller number in front of it. dvh tracks
+     the chrome LIVE. This is the first block in the document, so a min-height that
+     follows the URL bar would grow by roughly 25px as the bar collapses and shrink
+     back as it returns — pushing every section below the masthead down and pulling it
+     back up mid-scroll, which on iOS can fight the scroll position outright. The dvh
+     on body and .jk-shell is safe precisely because nothing sits below it: a min-height
+     that changes with nothing underneath it moves nothing. Here there is a whole page
+     underneath it. svh is static, so it buys the correction with no reflow at all.
+
+     THE vh VALUE HERE IS THE FALLBACK, AND THE @supports BLOCK BELOW IS WHY IT IS A
+     BLOCK RATHER THAN A SECOND DECLARATION. svh is a parse error rather than an
+     unsupported keyword on Safari before 15.4, Chrome before 108 and Firefox before
+     101 — and a bad unit inside clamp() invalidates the WHOLE declaration, so those
+     engines would drop the min-height entirely and the masthead would collapse to
+     content height. That is a much worse failure than the 24px this corrects, so the
+     universally-supported value has to survive for them.
+
+     THE ORDINARY TWO-LINE IDIOM DOES NOT WORK IN THIS REPO — it was tried here and the
+     production CSS was checked. Lightning CSS treats same-property declarations in one
+     block as duplicates and emits only the last, so `vh` then `svh` shipped as `svh`
+     ALONE and the fallback silently did not exist. That is the same failure mode the
+     note in sections/_contact.scss records for backdrop-filter. A condition the older
+     engines cannot match is the version that survives minification, because there is
+     nothing for the minifier to fold the two into. */
   min-height: clamp(22rem, 16rem + 24vh, 30rem);
   display: flex;
   flex-direction: column;
@@ -24,6 +56,10 @@
   margin: var(--space-7) auto var(--space-6);
   padding: var(--space-9) var(--gutter);
   /* No background. The masthead is type on the photograph. */
+}
+
+@supports (height: 1svh) {
+  .jk-hero { min-height: clamp(22rem, 16rem + 24svh, 30rem); }
 }
 
 /* --- the name ---------------------------------------------------------------------
