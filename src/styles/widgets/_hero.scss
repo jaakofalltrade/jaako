@@ -17,14 +17,22 @@
   /* Deliberately not 100dvh. A masthead that fills the viewport tells a reader there
      is nothing below it; leaving the next block's edge visible does the opposite.
 
-     dvh rather than vh for the same reason base/_reset.scss gives: on mobile vh is the
-     LARGEST viewport height, the one with the browser chrome hidden, so a masthead
-     measured in vh is sized for a window the reader cannot see yet and stands taller
-     than intended for as long as the URL bar is showing. The fraction is small enough
-     that this is a correction rather than a redesign — it only moves the value at all
-     between the two ends of the clamp — but the unit should agree with the policy the
-     rest of the page is written to. */
-  min-height: clamp(22rem, 16rem + 24dvh, 30rem);
+     svh rather than vh: on mobile vh is the LARGEST viewport height, the one with the
+     browser chrome hidden, so a masthead measured in vh is sized for a window the
+     reader cannot see yet and stands taller than intended for as long as the URL bar
+     is showing. svh is the small viewport — the conservative end — which is the one
+     that keeps the next block's edge in view when it matters.
+
+     AND svh RATHER THAN dvh, which is the trap here and the reason this is not simply
+     the 100dvh from base/_reset.scss with a smaller number in front of it. dvh tracks
+     the chrome LIVE. This is the first block in the document, so a min-height that
+     follows the URL bar would grow by roughly 25px as the bar collapses and shrink
+     back as it returns — pushing every section below the masthead down and pulling it
+     back up mid-scroll, which on iOS can fight the scroll position outright. The dvh
+     on body and .jk-shell is safe precisely because nothing sits below it: a min-height
+     that changes with nothing underneath it moves nothing. Here there is a whole page
+     underneath it. svh is static, so it buys the correction with no reflow at all. */
+  min-height: clamp(22rem, 16rem + 24svh, 30rem);
   display: flex;
   flex-direction: column;
   justify-content: flex-end;

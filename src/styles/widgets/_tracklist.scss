@@ -154,4 +154,26 @@
     text-align: left;
     margin-top: var(--space-3);
   }
+
+  /* WRAPPING THE ROW IS NOT ENOUGH ON ITS OWN, and stopping there left the fix
+     depending on a character budget rather than on structure.
+
+     flex-wrap drops the stack line onto its own row, which takes the container's
+     min-content from badge + stack down to the wider of the two — and the wider of the
+     two is this, because it is still one unbreakable nowrap run. Measured at a 320px
+     viewport: jaako.xyz's "nextjs · typescript · scss · 2026" renders 236px inside a
+     221px track, so it already spills 15px past its own grid column and sits about
+     11px from re-crossing the viewport edge. Two more characters in any project's
+     stack, or a slightly wider fallback mono, and the horizontal overflow this block
+     exists to remove comes straight back — silently, because body's overflow-x:hidden
+     clips it out of scrollWidth and only iOS shows it, by panning.
+
+     So the run is allowed to break. There is nothing to protect: on this breakpoint
+     the line is a left-aligned metadata row with the full column to itself, and it
+     breaks at the spaces around the separators, which is where a reader would break it
+     anyway. nowrap stays on the desktop rule above, where the stack sits in a narrow
+     right-hand column and being one line is the point. */
+  .jk-track__stack {
+    white-space: normal;
+  }
 }
