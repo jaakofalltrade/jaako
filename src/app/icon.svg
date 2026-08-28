@@ -1,0 +1,14 @@
+<!-- The site mark. It is drawn, argued for and measured in scripts/build-icons.mjs,
+     which also rasterises favicon.ico and apple-icon.png from this file; re-run it
+     after editing. The commentary lives there rather than here because this file is
+     served verbatim to every visitor. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="jaako andes">
+  <rect width="64" height="64" rx="14" fill="#0f2136" />
+  <path
+    d="M12 27.5V41.5A10 10 0 0 0 32 41.5V22.5A10 10 0 0 1 52 22.5V51.5"
+    fill="none"
+    stroke="#c2470c"
+    stroke-width="11"
+    stroke-linecap="round"
+  />
+</svg>
