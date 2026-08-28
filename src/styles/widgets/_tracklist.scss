@@ -172,8 +172,18 @@
      the line is a left-aligned metadata row with the full column to itself, and it
      breaks at the spaces around the separators, which is where a reader would break it
      anyway. nowrap stays on the desktop rule above, where the stack sits in a narrow
-     right-hand column and being one line is the point. */
+     right-hand column and being one line is the point.
+
+     overflow-wrap CLOSES THE LAST VERSION OF THE SAME HOLE. white-space alone only
+     permits breaks at the spaces around the separators, so a SINGLE token longer than
+     the column still sets a min-content floor and still overflows — which would leave
+     this a per-token character budget, exactly the thing the paragraph above says it
+     is not. Today's longest is `typescript`, nowhere near it, and that is precisely
+     why it would go unnoticed: the check is on data in projects.ts, not on anything
+     the compiler or the page can complain about. base/_reset.scss uses the same
+     declaration on code/kbd/samp for the same reason. */
   .jk-track__stack {
     white-space: normal;
+    overflow-wrap: anywhere;
   }
 }

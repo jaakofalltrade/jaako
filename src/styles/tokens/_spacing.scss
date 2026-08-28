@@ -48,9 +48,16 @@
 
    --dock-h is the pill measured rather than guessed: a 4rem cover (widgets/_dock.scss,
    .jk-dock--sleeve .jk-dock__sleeve) with --space-3 of .jk-dock__peek padding above and
-   below it. --dock-clear adds the gap the pill keeps from the viewport edge, which is
-   --gutter plus the iOS home indicator the dock's own mobile rule already clears.
-   If the sleeve's cover size changes, this changes with it. */
+   below it. --dock-clear adds the gap the pill keeps from the viewport edge.
+   If the sleeve's cover size changes, this changes with it.
+
+   THE env() TERM IS INERT TODAY AND IS HERE TO STAY IN STEP, NOT TO DO ANYTHING. There
+   is no viewport export in src/app, so Next emits the default width=device-width meta
+   with no viewport-fit=cover, and iOS therefore keeps the safe area OUTSIDE the layout
+   viewport — every safe-area-inset resolves to 0px. The dock's own mobile rule
+   (bottom: calc(var(--gutter) + env(safe-area-inset-bottom, 0px))) is inert for exactly
+   the same reason, and the point of repeating the term here is that the two would
+   switch on together the day viewport-fit=cover is added rather than drifting apart. */
 --dock-h:5rem;           /* 80px — 4rem cover + --space-3 twice */
 --dock-clear:calc(var(--dock-h) + var(--gutter) + env(safe-area-inset-bottom, 0px));
 }
