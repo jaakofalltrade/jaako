@@ -1,6 +1,14 @@
 @use "../base/mixins" as *;
 
-.jk-work-section__all {
+/* "See everything" at the foot of a section.
+ *
+ * One rule for two callers. The work section has pointed at /work this way for a
+ * while; the experience section now points at /experience the same way, and the
+ * alternative was this same block of declarations written twice under two names. It is
+ * an element of .jk-section rather than of either one, which is what it always was.
+ */
+
+.jk-section__all {
   display: inline-flex;
   align-items: center;
   margin-top: var(--space-7);
@@ -18,5 +26,5 @@
 }
 
 @media (pointer: coarse) {
-  .jk-work-section__all { min-height: var(--touch-min); }
+  .jk-section__all { min-height: var(--touch-min); }
 }

@@ -9,13 +9,17 @@ export type ExperienceEntryProps = {
 };
 
 /**
- * One company, as a row rather than a card.
+ * One company on the homepage, as a row rather than a card.
  *
- * Roles are a <ul> because they are a list of positions held, and the most recent one
- * is marked with <strong> rather than colour alone. Each role now owns its own bullets
- * as a nested list, which is the structure the content already had: the lines under
- * "Software Engineer" are not true of "Junior Developer", and a single flat list per
- * company was quietly claiming they were.
+ * The short form. Roles are a <ul> of bare titles because they are a list of positions
+ * held, and the most recent one is marked with <strong> rather than colour alone; the
+ * bullets underneath are `summary`, which describes the company rather than any one
+ * title. What each title actually involved lives on /experience, through the link at
+ * the foot of the section.
+ *
+ * The reason the split exists at all: the full record is thirteen bullets for Restoplus
+ * and one for Bicol University, and putting that on the homepage buried the work and
+ * contact sections under a CV.
  */
 export const ExperienceEntry = ({ item, index }: ExperienceEntryProps) => (
   /* data-archived, same attribute and same reasoning as the work tracklist: the badge
@@ -32,16 +36,14 @@ export const ExperienceEntry = ({ item, index }: ExperienceEntryProps) => (
       <ul className="jk-xp__roles">
         {item.roles.map((role, position) => (
           <li key={role.title} className="jk-xp__role">
-            <p className="jk-xp__role-head">
-              {position === 0 ? <strong>{role.title}</strong> : role.title}
-              <span className="jk-xp__period"> · {role.period}</span>
-            </p>
-            <ul className="jk-xp__bullets">
-              {role.bullets.map((bullet) => (
-                <li key={bullet}>{bullet}</li>
-              ))}
-            </ul>
+            {position === 0 ? <strong>{role.title}</strong> : role.title}
+            <span className="jk-xp__period"> · {role.period}</span>
           </li>
+        ))}
+      </ul>
+      <ul className="jk-xp__bullets">
+        {item.summary.map((line) => (
+          <li key={line}>{line}</li>
         ))}
       </ul>
     </div>

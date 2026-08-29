@@ -1,8 +1,18 @@
+import Link from "next/link";
 import { EXPERIENCE } from "@/data/experience";
 import { SECTIONS } from "@/data/site";
 import { SectionHead } from "../core/SectionHead";
 import { ExperienceEntry } from "../portfolio/ExperienceEntry";
 
+/**
+ * The homepage shows each company summarised. The full record, role by role, lives on
+ * /experience — which is what keeps a six-year tenure from pushing the work and contact
+ * sections off the bottom of the page.
+ *
+ * Same arrangement as WorkSection: the short form, then one link out. Not a link per
+ * entry, which would put the same affordance three times in a section this short, twice
+ * pointing at a job that is one sentence long.
+ */
 export const ExperienceSection = () => (
   <section id="experience" className="jk-section jk-experience">
     <SectionHead
@@ -21,5 +31,9 @@ export const ExperienceSection = () => (
         />
       ))}
     </div>
+
+    <Link href="/experience" className="jk-section__all">
+      full history · {EXPERIENCE.length} entries →
+    </Link>
   </section>
 );

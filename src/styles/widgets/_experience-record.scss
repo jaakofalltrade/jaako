@@ -1,0 +1,198 @@
+@use "../base/mixins" as *;
+
+/* The long form of a company, on /experience.
+ *
+ * Stacked rather than the three columns the homepage entry uses. At this length the
+ * metadata rail would have been a short column beside a very tall one, and the roles
+ * need the full measure to be readable — so the meta becomes a ruled row under the
+ * company name instead, the same treatment /work/[slug] gives a project.
+ */
+
+.jk-experience-index__list {
+  display: grid;
+  gap: var(--space-10);
+}
+
+/* The same two-column spine .jk-xp uses on the homepage: a narrow margin holding the
+   number, and everything else on one left edge beside it. Getting this wrong is
+   visible immediately — with the index inline in the header, the company name sat
+   26px right of the metadata and the bullets it owns. */
+.jk-xpr {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: start;
+  padding: 0 var(--space-2);
+}
+
+.jk-xpr__head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-4);
+}
+
+.jk-xpr__index {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--text-faint);
+}
+
+.jk-xpr__company {
+  font-size: var(--text-xl);
+  color: var(--text-strong);
+}
+
+/* Same one step back an archived company takes on the homepage, and for the same
+   reason: the badge beside it is the carrier, this makes it legible while scanning. */
+.jk-xpr[data-archived] .jk-xpr__company {
+  color: var(--text-body);
+}
+
+.jk-xpr__meta {
+  margin-top: var(--space-5);
+  max-width: var(--measure);
+}
+
+.jk-xpr__roles {
+  margin: var(--space-7) 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  /* Wider than the gap between bullets inside a role, so four titles read as four jobs
+     rather than as one list of thirteen lines. Whitespace only; no rule. */
+  gap: var(--space-8);
+}
+
+/* The mono label treatment belongs to the head, not to the <li>. The <li> also holds
+   the prose, and leaving it there would cascade the mono face into the bullets. */
+.jk-xpr__role-head {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-dim);
+
+  strong {
+    color: var(--text-body);
+    font-weight: var(--weight-regular);
+  }
+}
+
+.jk-xpr__period {
+  color: var(--text-dim);
+}
+
+.jk-xpr__bullets {
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-3);
+  max-width: var(--measure);
+
+  li {
+    position: relative;
+    padding-left: var(--space-5);
+    font-size: var(--text-sm);
+    line-height: var(--leading-normal);
+    color: var(--text-dim);
+  }
+
+  /* The same dot the homepage bullets draw, and drawn the same way — a box rather than
+     a • glyph, so its size and colour answer to the tokens and not to the font. */
+  li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.6em;
+    width: 4px;
+    height: 4px;
+    border-radius: var(--radius-pill);
+    background: var(--text-faint);
+  }
+}
+
+/* Published work. A short list at the foot of the record, not a section of its own. */
+
+.jk-research {
+  margin-top: var(--space-11);
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  gap: 0 var(--space-5);
+  padding: 0 var(--space-2);
+}
+
+.jk-research__title,
+.jk-research__list {
+  grid-column: 2;
+}
+
+.jk-research__title {
+  @include label($size: var(--text-3xs), $tracking: var(--tracking-wide));
+  color: var(--text-dim);
+  text-transform: lowercase;
+}
+
+.jk-research__list {
+  margin: var(--space-6) 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-7);
+}
+
+.jk-research__head {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--text-body);
+  max-width: var(--measure);
+}
+
+.jk-research__venue {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-dim);
+}
+
+.jk-research__note {
+  margin: var(--space-3) 0 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--text-dim);
+  max-width: var(--measure);
+}
+
+.jk-experience-index__actions {
+  margin-top: var(--space-11);
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  gap: 0 var(--space-5);
+  padding: 0 var(--space-2);
+
+  > * { grid-column: 2; justify-self: start; }
+}
+
+.jk-experience-index__back {
+  text-decoration: none;
+}
+
+@include down($bp-sm) {
+  /* Narrower margin at this width, matching .jk-xp's own small-screen columns. */
+  .jk-xpr,
+  .jk-research,
+  .jk-experience-index__actions {
+    grid-template-columns: 1.75rem minmax(0, 1fr);
+    gap: 0 var(--space-4);
+  }
+
+  .jk-xpr { gap: var(--space-4); }
+
+  .jk-experience-index__list { gap: var(--space-9); }
+  .jk-xpr__roles { gap: var(--space-7); }
+
+  /* Same trim the homepage bullets take at this width: the indent is the cheapest
+     thing to give back when the measure is scarcest. */
+  .jk-xpr__bullets li { padding-left: var(--space-4); }
+}

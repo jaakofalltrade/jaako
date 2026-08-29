@@ -161,7 +161,7 @@ export const VISITOR_INDEX = { count: 1, unit: "cumulative ± 1 · since 2026" }
  */
 export const NAV_ITEMS: NavItem[] = [
   { label: "about", href: "/#about", id: "about" },
-  { label: "experience", href: "/#experience", id: "experience" },
+  { label: "experience", href: "/#experience", id: "experience", route: "/experience" },
   { label: "work", href: "/#work", id: "work", route: "/work" },
   { label: "contact", href: "/#contact", id: "contact" },
 ];
