@@ -21,7 +21,7 @@ export type ServerConfig = {
   spotify_api_url: string;
 
   // resend / contact form — see docs/contact-setup.md
+  // The key only. The from and to addresses are not secret and do not vary by
+  // deployment, so they live in src/constants/contact.ts.
   resend_api_key: string;
-  contact_from_email: string;
-  contact_to_email: string;
 };

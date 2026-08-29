@@ -34,24 +34,31 @@ Resend gives every account a shared sender at `onboarding@resend.dev` that works
 with no DNS setup at all. The catch: it can only deliver to the address you
 signed up with. Good enough for local testing, not for production.
 
-```sh
-CONTACT_FROM_EMAIL="jaako.xyz <onboarding@resend.dev>"
+```ts
+export const CONTACT_FROM_EMAIL = "jaako.xyz <onboarding@resend.dev>";
 ```
 
-## 3. Set the environment variables
+## 3. Set the key, then the addresses
 
-In `.env.local` for local dev, and in the host's dashboard for the deployed
-site:
+The key is a secret and belongs in the environment — `.env.local` for local dev,
+the host's dashboard for the deployed site:
 
 ```sh
 RESEND_API_KEY=re_...
-CONTACT_FROM_EMAIL="jaako.xyz <contact@jaako.xyz>"
-CONTACT_TO_EMAIL=jaakoaandes@gmail.com
 ```
 
-All three are required. If any is missing the route logs which ones and returns
-503 — it never fails silently, because a contact form that swallows messages is
-worse than one that admits it's broken.
+The two addresses are not secret and are the same on localhost as in production,
+so they are constants rather than env vars. In `src/constants/contact.ts`:
+
+```ts
+export const CONTACT_FROM_EMAIL = "jaako.xyz <contact@jaako.xyz>";
+export const CONTACT_TO_EMAIL = "you@example.com";
+```
+
+**Both ship blank**, which is what keeps the form off until you mean to turn it
+on. All three values are required: while any is missing the route logs what is
+absent and returns 503 — it never fails silently, because a contact form that
+swallows messages is worse than one that admits it's broken.
 
 ## 4. Test it
 

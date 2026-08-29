@@ -36,8 +36,6 @@ const localConfig: ServerConfig = {
   spotify_token_url: SPOTIFY_TOKEN_URL,
   spotify_api_url: SPOTIFY_API_URL,
   resend_api_key: process.env.RESEND_API_KEY ?? "",
-  contact_from_email: process.env.CONTACT_FROM_EMAIL ?? "",
-  contact_to_email: process.env.CONTACT_TO_EMAIL ?? "",
 };
 
 const stagingConfig: ServerConfig = {
@@ -48,8 +46,6 @@ const stagingConfig: ServerConfig = {
   spotify_token_url: SPOTIFY_TOKEN_URL,
   spotify_api_url: SPOTIFY_API_URL,
   resend_api_key: process.env.RESEND_API_KEY ?? "",
-  contact_from_email: process.env.CONTACT_FROM_EMAIL ?? "",
-  contact_to_email: process.env.CONTACT_TO_EMAIL ?? "",
 };
 
 const productionConfig: ServerConfig = {
@@ -60,8 +56,6 @@ const productionConfig: ServerConfig = {
   spotify_token_url: SPOTIFY_TOKEN_URL,
   spotify_api_url: SPOTIFY_API_URL,
   resend_api_key: process.env.RESEND_API_KEY ?? "",
-  contact_from_email: process.env.CONTACT_FROM_EMAIL ?? "",
-  contact_to_email: process.env.CONTACT_TO_EMAIL ?? "",
 };
 
 const configByEnv: Record<Env, ServerConfig> = {

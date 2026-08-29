@@ -1,8 +1,10 @@
 import { Resend } from "resend";
 import { serverConfig } from "@/config/serverConfig";
 import {
+  CONTACT_FROM_EMAIL,
   CONTACT_HOW_LABEL,
   CONTACT_REASON_LABEL,
+  CONTACT_TO_EMAIL,
   EMAIL_PATTERN,
   FIELD_LIMITS,
   RATE_LIMIT,
@@ -52,13 +54,15 @@ const createRateLimiter = () => {
 
 const rateLimiter = createRateLimiter();
 
-/** False when the send path isn't wired up, so the route can say so instead of throwing. */
+/**
+ * False when the send path isn't wired up, so the route can say so instead of throwing.
+ *
+ * Still three values, but from two places now: the key comes from the environment
+ * and the two addresses from src/constants/contact.ts, which ship blank. All three
+ * have to be present for a send to be possible, so all three are checked here.
+ */
 const isConfigured = (): boolean =>
-  Boolean(
-    serverConfig.resend_api_key &&
-      serverConfig.contact_from_email &&
-      serverConfig.contact_to_email,
-  );
+  Boolean(serverConfig.resend_api_key && CONTACT_FROM_EMAIL && CONTACT_TO_EMAIL);
 
 const trimmed = (value: unknown): string => (typeof value === "string" ? value.trim() : "");
 
@@ -151,8 +155,8 @@ const send = async (args: { request: ContactRequest }): Promise<void> => {
   const resend = new Resend(serverConfig.resend_api_key);
 
   const { error } = await resend.emails.send({
-    from: serverConfig.contact_from_email,
-    to: serverConfig.contact_to_email,
+    from: CONTACT_FROM_EMAIL,
+    to: CONTACT_TO_EMAIL,
     replyTo: request.email,
     // No cc. The form used to offer "cc me on this", defaulted on, which sent a copy
     // to the sender's own address — harmless, since that is the one place the message

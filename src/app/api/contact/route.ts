@@ -28,7 +28,10 @@ export const POST = async (request: Request) => {
   // Unlike the Spotify panel this can't degrade silently — a form that swallows
   // messages is worse than one that admits it's broken.
   if (!contactService.isConfigured()) {
-    console.error("[contact] RESEND_API_KEY / CONTACT_FROM_EMAIL / CONTACT_TO_EMAIL not set");
+    console.error(
+      "[contact] not configured: RESEND_API_KEY missing from the environment, or " +
+        "CONTACT_FROM_EMAIL / CONTACT_TO_EMAIL still blank in src/constants/contact.ts",
+    );
     return json({
       body: { ok: false, error: "The form isn't wired up yet. Use the e-mail link instead." },
       status: HttpStatus.ServiceUnavailable,
