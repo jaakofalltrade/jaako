@@ -31,7 +31,7 @@ export const SiteFooter = () => (
 
     <nav aria-label="Sections" className="jk-footer__nav">
       {NAV_ITEMS.map((item) => (
-        <Link key={item.id} href={item.href} className="jk-footer__nav-link">
+        <Link key={item.label} href={item.href} className="jk-footer__nav-link">
           {item.label}
         </Link>
       ))}

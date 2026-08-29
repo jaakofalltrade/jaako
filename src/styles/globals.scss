@@ -20,6 +20,18 @@
 // Partials read tokens as CSS custom properties (var(--…)), so none of them need to
 // @use anything. The one exception is base/mixins, which a partial pulls in
 // explicitly when it needs a shared declaration cluster.
+//
+// --- what is NOT reachable from this file ------------------------------------
+//
+// Everything under src/app/lab. The apps in the lab each look like something other
+// than this site, and they own their CSS as colocated *.module.scss files instead of
+// as partials here. That is the one place in the repo where a component carries its
+// own styles, and it is deliberate: this file is an ordered cascade where the order
+// is the specificity strategy, and it only works because every partial in it is
+// describing one coherent design. See docs/lab.md.
+//
+// The two dark apps also declare their own custom properties rather than reading
+// tokens/, so a change to the palette below cannot repaint an arcade cabinet.
 // =============================================================================
 
 // --- tokens ------------------------------------------------------------------

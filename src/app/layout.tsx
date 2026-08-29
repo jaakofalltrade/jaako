@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Quicksand, Geist_Mono } from "next/font/google";
 import "../styles/globals.scss";
-import { PageShell } from "@/design-system/portfolio/PageShell";
 
 // Self-hosted by next/font, so nothing is fetched from Google at runtime — which is
 // also what the CSP requires, since it sets font-src 'self'. Each face is exposed as a
@@ -77,11 +76,19 @@ const DuotoneFilter = () => (
   </svg>
 );
 
+/**
+ * Only what is genuinely global.
+ *
+ * PageShell is NOT here any more. It moved to src/app/(site)/layout.tsx so that a lab
+ * app can render without the site's footer and player over it; see that file, and
+ * docs/lab.md for why. What stays is the document, the two font faces, the duotone
+ * filter and globals.scss, because a bare page still wants the reset and the type.
+ */
 const RootLayout = ({ children }: Readonly<{ children: React.ReactNode }>) => (
   <html lang="en" className={fontVars}>
     <body>
       <DuotoneFilter />
-      <PageShell>{children}</PageShell>
+      {children}
     </body>
   </html>
 );

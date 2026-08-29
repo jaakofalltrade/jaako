@@ -149,9 +149,20 @@ export enum DecryptAlphabet {
 
 export type NavItem = {
   label: string;
+  /**
+   * Absolute link. What the footer follows from any page, and what the inline menu
+   * falls back to for an item that has no section to scroll to.
+   */
   href: string;
-  /** id of the on-page section this item scrolls to, for scroll-spy active state. */
-  id: string;
+  /**
+   * id of the on-page section this item scrolls to, for scroll-spy active state.
+   *
+   * Optional since the lab joined the list. Every other item names a section of the
+   * homepage; the lab is a route and nothing else, so the inline menu has to send it
+   * to `href` rather than to a `#lab` that does not exist. Absent means exactly that:
+   * this item is a destination, not a position on the page.
+   */
+  id?: string;
   /** Path prefix that also marks this item active, for sections with their own routes. */
   route?: string;
 };

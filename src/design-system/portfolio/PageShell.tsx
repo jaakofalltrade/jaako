@@ -6,6 +6,11 @@ import { SiteFooter } from "./SiteFooter";
 /**
  * The frame.
  *
+ * Mounted by src/app/(site)/layout.tsx and by src/app/lab/(framed)/layout.tsx, not by
+ * the root layout, which is where it used to live. It moved down a level so that a
+ * lab app can render without the footer and the player over it; the pages in
+ * src/app/lab/(bare) supply their own <main> and their own ground instead.
+ *
  * The navigation is not here, and its being sticky again has not changed that.
  * SectionNav renders once, inline, above the about section, and pins itself from
  * there; the footer carries the cross-page copy of the same list so /work and

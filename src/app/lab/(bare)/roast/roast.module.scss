@@ -1,0 +1,195 @@
+/* The chat client. /lab/roast.
+
+   Dark, but not the slot machine's dark and deliberately not sharing anything with
+   it. The two bare apps are next door to each other in the file tree and that is the
+   only thing they have in common: no tokens are shared between them, and if a value
+   in here ever matches one in slots.module.scss it is a coincidence rather than a
+   system. Same rule as the cabinet: nothing reads src/styles/tokens.
+
+   Restrained on purpose. A roast is funny because of what it says, so the room it is
+   said in should be the most ordinary interface on this website. Every design
+   decision here is trying to look like software somebody uses every day, which is
+   also what makes it the most screenshot-friendly page in the lab. */
+
+.app {
+  --chat-void: #0e1117;
+  --chat-panel: #161b24;
+  --chat-bar: #1c2230;
+  --chat-bubble: #232b3a;
+  --chat-ink: #e8ecf3;
+  --chat-dim: #8a94a6;
+  --chat-line: rgba(255, 255, 255, 0.07);
+  --chat-accent: #6ea8ff;
+  --chat-font: var(--font-quicksand), "Trebuchet MS", Helvetica, Arial, sans-serif;
+
+  position: relative;
+  z-index: 0;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: clamp(1rem, 0.6rem + 2vw, 3rem) 1rem;
+  font-family: var(--chat-font);
+  color: var(--chat-ink);
+}
+
+/* Covers the site's own fixed ground, which lives on <body> and cannot be reached
+   from a module. See the same note in slots.module.scss. */
+.ground {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: var(--chat-void);
+}
+
+/* Not a phone frame. A drawn bezel with a notch would be a picture of a device, and
+   the joke is not about phones — it is a window with the proportions of a
+   conversation. */
+.phone {
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 26rem);
+  max-height: min(46rem, 88dvh);
+  background: var(--chat-panel);
+  border: 1px solid var(--chat-line);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--chat-bar);
+  border-bottom: 1px solid var(--chat-line);
+}
+
+.exit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 1rem;
+  color: var(--chat-accent);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--chat-ink);
+  }
+}
+
+.exitLabel {
+  font-size: 0.8125rem;
+}
+
+.who {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.subtitle {
+  font-size: 0.75rem;
+  color: var(--chat-dim);
+}
+
+.spec {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  color: var(--chat-dim);
+}
+
+.thread {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 1.25rem 1rem;
+  overflow-y: auto;
+}
+
+/* Every bubble is the agent's. Nothing is ever sent from this side, which is why
+   there is no second alignment in this file and no colour for one. */
+.bubble {
+  max-width: 85%;
+  margin: 0;
+  padding: 0.625rem 0.875rem;
+  background: var(--chat-bubble);
+  border-radius: 14px 14px 14px 4px;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+
+.typing {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin: 0.25rem 0 0;
+  padding: 0.625rem 0.875rem;
+  background: var(--chat-bubble);
+  border-radius: 14px 14px 14px 4px;
+}
+
+.dots {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--chat-dim);
+  animation: pulse 1.4s ease-in-out infinite;
+
+  &:nth-child(2) { animation-delay: 0.2s; }
+  &:nth-child(3) { animation-delay: 0.4s; }
+}
+
+@keyframes pulse {
+  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-2px); }
+}
+
+.typingLabel {
+  font-size: 0.75rem;
+  color: var(--chat-dim);
+}
+
+/* The composer, as a line of text. It looks like the field it will become and cannot
+   be focused, typed in, or submitted, because there is nothing on the other end. */
+.composer {
+  margin: 0;
+  padding: 0.875rem 1rem;
+  border-top: 1px solid var(--chat-line);
+  font-size: 0.875rem;
+  color: var(--chat-dim);
+  font-style: italic;
+}
+
+.seats {
+  max-width: 26rem;
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  text-align: center;
+  color: var(--chat-dim);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot {
+    animation: none;
+    /* Without the animation the three dots are identical and read as punctuation, so
+       the indicator has to say what it means some other way. */
+    opacity: 0.6;
+  }
+}

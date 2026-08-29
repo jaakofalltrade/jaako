@@ -1,0 +1,116 @@
+/* The lab index.
+
+   A CSS Module rather than a partial in globals.scss, because everything under
+   src/app/lab is (see docs/lab.md). This one is the exception inside the exception:
+   the index is supposed to look like the rest of the site, so unlike the three apps
+   it reads the site's own custom properties instead of declaring its own.
+
+   That costs nothing and imports nothing. Tokens are custom properties on :root, so
+   they are simply in scope here; only the class names are local. */
+
+.lead {
+  max-width: var(--measure);
+  margin-block: var(--space-6) var(--space-9);
+  font-size: var(--text-lg);
+  color: var(--text-body);
+}
+
+/* One column. A grid of cards was the obvious move and the wrong one: three cards
+   side by side invites a comparison between them, and these are not alternatives to
+   each other. A numbered list reads as a catalogue, which is what /work does two
+   sections up. */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  border-top: var(--border-1) solid var(--hair);
+
+  &:last-child {
+    border-bottom: var(--border-1) solid var(--hair);
+  }
+}
+
+/* The whole row is the target, so the hit area is the row and not the four words in
+   it. Grid rather than flex: the index column has to hold its width down the list or
+   the names stop lining up. */
+.link {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr;
+  gap: var(--space-1) var(--space-5);
+  padding-block: var(--space-6);
+  text-decoration: none;
+  color: inherit;
+  transition: background-color var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    /* The quietest surface in the palette. Anything with more weight turns a list of
+       links into a list of buttons. */
+    background: var(--surface-well);
+  }
+
+  &:hover .name {
+    color: var(--text-link-hover);
+  }
+}
+
+.index {
+  grid-column: 1;
+  grid-row: 1 / span 3;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-caps);
+  color: var(--text-faint);
+}
+
+.head {
+  grid-column: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.name {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-display);
+  text-transform: lowercase;
+  color: var(--text-strong);
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.blurb {
+  grid-column: 2;
+  max-width: var(--measure);
+  color: var(--text-body);
+}
+
+/* The one line that says these are three different-looking things. Mono and small,
+   like every other readout on the site, so it reads as a spec rather than as copy. */
+.look {
+  grid-column: 2;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.aside {
+  display: block;
+  margin-top: var(--space-8);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .link,
+  .name {
+    transition: none;
+  }
+}

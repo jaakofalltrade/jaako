@@ -1,0 +1,87 @@
+/* /lab/suggest, in the site's own clothes.
+
+   The narrowest module in the lab, and it should stay that way. This app shares the
+   portfolio's design, so everything that is a colour, a type size or a control lives
+   in globals.scss and arrives through the components on the page. What is left here
+   is arrangement, plus the three blank rows standing in for a playlist.
+
+   If a rule in this file starts describing what something looks like rather than
+   where it sits, the app is drifting away from the design it is meant to be sharing. */
+
+.status {
+  margin-top: var(--space-5);
+}
+
+.lead {
+  max-width: var(--measure);
+  margin-block: var(--space-5) var(--space-9);
+  font-size: var(--text-lg);
+  color: var(--text-body);
+}
+
+/* Two columns on a wide screen: the thing you do on the left, the rules it plays by
+   on the right. One column below that, form first, because the spec is a footnote to
+   an action and not the other way round. */
+.grid {
+  display: grid;
+  gap: var(--space-9);
+  align-items: start;
+
+  @media (min-width: 48rem) {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  }
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-6);
+}
+
+.spec {
+  /* The definition list carries its own rules; this only stops it stretching to the
+     full column on a wide screen, where the value column would drift too far from
+     its term to be read as a pair. */
+  max-width: 26rem;
+}
+
+.queue {
+  margin-top: var(--space-11);
+}
+
+.queueTitle {
+  font-size: var(--text-xl);
+}
+
+.queueNote {
+  margin-top: var(--space-3);
+  color: var(--text-dim);
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: var(--space-7) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* An empty row, not a loading skeleton. Nothing is loading and nothing will arrive,
+   so it does not shimmer: a pulse here would be an animation that never resolves,
+   which reads as a page that is broken rather than as one that is unfinished. */
+.row {
+  height: var(--space-10);
+  border-top: var(--border-1) solid var(--hair);
+
+  &:last-child {
+    border-bottom: var(--border-1) solid var(--hair);
+  }
+}
+
+.footnote {
+  display: block;
+  max-width: var(--measure);
+  margin-top: var(--space-10);
+}
