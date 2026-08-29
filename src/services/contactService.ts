@@ -55,14 +55,24 @@ const createRateLimiter = () => {
 const rateLimiter = createRateLimiter();
 
 /**
- * False when the send path isn't wired up, so the route can say so instead of throwing.
+ * The names of the values a send needs that aren't set. Empty means ready to send.
  *
  * Still three values, but from two places now: the key comes from the environment
- * and the two addresses from src/constants/contact.ts, which ship blank. All three
- * have to be present for a send to be possible, so all three are checked here.
+ * and the two addresses from src/constants/contact.ts, which ship blank. Each name
+ * is reported with where to go and fix it, because "not configured" is a much less
+ * useful thing to read at 2am than which of two files is missing which value.
  */
-const isConfigured = (): boolean =>
-  Boolean(serverConfig.resend_api_key && CONTACT_FROM_EMAIL && CONTACT_TO_EMAIL);
+const missingConfig = (): string[] =>
+  [
+    { name: "RESEND_API_KEY (.env.local)", value: serverConfig.resend_api_key },
+    { name: "CONTACT_FROM_EMAIL (src/constants/contact.ts)", value: CONTACT_FROM_EMAIL },
+    { name: "CONTACT_TO_EMAIL (src/constants/contact.ts)", value: CONTACT_TO_EMAIL },
+  ]
+    .filter((entry) => !entry.value)
+    .map((entry) => entry.name);
+
+/** False when the send path isn't wired up, so the route can say so instead of throwing. */
+const isConfigured = (): boolean => missingConfig().length === 0;
 
 const trimmed = (value: unknown): string => (typeof value === "string" ? value.trim() : "");
 
@@ -171,6 +181,7 @@ const send = async (args: { request: ContactRequest }): Promise<void> => {
 
 export const contactService = {
   isConfigured,
+  missingConfig,
   allow: rateLimiter.allow,
   validate,
   send,

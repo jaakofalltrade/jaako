@@ -32,10 +32,12 @@ the route sets `Reply-To` to their address.
 
 Resend gives every account a shared sender at `onboarding@resend.dev` that works
 with no DNS setup at all. The catch: it can only deliver to the address you
-signed up with. Good enough for local testing, not for production.
+signed up with. Good enough for local testing, not for production. Set it in
+`src/constants/contact.ts` (§3 below covers both addresses):
 
 ```ts
-export const CONTACT_FROM_EMAIL = "jaako.xyz <onboarding@resend.dev>";
+// src/constants/contact.ts
+export const CONTACT_FROM_EMAIL: string = "jaako.xyz <onboarding@resend.dev>";
 ```
 
 ## 3. Set the key, then the addresses
@@ -51,8 +53,9 @@ The two addresses are not secret and are the same on localhost as in production,
 so they are constants rather than env vars. In `src/constants/contact.ts`:
 
 ```ts
-export const CONTACT_FROM_EMAIL = "jaako.xyz <contact@jaako.xyz>";
-export const CONTACT_TO_EMAIL = "you@example.com";
+// src/constants/contact.ts
+export const CONTACT_FROM_EMAIL: string = "jaako.xyz <contact@jaako.xyz>";
+export const CONTACT_TO_EMAIL: string = "you@example.com";
 ```
 
 **Both ship blank**, which is what keeps the form off until you mean to turn it

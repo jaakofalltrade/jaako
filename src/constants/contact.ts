@@ -24,11 +24,16 @@ import { ContactHow, ContactReason, ValidationFailure } from "@/models";
  * CONTACT_FROM must be an address on a domain verified in Resend, or the shared
  * `onboarding@resend.dev` sender, which needs no DNS but only delivers to the
  * address the Resend account was signed up with.
+ *
+ * Both are annotated `string` rather than left to infer. Without it TypeScript reads
+ * the empty literal `""` as the type, which makes isConfigured() statically false and
+ * turns any later comparison against these into a "no overlap" compile error — that
+ * is, filling them in would stop being the one-line change this comment promises.
  */
-export const CONTACT_FROM_EMAIL = "";
+export const CONTACT_FROM_EMAIL: string = "";
 
 /** Where submissions land. Blank until the form goes live — see CONTACT_FROM_EMAIL. */
-export const CONTACT_TO_EMAIL = "";
+export const CONTACT_TO_EMAIL: string = "";
 
 export const CONTACT_REASON_LABEL: Record<ContactReason, string> = {
   [ContactReason.Freelance]: "freelance",
