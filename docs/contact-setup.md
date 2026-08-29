@@ -32,26 +32,36 @@ the route sets `Reply-To` to their address.
 
 Resend gives every account a shared sender at `onboarding@resend.dev` that works
 with no DNS setup at all. The catch: it can only deliver to the address you
-signed up with. Good enough for local testing, not for production.
+signed up with. Good enough for local testing, not for production. Set it in
+`src/constants/contact.ts` (§3 below covers both addresses):
 
-```sh
-CONTACT_FROM_EMAIL="jaako.xyz <onboarding@resend.dev>"
+```ts
+// src/constants/contact.ts
+export const CONTACT_FROM_EMAIL: string = "jaako.xyz <onboarding@resend.dev>";
 ```
 
-## 3. Set the environment variables
+## 3. Set the key, then the addresses
 
-In `.env.local` for local dev, and in the host's dashboard for the deployed
-site:
+The key is a secret and belongs in the environment — `.env.local` for local dev,
+the host's dashboard for the deployed site:
 
 ```sh
 RESEND_API_KEY=re_...
-CONTACT_FROM_EMAIL="jaako.xyz <contact@jaako.xyz>"
-CONTACT_TO_EMAIL=jaakoaandes@gmail.com
 ```
 
-All three are required. If any is missing the route logs which ones and returns
-503 — it never fails silently, because a contact form that swallows messages is
-worse than one that admits it's broken.
+The two addresses are not secret and are the same on localhost as in production,
+so they are constants rather than env vars. In `src/constants/contact.ts`:
+
+```ts
+// src/constants/contact.ts
+export const CONTACT_FROM_EMAIL: string = "jaako.xyz <contact@jaako.xyz>";
+export const CONTACT_TO_EMAIL: string = "you@example.com";
+```
+
+**Both ship blank**, which is what keeps the form off until you mean to turn it
+on. All three values are required: while any is missing the route logs what is
+absent and returns 503 — it never fails silently, because a contact form that
+swallows messages is worse than one that admits it's broken.
 
 ## 4. Test it
 
@@ -68,7 +78,7 @@ To exercise the route directly:
 ```sh
 curl -s localhost:3000/api/contact \
   -H 'content-type: application/json' \
-  -d '{"name":"test","email":"you@example.com","reason":"just saying hi","message":"hello"}'
+  -d '{"name":"test","email":"you@example.com","reason":"SAYING_HI","message":"hello"}'
 ```
 
 ## How the spam protection works
@@ -83,13 +93,14 @@ the message on the floor, so the bot logs a success and never learns to work
 around it.
 
 **Rate limit.** Three sends per IP per ten minutes, held in a `Map` in
-`src/lib/contact.ts`. Deliberately in-memory: on a serverless host the map is
-per-instance and resets on redeploy, which is fine, because the job is stopping
-a script hammering the endpoint in one sitting rather than enforcing a real
-quota. The IP comes from `x-forwarded-for`, which a determined sender can
-rotate — the honeypot is what actually stops bots. If the site ever needs a real
-limiter, swap the `hits` map for Redis; the call site won't change.
+`src/services/contactService.ts`. Deliberately in-memory: on a serverless host
+the map is per-instance and resets on redeploy, which is fine, because the job
+is stopping a script hammering the endpoint in one sitting rather than
+enforcing a real quota. The IP comes from `x-forwarded-for`, which a determined
+sender can rotate — the honeypot is what actually stops bots. If the site ever
+needs a real limiter, swap the `hits` map for Redis; the call site won't change.
 
 Validation is separate from either: name, e-mail and message must be present and
 within length limits, the e-mail must be shaped like an address, and the reason
-has to be one of the values in `src/data/contact.ts`.
+has to be one of the `ContactReason` values in `src/models/Contact.ts` — the enum
+value (`SAYING_HI`), not the label the dropdown shows (`just saying hi`).

@@ -1,8 +1,10 @@
 import { Resend } from "resend";
 import { serverConfig } from "@/config/serverConfig";
 import {
+  CONTACT_FROM_EMAIL,
   CONTACT_HOW_LABEL,
   CONTACT_REASON_LABEL,
+  CONTACT_TO_EMAIL,
   EMAIL_PATTERN,
   FIELD_LIMITS,
   RATE_LIMIT,
@@ -52,13 +54,25 @@ const createRateLimiter = () => {
 
 const rateLimiter = createRateLimiter();
 
+/**
+ * The names of the values a send needs that aren't set. Empty means ready to send.
+ *
+ * Still three values, but from two places now: the key comes from the environment
+ * and the two addresses from src/constants/contact.ts, which ship blank. Each name
+ * is reported with where to go and fix it, because "not configured" is a much less
+ * useful thing to read at 2am than which of two files is missing which value.
+ */
+const missingConfig = (): string[] =>
+  [
+    { name: "RESEND_API_KEY (.env.local)", value: serverConfig.resend_api_key },
+    { name: "CONTACT_FROM_EMAIL (src/constants/contact.ts)", value: CONTACT_FROM_EMAIL },
+    { name: "CONTACT_TO_EMAIL (src/constants/contact.ts)", value: CONTACT_TO_EMAIL },
+  ]
+    .filter((entry) => !entry.value)
+    .map((entry) => entry.name);
+
 /** False when the send path isn't wired up, so the route can say so instead of throwing. */
-const isConfigured = (): boolean =>
-  Boolean(
-    serverConfig.resend_api_key &&
-      serverConfig.contact_from_email &&
-      serverConfig.contact_to_email,
-  );
+const isConfigured = (): boolean => missingConfig().length === 0;
 
 const trimmed = (value: unknown): string => (typeof value === "string" ? value.trim() : "");
 
@@ -151,8 +165,8 @@ const send = async (args: { request: ContactRequest }): Promise<void> => {
   const resend = new Resend(serverConfig.resend_api_key);
 
   const { error } = await resend.emails.send({
-    from: serverConfig.contact_from_email,
-    to: serverConfig.contact_to_email,
+    from: CONTACT_FROM_EMAIL,
+    to: CONTACT_TO_EMAIL,
     replyTo: request.email,
     // No cc. The form used to offer "cc me on this", defaulted on, which sent a copy
     // to the sender's own address — harmless, since that is the one place the message
@@ -167,6 +181,7 @@ const send = async (args: { request: ContactRequest }): Promise<void> => {
 
 export const contactService = {
   isConfigured,
+  missingConfig,
   allow: rateLimiter.allow,
   validate,
   send,

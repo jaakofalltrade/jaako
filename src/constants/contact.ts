@@ -8,6 +8,33 @@ import { ContactHow, ContactReason, ValidationFailure } from "@/models";
  * means the dropdown, the mail subject and the error text all read from one place.
  */
 
+/**
+ * The two ends of the mail: who it comes from, and where it lands.
+ *
+ * Here rather than in the environment because neither is a secret and neither
+ * varies by deployment — they are the same two addresses on localhost as in
+ * production, so an env var only meant three places to forget to set one. The
+ * Resend API key stays in `.env.local`; that one really is a secret.
+ *
+ * BLANK ON PURPOSE. While these are empty `contactService.isConfigured()` is false,
+ * the route answers 503, and the form tells the visitor to use the e-mail link —
+ * which is the honest state for a form whose sending domain is not verified yet.
+ * Fill both in to turn the form on. Nothing else has to change.
+ *
+ * CONTACT_FROM must be an address on a domain verified in Resend, or the shared
+ * `onboarding@resend.dev` sender, which needs no DNS but only delivers to the
+ * address the Resend account was signed up with.
+ *
+ * Both are annotated `string` rather than left to infer. Without it TypeScript reads
+ * the empty literal `""` as the type, which makes isConfigured() statically false and
+ * turns any later comparison against these into a "no overlap" compile error — that
+ * is, filling them in would stop being the one-line change this comment promises.
+ */
+export const CONTACT_FROM_EMAIL: string = "";
+
+/** Where submissions land. Blank until the form goes live — see CONTACT_FROM_EMAIL. */
+export const CONTACT_TO_EMAIL: string = "";
+
 export const CONTACT_REASON_LABEL: Record<ContactReason, string> = {
   [ContactReason.Freelance]: "freelance",
   [ContactReason.FullTime]: "full-time",
