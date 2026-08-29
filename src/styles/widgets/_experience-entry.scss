@@ -39,14 +39,25 @@
 }
 
 .jk-xp__roles {
-  margin: var(--space-3) 0 0;
+  margin: var(--space-4) 0 0;
   padding: 0;
   list-style: none;
   display: grid;
-  gap: var(--space-1);
+  /* A role used to be one line and the list could sit at --space-1. Each one is now a
+     heading plus its own prose, so the gap has to be larger than the gap between the
+     bullets inside a role — otherwise the four Restoplus titles read as one long list
+     of twelve bullets instead of four jobs. This is the only thing separating them;
+     no rule, per the standing preference for whitespace over dividers. */
+  gap: var(--space-7);
 }
 
-.jk-xp__role {
+/* The mono label treatment lives on the head rather than on the <li>.
+
+   It was on .jk-xp__role while a role was a single line of text. Now that the <li>
+   also contains the bullets, leaving it there would cascade the mono face and the
+   --text-2xs size straight into the prose underneath. */
+.jk-xp__role-head {
+  margin: 0;
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
   letter-spacing: var(--tracking-wide);
@@ -64,7 +75,9 @@
 }
 
 .jk-xp__bullets {
-  margin: var(--space-4) 0 0;
+  /* Tighter to its own heading than the roles are to each other, so a bullet is
+     unambiguously attached to the title above it. */
+  margin: var(--space-3) 0 0;
   padding: 0;
   list-style: none;
   display: grid;
@@ -126,5 +139,11 @@
     justify-content: flex-start;
     text-align: left;
     gap: var(--space-3);
+  }
+
+  /* The entry is several times taller on a phone now. Pulling the bullet indent in
+     buys back a chunk of the line length at the width where it is scarcest. */
+  .jk-xp__bullets li {
+    padding-left: var(--space-4);
   }
 }

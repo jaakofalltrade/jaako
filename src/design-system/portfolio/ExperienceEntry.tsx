@@ -11,8 +11,11 @@ export type ExperienceEntryProps = {
 /**
  * One company, as a row rather than a card.
  *
- * Roles are a <ul> because they are a list of positions held, and the current one is
- * marked with <strong> rather than colour alone.
+ * Roles are a <ul> because they are a list of positions held, and the most recent one
+ * is marked with <strong> rather than colour alone. Each role now owns its own bullets
+ * as a nested list, which is the structure the content already had: the lines under
+ * "Software Engineer" are not true of "Junior Developer", and a single flat list per
+ * company was quietly claiming they were.
  */
 export const ExperienceEntry = ({ item, index }: ExperienceEntryProps) => (
   /* data-archived, same attribute and same reasoning as the work tracklist: the badge
@@ -29,14 +32,16 @@ export const ExperienceEntry = ({ item, index }: ExperienceEntryProps) => (
       <ul className="jk-xp__roles">
         {item.roles.map((role, position) => (
           <li key={role.title} className="jk-xp__role">
-            {position === 0 ? <strong>{role.title}</strong> : role.title}
-            <span className="jk-xp__period"> · {role.period}</span>
+            <p className="jk-xp__role-head">
+              {position === 0 ? <strong>{role.title}</strong> : role.title}
+              <span className="jk-xp__period"> · {role.period}</span>
+            </p>
+            <ul className="jk-xp__bullets">
+              {role.bullets.map((bullet) => (
+                <li key={bullet}>{bullet}</li>
+              ))}
+            </ul>
           </li>
-        ))}
-      </ul>
-      <ul className="jk-xp__bullets">
-        {item.bullets.map((bullet) => (
-          <li key={bullet}>{bullet}</li>
         ))}
       </ul>
     </div>

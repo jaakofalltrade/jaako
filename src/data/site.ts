@@ -33,8 +33,19 @@ export const ABOUT_LEAD =
 /** The phrase inside ABOUT_LEAD that takes the cyan chrome fill. */
 export const ABOUT_LEAD_EMPHASIS = "technical lead";
 
+/**
+ * Three paragraphs: where it came from, how the skills were actually acquired, and what
+ * the work is now. The middle one is the paragraph that was always here; the other two
+ * are the context it was missing.
+ *
+ * The AI-assisted workflow was considered for this section and deliberately left out.
+ * The footer already makes the joke ("80 % vibecoded"), and a portfolio is a worse
+ * place to argue the point than a conversation is.
+ */
 export const ABOUT_BODY: string[] = [
-  "Most of what I know came from breaking other people's repos and reading the stack traces. Frontend and backend, whichever's on fire. React, TypeScript and Node by day, Python when something needs automating.",
+  "It started with batch files. Scripts that opened five programs at once, and a folder that would not close no matter what you did to it. Making a machine misbehave on purpose is what turned computer science from a school subject into the thing I actually wanted to do. The security career it pointed at got as far as a review paper on DDoS mitigation and stopped there, and I stopped missing it a while ago.",
+  "Most of what I know after that came from breaking other people's repos and reading the stack traces. Frontend and backend, whichever's on fire. React, TypeScript and Node by day, Python when something needs automating.",
+  "These days the parts I like best sit on either side of the typing: reading an implementation plan and finding the case it does not account for, working out how a third-party API behaves as opposed to how its documentation says it behaves, and holding the shape of a system steady while several people add to it. Architecture, in other words. How the pieces fit into something people use without ever having to think about any of it.",
 ];
 
 export const ABOUT_META: MetaPair[] = [
@@ -113,7 +124,7 @@ export const TICKER: string[] = [
 export const TICKER_STRUCK = { retired: "open for work", current: "happily employed" };
 
 export const SECTIONS: Record<"about" | "experience" | "work" | "contact", SectionCopy> = {
-  about: { index: "01", title: "about", note: "last mod 08·20·2026" },
+  about: { index: "01", title: "about", note: "last mod 08·29·2026" },
   experience: { index: "02", title: "experience" },
   work: { index: "03", title: "selected work" },
   contact: { index: "04", title: "contact", note: "one dose, no newsletter" },

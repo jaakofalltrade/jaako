@@ -42,6 +42,16 @@
   margin-bottom: var(--space-4);
 }
 
+/* The metadata rail is a grid item in a row that stretches, and .jk-dl sizes its own
+   rows automatically, so the browser hands the leftover height to the gaps between the
+   pairs. That was invisible while the body was a lead and one paragraph. At three
+   paragraphs it opened roughly 100px between "based" and "discipline" and the four
+   pairs stopped reading as one block. Pinning the rows to the top lets the column
+   simply be shorter than the prose beside it, which is what a margin note should do. */
+.jk-about__meta {
+  align-content: start;
+}
+
 .jk-stack {
   display: flex;
   flex-wrap: wrap;
