@@ -1,10 +1,9 @@
+import { endpoints } from "@/client/endpoints";
 import { ContactRequest, ContactResponse } from "@/models";
 
 /**
  * The browser's calls to our own contact route.
  */
-
-const CONTACT_URL = "/api/contact";
 
 const send = async (args: {
   request: ContactRequest;
@@ -14,7 +13,7 @@ const send = async (args: {
   const { request, website } = args;
 
   try {
-    const response = await fetch(CONTACT_URL, {
+    const response = await fetch(endpoints.contact, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...request, website }),
@@ -23,7 +22,7 @@ const send = async (args: {
     return (await response.json()) as ContactResponse;
   } catch {
     // The request never reached the route.
-    return { ok: false, error: "Couldn't reach the server. Try the e-mail link instead." };
+    return { sent: false, error: "Couldn't reach the server. Try the e-mail link instead." };
   }
 };
 

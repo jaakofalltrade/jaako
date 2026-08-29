@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { LOCATION, SITE_DOMAIN, SITE_REV } from "@/constants";
 import { HERO } from "@/data/site";
 
 /**
@@ -54,7 +55,7 @@ const Image = () =>
               color: CY,
             }}
           >
-            portfolio · rev 03
+            portfolio · rev {SITE_REV}
           </div>
           <div style={{ display: "flex", flex: 1, height: 1, backgroundColor: HAIR }} />
           <div style={{ display: "flex", fontSize: 20, letterSpacing: 4, color: DIM }}>
@@ -94,8 +95,10 @@ const Image = () =>
           <div style={{ display: "flex", gap: 44, fontSize: 20, letterSpacing: 4, color: DIM }}>
             <div style={{ display: "flex" }}>TECHNICAL LEAD</div>
             <div style={{ display: "flex" }}>RESTOPLUS</div>
-            <div style={{ display: "flex" }}>SORSOGON, PH</div>
-            <div style={{ display: "flex", marginLeft: "auto", color: CY }}>JAAKO.XYZ</div>
+            <div style={{ display: "flex" }}>{LOCATION.toUpperCase()}</div>
+            <div style={{ display: "flex", marginLeft: "auto", color: CY }}>
+              {SITE_DOMAIN.toUpperCase()}
+            </div>
           </div>
         </div>
       </div>

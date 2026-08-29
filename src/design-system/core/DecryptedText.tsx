@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { DECRYPT_CHARS } from "@/constants/ui";
+import { DECRYPT_CHARS } from "@/constants";
 import { DecryptAlphabet, DecryptMode } from "@/models";
 import { cx } from "@/utils/cx";
 

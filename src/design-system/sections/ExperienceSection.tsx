@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { routes } from "@/client/endpoints";
 import { EXPERIENCE } from "@/data/experience";
 import { SECTIONS } from "@/data/site";
 import { SectionHead } from "../core/SectionHead";
@@ -32,7 +33,7 @@ export const ExperienceSection = () => (
       ))}
     </div>
 
-    <Link href="/experience" className="jk-section__all">
+    <Link href={routes.experience} className="jk-section__all">
       full history · {EXPERIENCE.length} entries →
     </Link>
   </section>

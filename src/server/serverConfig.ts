@@ -1,11 +1,17 @@
+import "server-only";
 import { Env, ServerConfig } from "@/models";
+import { isEnumValue } from "@/utils/enum";
 
 /**
  * Reads the environment once and hands back the config for it.
  *
- * Server-only. This module reads client secrets out of process.env, so it must
- * never be imported from a "use client" file — its only consumers are the two
- * modules in src/services/.
+ * Server-only, and enforced rather than asserted: the `server-only` import above
+ * makes reaching this from a "use client" file a build error. That guard belongs here
+ * more than anywhere else in the folder, because this is the module that actually
+ * reads the Resend key and the Spotify secret out of process.env. Without it the
+ * failure is silent in the worst way — Next inlines nothing but NEXT_PUBLIC_*, so
+ * every secret field would arrive in the browser as undefined and the panel and the
+ * form would quietly degrade instead of the build stopping.
  *
  * The three configs are identical today. That's deliberate: the structure is
  * here so staging can diverge without a refactor, not because it already has.
@@ -23,8 +29,14 @@ const SPOTIFY_API_URL = "https://api.spotify.com/v1";
  * still claims a ServerConfig — which surfaces as a 500 on the first property
  * read, not as a config error.
  */
-const toEnv = (value: string | undefined): Env =>
-  (Object.values(Env) as string[]).includes(value ?? "") ? (value as Env) : Env.Local;
+const isEnv = isEnumValue(Env);
+
+const toEnv = (value: string | undefined): Env => {
+  const candidate = value ?? "";
+  // No cast on the way out: the guard narrows `candidate` to Env, which is the whole
+  // reason isEnumValue returns a type predicate rather than a boolean.
+  return isEnv(candidate) ? candidate : Env.Local;
+};
 
 const env: Env = toEnv(process.env.ENV);
 

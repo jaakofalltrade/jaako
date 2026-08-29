@@ -1,26 +1,29 @@
 "use client";
 
 import React from "react";
-import { contactApi } from "@/api/contactApi";
+import { contactApi } from "@/client/contactApi";
 import {
   CONTACT_HOWS,
   CONTACT_HOW_LABEL,
   CONTACT_REASONS,
   CONTACT_REASONS_CLOSED,
   CONTACT_REASON_LABEL,
-  EMAIL_PATTERN,
-  FIELD_LIMITS,
   VALIDATION_MESSAGE,
-} from "@/constants/contact";
+} from "@/constants";
 import {
   BadgeTone,
   ButtonVariant,
   ContactHow,
   ContactReason,
   SubmissionStatus,
-  ValidationFailure,
 } from "@/models";
 import { CONTACT_LINKS, CONTACT_SPEC, SECTIONS } from "@/data/site";
+import {
+  checkEmail,
+  checkMessage,
+  checkName,
+  normalizeName,
+} from "@/utils/contactRules";
 import { Badge } from "../core/Badge";
 import { Button } from "../core/Button";
 import { SectionHead } from "../core/SectionHead";
@@ -82,42 +85,28 @@ type FormErrors = Partial<Record<CheckedField, string>>;
 const errorId = (field: CheckedField) => `contact-error-${field}`;
 
 /**
- * The same rules contactService enforces, run here so a missing name is answered in
- * the moment instead of after a round trip. A courtesy, not a control: the route
- * validates everything again, because anything running in a browser can be skipped.
+ * All three answers at once, each against the input that caused it.
  *
- * Plain reads off the form state. The copy is VALIDATION_MESSAGE, the same map the
- * route answers with, so the two cannot word one rejection two ways, and the limits
- * are FIELD_LIMITS, so neither can move without the other.
+ * A courtesy, not a control: the route validates everything again, because anything
+ * running in a browser can be skipped. The rules and the normalisation both live in
+ * utils/contactRules.ts, shared with the route so the two cannot drift into
+ * disagreeing about what a valid message is.
  *
- * Trimmed before it is measured, exactly as the route does it: a name typed as spaces
- * is an empty name, and a message padded out with them is not a long message.
+ * What stays here is the shape of the answer: the route wants the first failure and
+ * stops, this wants every failure so each message can be placed under the field that
+ * caused it.
  */
 const validate = (form: typeof EMPTY_FORM): FormErrors => {
+  const failures = {
+    name: checkName(normalizeName(form.name)),
+    email: checkEmail(form.email.trim()),
+    message: checkMessage(form.message.trim()),
+  };
+
   const errors: FormErrors = {};
-
-  const name = form.name.trim();
-  const email = form.email.trim();
-  const message = form.message.trim();
-
-  if (!name) {
-    errors.name = VALIDATION_MESSAGE[ValidationFailure.NameRequired];
-  } else if (name.length > FIELD_LIMITS.name) {
-    errors.name = VALIDATION_MESSAGE[ValidationFailure.NameTooLong];
-  }
-
-  if (!email) {
-    errors.email = VALIDATION_MESSAGE[ValidationFailure.EmailRequired];
-  } else if (email.length > FIELD_LIMITS.email || !EMAIL_PATTERN.test(email)) {
-    errors.email = VALIDATION_MESSAGE[ValidationFailure.EmailInvalid];
-  }
-
-  if (!message) {
-    errors.message = VALIDATION_MESSAGE[ValidationFailure.MessageRequired];
-  } else if (message.length > FIELD_LIMITS.message) {
-    errors.message = VALIDATION_MESSAGE[ValidationFailure.MessageTooLong];
-  }
-
+  if (failures.name) errors.name = VALIDATION_MESSAGE[failures.name];
+  if (failures.email) errors.email = VALIDATION_MESSAGE[failures.email];
+  if (failures.message) errors.message = VALIDATION_MESSAGE[failures.message];
   return errors;
 };
 
@@ -167,7 +156,7 @@ export const ContactSection = () => {
     const { website, ...request } = form;
     const response = await contactApi.send({ request, website });
 
-    if (!response.ok) {
+    if (!response.sent) {
       // What the route can answer with belongs to no single field: the throttle, an
       // unconfigured form, a Resend outage, and the field rules the browser already
       // checked, which only a caller that is not this form can still trip. The banner

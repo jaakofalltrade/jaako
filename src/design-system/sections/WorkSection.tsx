@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { routes } from "@/client/endpoints";
 import { FEATURED_PROJECTS, PROJECTS } from "@/data/projects";
 import { SECTIONS } from "@/data/site";
 import { SectionHead } from "../core/SectionHead";
@@ -16,7 +17,7 @@ export const WorkSection = () => (
 
     <Tracklist projects={FEATURED_PROJECTS} />
 
-    <Link href="/work" className="jk-section__all">
+    <Link href={routes.work} className="jk-section__all">
       full index · {PROJECTS.length} entries →
     </Link>
   </section>

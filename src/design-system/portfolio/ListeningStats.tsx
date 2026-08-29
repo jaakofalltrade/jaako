@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { spotifyTopApi } from "@/api/spotifyTopApi";
+import { spotifyApi } from "@/client/spotifyApi";
 import { DecryptAlphabet, Spotify } from "@/models";
 import { Annotation } from "../core/Annotation";
 import { DecryptedText } from "../core/DecryptedText";
@@ -24,7 +24,7 @@ export const ListeningStats = () => {
   React.useEffect(() => {
     const controller = new AbortController();
 
-    spotifyTopApi.topItems({ signal: controller.signal }).then((next) => {
+    spotifyApi.topItems({ signal: controller.signal }).then((next) => {
       if (controller.signal.aborted) return;
       setStats(next);
     });

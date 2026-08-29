@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { BADGE_TONE_CLASS } from "@/constants/ui";
+import { BADGE_TONE_CLASS } from "@/constants";
 import { BadgeTone } from "@/models";
 import { cx } from "@/utils/cx";
 

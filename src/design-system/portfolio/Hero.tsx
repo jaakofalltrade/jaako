@@ -1,9 +1,11 @@
 import { AnnotationTone, DecryptAlphabet, DecryptMode } from "@/models";
 import { HERO } from "@/data/site";
+import { dropSuffix } from "@/utils/text";
 import { Annotation } from "../core/Annotation";
 import { DecryptedText } from "../core/DecryptedText";
 import { DefinitionList } from "../core/DefinitionList";
 import { Rule } from "../core/Rule";
+import { Struck } from "../core/Struck";
 import { HeroActions } from "./HeroActions";
 
 /**
@@ -37,7 +39,7 @@ import { HeroActions } from "./HeroActions";
  * with ABOUT_LEAD_EMPHASIS. The copy stays a string; which half is warm stays a
  * presentation decision.
  */
-const titleLead = HERO.title.slice(0, HERO.title.length - HERO.title_accent.length);
+const titleLead = dropSuffix({ text: HERO.title, suffix: HERO.title_accent });
 
 export const Hero = () => (
   <header className="jk-hero">
@@ -123,7 +125,7 @@ export const Hero = () => (
             If it reads badly, delete the wrapper and put {HERO.blurb} back. */}
         <p className="jk-hero__blurb" data-reveal data-delay="2">
           <DecryptedText text={HERO.blurb} mode={DecryptMode.Burst} duration={1000} />{" "}
-          <s className="jk-struck">{HERO.struck.retired}</s> {HERO.struck.current}
+          <Struck retired={HERO.struck.retired} current={HERO.struck.current} />
         </p>
         <DefinitionList items={HERO.meta} className="jk-hero__meta" />
       </div>

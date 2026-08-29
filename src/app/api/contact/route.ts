@@ -1,6 +1,6 @@
-import { MAX_BODY_BYTES, VALIDATION_MESSAGE } from "@/constants/contact";
+import { MAX_BODY_BYTES, VALIDATION_MESSAGE } from "@/constants";
 import { ContactResponse, HttpStatus, ValidationFailure } from "@/models";
-import { contactService } from "@/services/contactService";
+import { contactService } from "@/server/contact";
 
 // POST handlers are never cached, but this also reads request headers, so be
 // explicit: nothing here may be lifted to build time.
@@ -30,21 +30,21 @@ export const POST = async (request: Request) => {
   if (!contactService.isConfigured()) {
     console.error(`[contact] not configured, missing: ${contactService.missingConfig().join(", ")}`);
     return json({
-      body: { ok: false, error: "The form isn't wired up yet. Use the e-mail link instead." },
+      body: { sent: false, error: "The form isn't wired up yet. Use the e-mail link instead." },
       status: HttpStatus.ServiceUnavailable,
     });
   }
 
   if (!request.headers.get("content-type")?.startsWith("application/json")) {
     return json({
-      body: { ok: false, error: VALIDATION_MESSAGE[ValidationFailure.Malformed] },
+      body: { sent: false, error: VALIDATION_MESSAGE[ValidationFailure.Malformed] },
       status: HttpStatus.BadRequest,
     });
   }
 
   const tooLong = () =>
     json({
-      body: { ok: false, error: VALIDATION_MESSAGE[ValidationFailure.MessageTooLong] },
+      body: { sent: false, error: VALIDATION_MESSAGE[ValidationFailure.MessageTooLong] },
       status: HttpStatus.BadRequest,
     });
 
@@ -60,21 +60,21 @@ export const POST = async (request: Request) => {
     body = JSON.parse(raw);
   } catch {
     return json({
-      body: { ok: false, error: VALIDATION_MESSAGE[ValidationFailure.Malformed] },
+      body: { sent: false, error: VALIDATION_MESSAGE[ValidationFailure.Malformed] },
       status: HttpStatus.BadRequest,
     });
   }
 
   const result = contactService.validate({ body });
 
-  if (!result.ok) {
+  if (!result.valid) {
     // Honeypot: answer exactly like a success so the bot logs a 200 and moves on,
     // and drop the message on the floor.
     if (result.failure === ValidationFailure.Honeypot) {
-      return json({ body: { ok: true }, status: HttpStatus.Ok });
+      return json({ body: { sent: true }, status: HttpStatus.Ok });
     }
     return json({
-      body: { ok: false, error: VALIDATION_MESSAGE[result.failure] },
+      body: { sent: false, error: VALIDATION_MESSAGE[result.failure] },
       status: HttpStatus.BadRequest,
     });
   }
@@ -83,7 +83,7 @@ export const POST = async (request: Request) => {
   // quota on attempts that were never going to send.
   if (!contactService.allow({ ip: clientIp(request) })) {
     return json({
-      body: { ok: false, error: "Slow down — try again in a few minutes." },
+      body: { sent: false, error: "Slow down — try again in a few minutes." },
       status: HttpStatus.TooManyRequests,
     });
   }
@@ -93,10 +93,10 @@ export const POST = async (request: Request) => {
   } catch (error) {
     console.error("[contact] send failed:", error);
     return json({
-      body: { ok: false, error: "Couldn't send that. Try the e-mail link instead." },
+      body: { sent: false, error: "Couldn't send that. Try the e-mail link instead." },
       status: HttpStatus.BadGateway,
     });
   }
 
-  return json({ body: { ok: true }, status: HttpStatus.Ok });
+  return json({ body: { sent: true }, status: HttpStatus.Ok });
 };

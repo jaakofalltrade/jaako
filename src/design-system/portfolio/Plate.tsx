@@ -1,6 +1,6 @@
 import Image from "next/image";
 import type { CSSProperties, ReactNode } from "react";
-import { PLATE_RATIO_CLASS } from "@/constants/ui";
+import { PLATE_RATIO_CLASS } from "@/constants";
 import { AnnotationTone, PlateRatio } from "@/models";
 import { cx } from "@/utils/cx";
 import { Annotation } from "../core/Annotation";

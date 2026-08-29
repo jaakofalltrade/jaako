@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { MouseEvent } from "react";
+import { routes } from "@/client/endpoints";
 import { ButtonSize, ButtonVariant } from "@/models";
 import { Button } from "../core/Button";
 import { scrollToSection } from "../scrollToSection";
@@ -26,7 +27,7 @@ export const HeroActions = () => {
 
   return (
     <div className="jk-hero__actions" data-reveal data-delay="3">
-      <Link href="/#work" onClick={(event) => handleClick(event, "work")} className="jk-hero__link">
+      <Link href={routes.section({ id: "work" })} onClick={(event) => handleClick(event, "work")} className="jk-hero__link">
         <Button as="span" variant={ButtonVariant.Primary} size={ButtonSize.Lg}>
           see the work
           {/* Its own element rather than the last character of the label, and that is a

@@ -1,5 +1,5 @@
 import { AnnotationTone } from "@/models";
-import { TECH_LABEL } from "@/constants/ui";
+import { TECH_LABEL } from "@/constants";
 import { TECH_STACK } from "@/data/techStack";
 import {
   ABOUT_BODY,

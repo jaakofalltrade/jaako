@@ -1,5 +1,5 @@
 import type { ComponentPropsWithoutRef, ElementType, ReactNode } from "react";
-import { BUTTON_SIZE_CLASS, BUTTON_VARIANT_CLASS } from "@/constants/ui";
+import { BUTTON_SIZE_CLASS, BUTTON_VARIANT_CLASS } from "@/constants";
 import { ButtonSize, ButtonVariant } from "@/models";
 import { cx } from "@/utils/cx";
 

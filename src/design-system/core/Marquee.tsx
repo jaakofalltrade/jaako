@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
-import { MARQUEE_TONE_CLASS } from "@/constants/ui";
+import { MARQUEE_TONE_CLASS } from "@/constants";
 import { MarqueeTone } from "@/models";
 import { cx } from "@/utils/cx";
 

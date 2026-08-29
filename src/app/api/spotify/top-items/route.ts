@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { TOP_ITEMS_CACHE_HEADERS } from "@/constants/spotify";
-import { spotifyService } from "@/services/spotifyService";
+import { TOP_ITEMS_CACHE_HEADERS } from "@/constants";
+import { spotifyService } from "@/server/spotify";
 
 /**
  * Listening statistics for the instrument strip.

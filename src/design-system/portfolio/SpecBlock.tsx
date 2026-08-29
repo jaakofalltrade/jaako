@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { AnnotationTone } from "@/models";
 import { CONTACT_SPEC } from "@/data/site";
+import { dropSuffix } from "@/utils/text";
 import { Annotation } from "../core/Annotation";
 
 export type SpecBlockProps = {
@@ -22,7 +23,10 @@ export type SpecBlockProps = {
  * Split on its own accent so src/data/site.ts stays free of JSX, exactly as Hero does
  * with the masthead name. Same word, same colour, same reason.
  */
-const specLead = CONTACT_SPEC.name.slice(0, CONTACT_SPEC.name.length - CONTACT_SPEC.name_accent.length);
+const specLead = dropSuffix({
+  text: CONTACT_SPEC.name,
+  suffix: CONTACT_SPEC.name_accent,
+});
 
 export const SpecBlock = ({ children }: SpecBlockProps) => (
   <div className="jk-spec">

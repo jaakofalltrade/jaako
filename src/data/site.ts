@@ -1,5 +1,24 @@
+import { routes } from "@/client/endpoints";
+import {
+  GITHUB_PATH,
+  GITHUB_URL,
+  LINKEDIN_PATH,
+  LINKEDIN_URL,
+  LOCATION,
+  PUBLIC_EMAIL,
+  PUBLIC_EMAIL_HREF,
+  SITE_DOMAIN,
+  SITE_REV,
+  SITE_URL,
+} from "@/constants";
 import { IconName } from "@/models";
-import type { ContactLink, HeroCopy, MetaPair, NavItem, SectionCopy } from "@/models";
+import type {
+  ContactLink,
+  HeroCopy,
+  MetaPair,
+  NavItem,
+  SectionCopy,
+} from "@/models";
 
 /**
  * The site's copy.
@@ -18,7 +37,7 @@ export const HERO: HeroCopy = {
   blurb:
     "I think therefore I am. Full-stack odd jobs: Next.js, Django, Discord bots, and whatever else the week needs.",
   struck: { retired: "for hire", current: "employed, still curious" },
-  kicker: "jaako andes · portfolio · rev 03",
+  kicker: `jaako andes · portfolio · rev ${SITE_REV}`,
   coords: "12.9714° N · 123.9944° E",
   meta: [
     { term: "role", value: "technical lead" },
@@ -52,30 +71,40 @@ export const ABOUT_BODY: string[] = [
 ];
 
 export const ABOUT_META: MetaPair[] = [
-  { term: "based", value: "sorsogon, ph" },
+  { term: "based", value: LOCATION },
   { term: "discipline", value: "full-stack" },
   { term: "remote since", value: "2020" },
   { term: "availability", value: "say hi" },
 ];
 
+/**
+ * The contact card. Only the labels and the icons are copy — every address here comes
+ * from src/constants/site.ts, so the text and the link it points at cannot drift apart
+ * the way a hand-typed pair can.
+ */
 export const CONTACT_LINKS: ContactLink[] = [
   {
     label: "email",
-    value: "jaakoaandes@gmail.com",
-    href: "mailto:jaakoaandes@gmail.com",
+    value: PUBLIC_EMAIL,
+    href: PUBLIC_EMAIL_HREF,
     icon: IconName.Mail,
   },
-  { label: "site", value: "jaako.xyz", href: "https://jaako.xyz", icon: IconName.Globe },
+  {
+    label: "site",
+    value: SITE_DOMAIN,
+    href: SITE_URL,
+    icon: IconName.Globe,
+  },
   {
     label: "code",
-    value: "github.com/jaakofalltrade",
-    href: "https://github.com/jaakofalltrade",
+    value: GITHUB_PATH,
+    href: GITHUB_URL,
     icon: IconName.Terminal,
   },
   {
     label: "linkedin",
-    value: "linkedin.com/in/jaakoandes",
-    href: "https://www.linkedin.com/in/jaakoandes/",
+    value: LINKEDIN_PATH,
+    href: LINKEDIN_URL,
     icon: IconName.Linkedin,
   },
 ];
@@ -88,7 +117,8 @@ export const CONTACT_SPEC = {
   subtitle: "Full-stack engineer. Remote. Sorsogon, Philippines.",
   dosage: "1 message · ~14 h",
   footnote: "store below 25 °c · keep out of reach of recruiters",
-  availability: "Two evenings a week, plus weekends if the project is interesting.",
+  availability:
+    "Two evenings a week, plus weekends if the project is interesting.",
 } as const;
 
 /**
@@ -113,20 +143,26 @@ export const STATUS = {
   zone_label: "pht",
   utc_offset: "gmt+8",
   employment: "employed",
-  location: "sorsogon, ph",
+  location: LOCATION,
 } as const;
 
 /** Footer ticker. The gag lines, still scrolling, still in the footer. */
 export const TICKER: string[] = [
-  "sorsogon, ph",
+  LOCATION,
   "display ▸ 1024×768 nominal",
   "no cookies, no newsletter",
   "all systems nominal",
 ];
 
-export const TICKER_STRUCK = { retired: "open for work", current: "happily employed" };
+export const TICKER_STRUCK = {
+  retired: "open for work",
+  current: "happily employed",
+};
 
-export const SECTIONS: Record<"about" | "experience" | "work" | "contact", SectionCopy> = {
+export const SECTIONS: Record<
+  "about" | "experience" | "work" | "contact",
+  SectionCopy
+> = {
   about: { index: "01", title: "about", note: "last mod 08·29·2026" },
   experience: { index: "02", title: "experience" },
   work: { index: "03", title: "selected work" },
@@ -139,7 +175,7 @@ export const FOOTER = {
   // most of which was talked into existence rather than typed. Saying so is funnier
   // than the boast was, and it is the only line in the footer that is about how the
   // thing was made rather than what it is made of.
-  credit: "80 % vibecoded · 20 % remorse · 0 % template",
+  credit: "80 % unethical · 20 % handmade · 0 % template",
   spec: "plate 01-05 · duotone c-2 · 6400 k",
 } as const;
 
@@ -150,7 +186,10 @@ export const FOOTER = {
  * the true one — the site is new. Rendered in a seven-digit odometer it comes out as
  * 0000001, and the "± 1" underneath now spans the entire range of plausible values.
  */
-export const VISITOR_INDEX = { count: 1, unit: "cumulative ± 1 · since 2026" } as const;
+export const VISITOR_INDEX = {
+  count: 1,
+  unit: "cumulative ± 1 · since 2026",
+} as const;
 
 /**
  * The section index, rendered twice: inline above the about section by SectionNav,
@@ -163,8 +202,18 @@ export const VISITOR_INDEX = { count: 1, unit: "cumulative ± 1 · since 2026" }
  * way back into the page they belong to.
  */
 export const NAV_ITEMS: NavItem[] = [
-  { label: "about", href: "/#about", id: "about" },
-  { label: "experience", href: "/#experience", id: "experience", route: "/experience" },
-  { label: "work", href: "/#work", id: "work", route: "/work" },
-  { label: "contact", href: "/#contact", id: "contact" },
+  { label: "about", href: routes.section({ id: "about" }), id: "about" },
+  {
+    label: "experience",
+    href: routes.section({ id: "experience" }),
+    id: "experience",
+    route: routes.experience,
+  },
+  {
+    label: "work",
+    href: routes.section({ id: "work" }),
+    id: "work",
+    route: routes.work,
+  },
+  { label: "contact", href: routes.section({ id: "contact" }), id: "contact" },
 ];
