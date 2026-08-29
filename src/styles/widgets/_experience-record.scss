@@ -93,12 +93,16 @@
   grid-column: 2;
 }
 
-/* Up a step from --text-3xs, which put this label at the same size as the location and
-   tenure micro-labels it has nothing to do with. It heads a block. */
+/* This heads a block, so it is sized like a heading rather than like the location and
+   tenure micro-labels it was sharing the 11px floor with. --text-md puts it above the
+   14px job titles beneath it and below the 22px company names, which is the level it
+   actually sits at. Tracking comes back to normal: --tracking-wide is for type at 11
+   and 12px and opens up too far at this size. */
 .jk-research__title {
-  @include label($size: var(--text-2xs), $tracking: var(--tracking-wide));
-  color: var(--text-dim);
-  text-transform: lowercase;
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+  letter-spacing: var(--tracking-normal);
+  color: var(--text-body);
 }
 
 .jk-research__list {

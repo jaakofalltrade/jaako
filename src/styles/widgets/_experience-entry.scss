@@ -47,11 +47,12 @@
   gap: var(--space-1);
 }
 
-/* Job titles went up a step, from --text-2xs to --text-sm.
-   Note --text-xs was not an option: it and --text-2xs are both 12px, which the
-   comment in tokens/_typography.scss explains and deliberately leaves alone. */
+/* Deliberately still --text-2xs, while the same label on /experience is --text-sm.
+   There a role is a heading with its own bullets under it; here it is one line in a
+   list of four that the summary underneath does the talking for. The mixin defaults to
+   the larger size, so this passes the smaller one explicitly. */
 .jk-xp__role {
-  @include role-label;
+  @include role-label($size: var(--text-2xs));
 }
 
 .jk-xp__period {

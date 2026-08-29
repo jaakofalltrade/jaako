@@ -3,26 +3,15 @@
 /* "See everything" at the foot of a section.
  *
  * One rule for two callers. The work section has pointed at /work this way for a
- * while; the experience section now points at /experience the same way, and the
- * alternative was this same block of declarations written twice under two names. It is
- * an element of .jk-section rather than of either one, which is what it always was.
+ * while; the experience section now points at /experience the same way. It is an
+ * element of .jk-section rather than of either one, which is what it always was.
+ *
+ * The treatment itself is the quiet-link mixin, shared with .jk-back__link.
  */
 
 .jk-section__all {
-  display: inline-flex;
-  align-items: center;
+  @include quiet-link;
   margin-top: var(--space-7);
-  @include label($size: var(--text-3xs));
-  color: var(--text-dim);
-  text-decoration: none;
-  border-bottom: var(--border-1) solid var(--hair);
-  padding-bottom: var(--space-2);
-  transition: color var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out);
-
-  &:hover {
-    color: var(--text-link);
-    border-bottom-color: var(--hair-lit);
-  }
 }
 
 @media (pointer: coarse) {

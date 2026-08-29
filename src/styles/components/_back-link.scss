@@ -1,7 +1,11 @@
-/* BackLink — the way out of a sub-page.
+@use "../base/mixins" as *;
+
+/* BackLink — the way out of a sub-page, above the section head.
  *
- * Sits above the section head, so the margin below it is what separates the control
- * from the page rather than any rule.
+ * A link, not a button. It was a Glass Button and it broke the page: a pressable slab
+ * is the heaviest object the design system has, sitting above a page that is otherwise
+ * all type and whitespace, doing the quietest job on it. Same quiet-link treatment as
+ * .jk-section__all, which is the page's existing way of saying "this goes somewhere".
  */
 
 .jk-back {
@@ -9,6 +13,9 @@
 }
 
 .jk-back__link {
-  display: inline-block;
-  text-decoration: none;
+  @include quiet-link;
+}
+
+@media (pointer: coarse) {
+  .jk-back__link { min-height: var(--touch-min); }
 }

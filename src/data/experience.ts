@@ -23,7 +23,7 @@ export const EXPERIENCE: ExperienceItem[] = [
     current: true,
     summary: [
       "Runs the stack reviews, the high-level code review and the hiring, and still writes implementation plans. Six years and four titles in.",
-      "Built the POS from scratch and later took it offline-first, and ran the research and the rollout for everything it talks to: UberEats, Linkly, ANZ, Tyro, and the terminals and printers behind them. The printers remain undefeated.",
+      "Grew the POS into most of what it does now: UberEats, Linkly, ANZ, Tyro, the payment terminals and the printers, and lately an offline-first rewrite onto IndexedDB. The printers remain undefeated.",
       "Started on the admin and ordering portals, which is where TypeScript, Stripe, Firebase and GCP all turned up at once.",
     ],
     roles: [
@@ -34,7 +34,7 @@ export const EXPERIENCE: ExperienceItem[] = [
           "Own the stack reviews, the high-level code review, and the ticket estimates product plans against. Still in the R&D and the implementation plans, because that is the part of the job I did not want to hand off.",
           "In the room for product and executive planning, where most of the work is translating in both directions: what a feature will cost to build, and what the business actually needs it to do.",
           "Take the technical support escalations that get past the front line. It is the fastest way to find out which of your assumptions about how people use the product were wrong.",
-          "Took the POS offline-first. Its state moved out of MobX and into IndexedDB so a terminal keeps taking orders when the connection drops, which in a restaurant it does, and reconciles once the network is back. Rewriting the state layer of a product already running in kitchens is the most careful work I have done.",
+          "The POS is offline-first now. Its state moved out of MobX and into IndexedDB so a terminal keeps taking orders when the connection drops, which in a restaurant it does, and reconciles once the network is back. Rewriting the state layer of a product already running in kitchens is the most careful work I have been part of.",
           "Cut the Android releases. The POS ships as a native shell around a WebView, so a release is a store submission stacked on top of a web deploy, and two release processes means two sets of things that can be wrong at once.",
         ],
       },
@@ -49,7 +49,7 @@ export const EXPERIENCE: ExperienceItem[] = [
         title: "Software Engineer",
         period: "Jan 2023 - May 2024",
         bullets: [
-          "Built the POS from scratch with the team. TypeScript and Firebase, with MobX holding the terminal state, and it is where every payment and printer integration eventually has to land, so the hardware work and the POS work were never really two jobs.",
+          "Most of my time went on the POS: TypeScript and Firebase, with MobX holding the terminal state at the time. It is where every payment and printer integration has to land, so the integration work and the POS work were never really two jobs.",
           "Ran the research and the rollout for third-party integrations: UberEats, Linkly, ANZ and Tyro, plus the Sunmi terminals and USB printing behind them. Each one started with meetings with the provider's own engineers, working out what their API really did before any of it got written down as a plan. The printers remain undefeated.",
           "Wrote implementation plans and reviewed other people's. The CTO signed off rather than supervised, which is a length of rope I have tried to be worth since.",
           "Architecture work in earnest: raising refactor tickets before the codebase could drift, keeping four integrations from turning into four dialects inside it, and keeping the data structures backwards compatible for the restaurants already running on them.",

@@ -130,3 +130,27 @@ $bp-lg: 80rem;  /* 1280px */
     background: var(--text-faint);
   }
 }
+
+/* The quiet text link: a page's navigation that is not a control.
+ *
+ * Two callers, .jk-section__all at the foot of a section and .jk-back__link at the top
+ * of a sub-page. The back link started life as a Glass Button and read as one — a
+ * pressable slab above an editorial page, which is the loudest thing the design system
+ * has aimed at the quietest job on the page. A rule under a few tracked characters is
+ * what the rest of the page already uses to mean "this goes somewhere".
+ */
+@mixin quiet-link {
+  display: inline-flex;
+  align-items: center;
+  @include label($size: var(--text-3xs));
+  color: var(--text-dim);
+  text-decoration: none;
+  border-bottom: var(--border-1) solid var(--hair);
+  padding-bottom: var(--space-2);
+  transition: color var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out);
+
+  &:hover {
+    color: var(--text-link);
+    border-bottom-color: var(--hair-lit);
+  }
+}

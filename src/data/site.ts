@@ -55,7 +55,7 @@ export const ABOUT_META: MetaPair[] = [
   { term: "based", value: "sorsogon, ph" },
   { term: "discipline", value: "full-stack" },
   { term: "remote since", value: "2020" },
-  { term: "availability", value: "say hi anyway" },
+  { term: "availability", value: "say hi" },
 ];
 
 export const CONTACT_LINKS: ContactLink[] = [
@@ -112,7 +112,7 @@ export const STATUS = {
   time_zone: "Asia/Manila",
   zone_label: "pht",
   utc_offset: "gmt+8",
-  employment: "employed, still curious",
+  employment: "employed",
   location: "sorsogon, ph",
 } as const;
 
