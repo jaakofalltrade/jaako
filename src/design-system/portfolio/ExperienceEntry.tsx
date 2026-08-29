@@ -9,10 +9,17 @@ export type ExperienceEntryProps = {
 };
 
 /**
- * One company, as a row rather than a card.
+ * One company on the homepage, as a row rather than a card.
  *
- * Roles are a <ul> because they are a list of positions held, and the current one is
- * marked with <strong> rather than colour alone.
+ * The short form. Roles are a <ul> of bare titles because they are a list of positions
+ * held, and the most recent one is marked with <strong> rather than colour alone; the
+ * bullets underneath are `summary`, which describes the company rather than any one
+ * title. What each title actually involved lives on /experience, through the link at
+ * the foot of the section.
+ *
+ * The reason the split exists at all: the full record runs to four roles of bullets for
+ * Restoplus and a single line for Bicol University, and putting that on the homepage
+ * buried the work and contact sections under a CV.
  */
 export const ExperienceEntry = ({ item, index }: ExperienceEntryProps) => (
   /* data-archived, same attribute and same reasoning as the work tracklist: the badge
@@ -35,8 +42,8 @@ export const ExperienceEntry = ({ item, index }: ExperienceEntryProps) => (
         ))}
       </ul>
       <ul className="jk-xp__bullets">
-        {item.bullets.map((bullet) => (
-          <li key={bullet}>{bullet}</li>
+        {item.summary.map((line) => (
+          <li key={line}>{line}</li>
         ))}
       </ul>
     </div>

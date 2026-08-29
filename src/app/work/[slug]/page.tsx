@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { PROJECT_STATUS_LABEL, PROJECT_STATUS_TONE } from "@/constants/ui";
 import { PROJECTS, getProject } from "@/data/projects";
 import { AnnotationTone, ButtonVariant, IconName, PlateRatio } from "@/models";
@@ -9,6 +8,7 @@ import { Badge } from "@/design-system/core/Badge";
 import { Button } from "@/design-system/core/Button";
 import { DefinitionList } from "@/design-system/core/DefinitionList";
 import { Rule } from "@/design-system/core/Rule";
+import { BackLink } from "@/design-system/portfolio/BackLink";
 import { Plate } from "@/design-system/portfolio/Plate";
 import { Icon } from "@/design-system/Icon";
 
@@ -44,6 +44,8 @@ const ProjectDetailPage = async ({ params }: { params: Promise<{ slug: string }>
 
   return (
     <article className="jk-section jk-detail">
+      <BackLink href="/work">full index</BackLink>
+
       <Plate
         src={project.plate}
         ratio={PlateRatio.Landscape}
@@ -88,11 +90,6 @@ const ProjectDetailPage = async ({ params }: { params: Promise<{ slug: string }>
       </div>
 
       <div className="jk-detail__actions">
-        <Link href="/work" className="jk-detail__link">
-          <Button as="span" variant={ButtonVariant.Glass}>
-            ← full index
-          </Button>
-        </Link>
         <Button variant={ButtonVariant.Ghost} icon={<Icon name={IconName.Link} size={14} />}>
           source
         </Button>

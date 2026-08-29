@@ -54,10 +54,6 @@
   margin-top: var(--space-8);
 }
 
-.jk-detail__link {
-  text-decoration: none;
-}
-
 @include down($bp-md) {
   .jk-detail__grid {
     grid-template-columns: minmax(0, 1fr);

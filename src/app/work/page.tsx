@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { PROJECTS } from "@/data/projects";
 import { SECTIONS } from "@/data/site";
 import { SectionHead } from "@/design-system/core/SectionHead";
+import { BackLink } from "@/design-system/portfolio/BackLink";
 import { Tracklist } from "@/design-system/portfolio/Tracklist";
 
 export const metadata: Metadata = {
@@ -18,6 +19,8 @@ export const metadata: Metadata = {
  */
 const WorkIndexPage = () => (
   <section className="jk-section jk-work-index">
+    <BackLink href="/#work">back to the page</BackLink>
+
     <SectionHead
       index={SECTIONS.work.index}
       note={`${String(PROJECTS.length).padStart(2, "0")} entries · 2019–2026`}

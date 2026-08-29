@@ -1,0 +1,147 @@
+@use "../base/mixins" as *;
+
+/* The long form of a company, on /experience.
+ *
+ * Stacked rather than the three columns the homepage entry uses. At this length the
+ * metadata rail would have been a short column beside a very tall one, and the roles
+ * need the full measure to be readable — so the meta becomes a ruled row under the
+ * company name instead, the same treatment /work/[slug] gives a project.
+ *
+ * The spine, the role label and the dotted list are the mixins in base/_mixins.scss,
+ * shared with .jk-xp. Only the sizes and the gaps differ, which is the whole reason
+ * they are parameters.
+ */
+
+.jk-experience-index__list {
+  display: grid;
+  gap: var(--space-10);
+}
+
+/* The same two-column spine the homepage entry uses: a narrow margin holding the
+   number, and everything else on one left edge beside it. Getting this wrong is
+   visible immediately — with the index inline in the header, the company name sat
+   26px right of the metadata and the bullets it owns. */
+.jk-xpr {
+  @include index-spine;
+}
+
+.jk-xpr__head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-4);
+}
+
+.jk-xpr__index {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--text-faint);
+}
+
+.jk-xpr__company {
+  font-size: var(--text-xl);
+  color: var(--text-strong);
+}
+
+/* Same one step back an archived company takes on the homepage, and for the same
+   reason: the badge beside it is the carrier, this makes it legible while scanning. */
+.jk-xpr[data-archived] .jk-xpr__company {
+  color: var(--text-body);
+}
+
+.jk-xpr__meta {
+  margin-top: var(--space-5);
+  max-width: var(--measure);
+}
+
+.jk-xpr__roles {
+  margin: var(--space-7) 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  /* Wider than the gap between bullets inside a role, so four titles read as four jobs
+     rather than as one undivided list of bullets. Whitespace only; no rule. */
+  gap: var(--space-8);
+}
+
+.jk-xpr__role-head {
+  @include role-label;
+  margin: 0;
+}
+
+.jk-xpr__period {
+  color: var(--text-dim);
+}
+
+.jk-xpr__bullets {
+  /* Tighter to its own heading than the roles are to each other, so a bullet is
+     unambiguously attached to the title above it. */
+  @include dotted-list;
+  margin-top: var(--space-4);
+}
+
+/* Published work. A short list at the foot of the record, not a section of its own.
+   It takes the spine too, so "published" lands on the company names rather than on the
+   numbers out in the margin. */
+
+.jk-research {
+  @include index-spine($gap: 0 var(--space-5));
+  margin-top: var(--space-11);
+}
+
+.jk-research__title,
+.jk-research__list {
+  grid-column: 2;
+}
+
+/* This heads a block, so it is sized like a heading rather than like the location and
+   tenure micro-labels it was sharing the 11px floor with. --text-md puts it above the
+   14px job titles beneath it and below the 22px company names, which is the level it
+   actually sits at. Tracking comes back to normal: --tracking-wide is for type at 11
+   and 12px and opens up too far at this size. */
+.jk-research__title {
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+  letter-spacing: var(--tracking-normal);
+  color: var(--text-body);
+}
+
+.jk-research__list {
+  margin: var(--space-6) 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-7);
+}
+
+.jk-research__head {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--text-body);
+  max-width: var(--measure);
+}
+
+.jk-research__venue {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-dim);
+}
+
+.jk-research__note {
+  margin: var(--space-3) 0 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--text-dim);
+  max-width: var(--measure);
+}
+
+@include down($bp-sm) {
+  /* Narrower margin at this width, matching .jk-xp's own small-screen columns. */
+  .jk-xpr { @include index-spine($column: 1.75rem, $gap: var(--space-4)); }
+  .jk-research { @include index-spine($column: 1.75rem, $gap: 0 var(--space-4)); }
+
+  .jk-experience-index__list { gap: var(--space-9); }
+  .jk-xpr__roles { gap: var(--space-7); }
+  .jk-xpr__bullets li { padding-left: var(--space-4); }
+}

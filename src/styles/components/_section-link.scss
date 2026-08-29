@@ -1,0 +1,19 @@
+@use "../base/mixins" as *;
+
+/* "See everything" at the foot of a section.
+ *
+ * One rule for two callers. The work section has pointed at /work this way for a
+ * while; the experience section now points at /experience the same way. It is an
+ * element of .jk-section rather than of either one, which is what it always was.
+ *
+ * The treatment itself is the quiet-link mixin, shared with .jk-back__link.
+ */
+
+.jk-section__all {
+  @include quiet-link;
+  margin-top: var(--space-7);
+}
+
+@media (pointer: coarse) {
+  .jk-section__all { min-height: var(--touch-min); }
+}

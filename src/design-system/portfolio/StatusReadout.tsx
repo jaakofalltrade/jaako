@@ -15,7 +15,7 @@ import { LocalClock } from "./LocalClock";
  *
  * A DefinitionList and not a bespoke grid, because term/value is exactly what these
  * are and the pairing is the meaning — a screen reader should say "employment,
- * employed still curious", not read two loose fragments. It also puts this cell on the
+ * employed", not read two loose fragments. It also puts this cell on the
  * same rails as the listening statistics two cells over, which is what makes the strip
  * read as one instrument rather than four unrelated widgets.
  *

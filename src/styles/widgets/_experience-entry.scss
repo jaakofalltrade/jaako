@@ -1,14 +1,15 @@
 @use "../base/mixins" as *;
 
-/* One company as a row, numbered like the work tracklist so the two read as one
-   system rather than two different treatments of a list. */
+/* One company as a row on the homepage, numbered like the work tracklist so the two
+   read as one system rather than two different treatments of a list.
+
+   The short form. The full record is .jk-xpr on /experience, and the three declaration
+   clusters the two share — the spine, the role label, the dotted list — are mixins in
+   base/_mixins.scss rather than rules written out in both files. */
 
 .jk-xp {
-  display: grid;
+  @include index-spine;
   grid-template-columns: 2rem minmax(0, 1fr) 11rem;
-  gap: var(--space-5);
-  align-items: start;
-  padding: 0 var(--space-2);
 }
 
 .jk-xp__index {
@@ -46,16 +47,12 @@
   gap: var(--space-1);
 }
 
+/* Deliberately still --text-2xs, while the same label on /experience is --text-sm.
+   There a role is a heading with its own bullets under it; here it is one line in a
+   list of four that the summary underneath does the talking for. The mixin defaults to
+   the larger size, so this passes the smaller one explicitly. */
 .jk-xp__role {
-  font-family: var(--font-mono);
-  font-size: var(--text-2xs);
-  letter-spacing: var(--tracking-wide);
-  color: var(--text-dim);
-
-  strong {
-    color: var(--text-body);
-    font-weight: var(--weight-regular);
-  }
+  @include role-label($size: var(--text-2xs));
 }
 
 .jk-xp__period {
@@ -64,37 +61,8 @@
 }
 
 .jk-xp__bullets {
-  margin: var(--space-4) 0 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: var(--space-3);
-  max-width: var(--measure);
-
-  li {
-    position: relative;
-    padding-left: var(--space-5);
-    font-size: var(--text-sm);
-    line-height: var(--leading-normal);
-    color: var(--text-dim);
-  }
-
-  /* A dot rather than the hairline dash this used to draw. Drawn as a box rather than
-     set as a • glyph so its size and colour answer to the tokens instead of to
-     whichever font happens to render the bullet.
-
-     --hair-lit is a decorative alpha sized for a stroke a dozen pixels long; at 4px
-     square it all but disappears, so the dot takes --text-faint. */
-  li::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0.6em;
-    width: 4px;
-    height: 4px;
-    border-radius: var(--radius-pill);
-    background: var(--text-faint);
-  }
+  @include dotted-list;
+  margin-top: var(--space-4);
 }
 
 .jk-xp__meta {
@@ -127,4 +95,6 @@
     text-align: left;
     gap: var(--space-3);
   }
+
+  .jk-xp__bullets li { padding-left: var(--space-4); }
 }

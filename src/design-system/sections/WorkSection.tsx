@@ -16,7 +16,7 @@ export const WorkSection = () => (
 
     <Tracklist projects={FEATURED_PROJECTS} />
 
-    <Link href="/work" className="jk-work-section__all">
+    <Link href="/work" className="jk-section__all">
       full index · {PROJECTS.length} entries →
     </Link>
   </section>

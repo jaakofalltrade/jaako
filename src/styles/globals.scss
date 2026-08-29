@@ -49,6 +49,8 @@
 @use "components/annotation"; // Annotation
 @use "components/section-head"; // SectionHead
 @use "components/definition-list"; // DefinitionList
+@use "components/section-link"; // .jk-section__all — WorkSection, ExperienceSection
+@use "components/back-link"; // BackLink — top of every sub-page
 @use "components/icon"; // Icon, TechLogo
 
 // --- forms -------------------------------------------------------------------
@@ -66,12 +68,12 @@
 @use "widgets/spec-block"; // SpecBlock
 @use "widgets/contact-row"; // ContactRow
 @use "widgets/experience-entry"; // ExperienceEntry
+@use "widgets/experience-record"; // ExperienceRecord — /experience
 @use "widgets/instrument-strip"; // InstrumentStrip, VisitorIndex, KnownAs, ListeningStats
 @use "widgets/dock"; // NowPlayingDock
 
 // --- sections ----------------------------------------------------------------
 @use "sections/about"; // #about — hero, instrument strip, bio, stack
 @use "sections/experience"; // #experience
-@use "sections/work"; // #work
 @use "sections/contact"; // #contact
 @use "sections/detail"; // /work/[slug]

@@ -33,15 +33,29 @@ export const ABOUT_LEAD =
 /** The phrase inside ABOUT_LEAD that takes the cyan chrome fill. */
 export const ABOUT_LEAD_EMPHASIS = "technical lead";
 
+/**
+ * One paragraph.
+ *
+ * It was three: an origin story about batch files, the "most of what I know" line that
+ * had been here all along, and this. Read on the page they were a wall, and the lead
+ * above them already says the six-years-four-titles part, so two of the three were
+ * spending a lot of words to arrive where the reader already was. This is the one that
+ * answers the only question the section is really being asked, which is what this
+ * person actually likes doing.
+ *
+ * The DDoS paper went with the batch-file paragraph. It still has a home: the research
+ * block at the foot of /experience, where it no longer depends on this copy to explain
+ * why it is there.
+ */
 export const ABOUT_BODY: string[] = [
-  "Most of what I know came from breaking other people's repos and reading the stack traces. Frontend and backend, whichever's on fire. React, TypeScript and Node by day, Python when something needs automating.",
+  "The parts I like best sit on either side of the typing: reading an implementation plan and finding the case it does not account for, working out how a third-party API behaves as opposed to how its documentation says it behaves, and holding the shape of a system steady while several people add to it. Architecture, in other words. How the pieces fit into something people use without ever having to think about any of it.",
 ];
 
 export const ABOUT_META: MetaPair[] = [
   { term: "based", value: "sorsogon, ph" },
   { term: "discipline", value: "full-stack" },
   { term: "remote since", value: "2020" },
-  { term: "availability", value: "say hi anyway" },
+  { term: "availability", value: "say hi" },
 ];
 
 export const CONTACT_LINKS: ContactLink[] = [
@@ -98,7 +112,7 @@ export const STATUS = {
   time_zone: "Asia/Manila",
   zone_label: "pht",
   utc_offset: "gmt+8",
-  employment: "employed, still curious",
+  employment: "employed",
   location: "sorsogon, ph",
 } as const;
 
@@ -113,7 +127,7 @@ export const TICKER: string[] = [
 export const TICKER_STRUCK = { retired: "open for work", current: "happily employed" };
 
 export const SECTIONS: Record<"about" | "experience" | "work" | "contact", SectionCopy> = {
-  about: { index: "01", title: "about", note: "last mod 08·20·2026" },
+  about: { index: "01", title: "about", note: "last mod 08·29·2026" },
   experience: { index: "02", title: "experience" },
   work: { index: "03", title: "selected work" },
   contact: { index: "04", title: "contact", note: "one dose, no newsletter" },
@@ -150,7 +164,7 @@ export const VISITOR_INDEX = { count: 1, unit: "cumulative ± 1 · since 2026" }
  */
 export const NAV_ITEMS: NavItem[] = [
   { label: "about", href: "/#about", id: "about" },
-  { label: "experience", href: "/#experience", id: "experience" },
+  { label: "experience", href: "/#experience", id: "experience", route: "/experience" },
   { label: "work", href: "/#work", id: "work", route: "/work" },
   { label: "contact", href: "/#contact", id: "contact" },
 ];
