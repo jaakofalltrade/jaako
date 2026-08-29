@@ -36,8 +36,9 @@ export type ExperienceItem = {
  * Published work. Rendered at the foot of /experience, not on the homepage.
  *
  * It sits in this file rather than its own because it is the same record: a paper and
- * a thesis are things the career produced, and they answer the question the about copy
- * raises when it says the security thread stopped at a review paper.
+ * a thesis are things the career produced, and there is nowhere else on the site they
+ * would sit. The about copy used to point at the DDoS paper and no longer does; see the
+ * note on RESEARCH in src/data/experience.ts for what that changed and what it did not.
  */
 export type ResearchItem = {
   title: string;

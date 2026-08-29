@@ -17,9 +17,9 @@ export type ExperienceEntryProps = {
  * title. What each title actually involved lives on /experience, through the link at
  * the foot of the section.
  *
- * The reason the split exists at all: the full record is thirteen bullets for Restoplus
- * and one for Bicol University, and putting that on the homepage buried the work and
- * contact sections under a CV.
+ * The reason the split exists at all: the full record runs to four roles of bullets for
+ * Restoplus and a single line for Bicol University, and putting that on the homepage
+ * buried the work and contact sections under a CV.
  */
 export const ExperienceEntry = ({ item, index }: ExperienceEntryProps) => (
   /* data-archived, same attribute and same reasoning as the work tracklist: the badge

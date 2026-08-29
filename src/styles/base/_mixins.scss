@@ -141,7 +141,12 @@ $bp-lg: 80rem;  /* 1280px */
  */
 @mixin quiet-link {
   display: inline-flex;
-  align-items: center;
+  /* flex-end, not center. Both callers raise this to --touch-min under
+     (pointer: coarse), and the rule is drawn on the box: centring the label inside a
+     44px box leaves the underline ~20px below the text on every touch device. Aligned
+     to the bottom, the extra height goes above the label instead, where there is
+     nothing to detach. */
+  align-items: flex-end;
   @include label($size: var(--text-3xs));
   color: var(--text-dim);
   text-decoration: none;

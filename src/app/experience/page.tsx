@@ -5,12 +5,15 @@ import { SectionHead } from "@/design-system/core/SectionHead";
 import { BackLink } from "@/design-system/portfolio/BackLink";
 import { ExperienceRecord } from "@/design-system/portfolio/ExperienceRecord";
 
+const ROLE_COUNT = EXPERIENCE.reduce((total, item) => total + item.roles.length, 0);
+
+/* Counted rather than written out. The description said "three companies, six titles"
+   while the note below computed the same two numbers, so adding a role would have
+   updated the page and left the search result behind. */
 export const metadata: Metadata = {
   title: "experience · jaako andes",
-  description: "Eight years, three companies, six titles. Role by role.",
+  description: `${ROLE_COUNT} roles across ${EXPERIENCE.length} companies. Role by role.`,
 };
-
-const ROLE_COUNT = EXPERIENCE.reduce((total, item) => total + item.roles.length, 0);
 
 /**
  * The full record.
@@ -28,7 +31,7 @@ const ExperienceIndexPage = () => (
   <section className="jk-section jk-experience-index">
     <BackLink href="/#experience">back to the page</BackLink>
 
-    <SectionHead index={SECTIONS.experience.index} note={`${ROLE_COUNT} roles · 2018–2026`}>
+    <SectionHead index={SECTIONS.experience.index} note={`${String(ROLE_COUNT).padStart(2, "0")} roles · 2018–2026`}>
       record
     </SectionHead>
 

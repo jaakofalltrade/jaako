@@ -59,7 +59,7 @@
   list-style: none;
   display: grid;
   /* Wider than the gap between bullets inside a role, so four titles read as four jobs
-     rather than as one list of thirteen lines. Whitespace only; no rule. */
+     rather than as one undivided list of bullets. Whitespace only; no rule. */
   gap: var(--space-8);
 }
 
