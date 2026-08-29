@@ -34,18 +34,21 @@ export const ABOUT_LEAD =
 export const ABOUT_LEAD_EMPHASIS = "technical lead";
 
 /**
- * Three paragraphs: where it came from, how the skills were actually acquired, and what
- * the work is now. The middle one is the paragraph that was always here; the other two
- * are the context it was missing.
+ * One paragraph.
  *
- * The AI-assisted workflow was considered for this section and deliberately left out.
- * The footer already makes the joke ("80 % vibecoded"), and a portfolio is a worse
- * place to argue the point than a conversation is.
+ * It was three: an origin story about batch files, the "most of what I know" line that
+ * had been here all along, and this. Read on the page they were a wall, and the lead
+ * above them already says the six-years-four-titles part, so two of the three were
+ * spending a lot of words to arrive where the reader already was. This is the one that
+ * answers the only question the section is really being asked, which is what this
+ * person actually likes doing.
+ *
+ * The DDoS paper went with the batch-file paragraph. It still has a home: the research
+ * block at the foot of /experience, where it no longer depends on this copy to explain
+ * why it is there.
  */
 export const ABOUT_BODY: string[] = [
-  "It started with batch files. Scripts that opened five programs at once, and a folder that would not close no matter what you did to it. Making a machine misbehave on purpose is what turned computer science from a school subject into the thing I actually wanted to do. The security career it pointed at got as far as a review paper on DDoS mitigation and stopped there, and I stopped missing it a while ago.",
-  "Most of what I know after that came from breaking other people's repos and reading the stack traces. Frontend and backend, whichever's on fire. React, TypeScript and Node by day, Python when something needs automating.",
-  "These days the parts I like best sit on either side of the typing: reading an implementation plan and finding the case it does not account for, working out how a third-party API behaves as opposed to how its documentation says it behaves, and holding the shape of a system steady while several people add to it. Architecture, in other words. How the pieces fit into something people use without ever having to think about any of it.",
+  "The parts I like best sit on either side of the typing: reading an implementation plan and finding the case it does not account for, working out how a third-party API behaves as opposed to how its documentation says it behaves, and holding the shape of a system steady while several people add to it. Architecture, in other words. How the pieces fit into something people use without ever having to think about any of it.",
 ];
 
 export const ABOUT_META: MetaPair[] = [

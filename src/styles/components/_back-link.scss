@@ -1,0 +1,14 @@
+/* BackLink — the way out of a sub-page.
+ *
+ * Sits above the section head, so the margin below it is what separates the control
+ * from the page rather than any rule.
+ */
+
+.jk-back {
+  margin-bottom: var(--space-7);
+}
+
+.jk-back__link {
+  display: inline-block;
+  text-decoration: none;
+}

@@ -59,3 +59,74 @@ $bp-lg: 80rem;  /* 1280px */
 @mixin icon-tint {
   filter: var(--icon-tint);
 }
+
+/* --- THE EXPERIENCE CLUSTERS -------------------------------------------------------
+   Three declaration clusters that the homepage entry (.jk-xp) and the full record
+   (.jk-xpr) both need, written once here rather than twice across two partials. They
+   are mixins and not utility classes for the reason at the top of this file: both
+   elements already carry a component class, and folding the declarations into it keeps
+   one class per element in the markup.
+
+   These are shared because the two blocks say the same thing at two sizes, not because
+   they happened to look alike. If a caller ever wants a different dot, or a spine with
+   the number on the right, it wants its own rules and not a parameter added here. */
+
+/* The two-column spine: a narrow margin holding a number, everything else beside it on
+   one left edge. Used by both experience blocks, the research list and, at the small
+   size, the same three again. */
+@mixin index-spine($column: 2rem, $gap: var(--space-5)) {
+  display: grid;
+  grid-template-columns: $column minmax(0, 1fr);
+  gap: $gap;
+  align-items: start;
+  padding: 0 var(--space-2);
+}
+
+/* A job title and its dates. Mono, because it is a label rather than prose; the most
+   recent title comes through as <strong> and is lifted a step rather than bolded,
+   since the display face at this size does not have a usable bold. */
+@mixin role-label($size: var(--text-sm)) {
+  font-family: var(--font-mono);
+  font-size: $size;
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-dim);
+
+  strong {
+    color: var(--text-body);
+    font-weight: var(--weight-regular);
+  }
+}
+
+/* The dotted list both blocks use for their bullets.
+
+   The dot is a box and not a • glyph, so its size and colour answer to the tokens
+   rather than to whichever font renders the bullet. --hair-lit is a decorative alpha
+   sized for a stroke a dozen pixels long; at 4px square it all but disappears, so the
+   dot takes --text-faint. */
+@mixin dotted-list($gap: var(--space-3), $indent: var(--space-5)) {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: $gap;
+  max-width: var(--measure);
+
+  li {
+    position: relative;
+    padding-left: $indent;
+    font-size: var(--text-sm);
+    line-height: var(--leading-normal);
+    color: var(--text-dim);
+  }
+
+  li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.6em;
+    width: 4px;
+    height: 4px;
+    border-radius: var(--radius-pill);
+    background: var(--text-faint);
+  }
+}

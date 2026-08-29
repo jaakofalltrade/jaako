@@ -6,6 +6,10 @@
  * metadata rail would have been a short column beside a very tall one, and the roles
  * need the full measure to be readable — so the meta becomes a ruled row under the
  * company name instead, the same treatment /work/[slug] gives a project.
+ *
+ * The spine, the role label and the dotted list are the mixins in base/_mixins.scss,
+ * shared with .jk-xp. Only the sizes and the gaps differ, which is the whole reason
+ * they are parameters.
  */
 
 .jk-experience-index__list {
@@ -13,16 +17,12 @@
   gap: var(--space-10);
 }
 
-/* The same two-column spine .jk-xp uses on the homepage: a narrow margin holding the
+/* The same two-column spine the homepage entry uses: a narrow margin holding the
    number, and everything else on one left edge beside it. Getting this wrong is
    visible immediately — with the index inline in the header, the company name sat
    26px right of the metadata and the bullets it owns. */
 .jk-xpr {
-  display: grid;
-  grid-template-columns: 2rem minmax(0, 1fr);
-  gap: var(--space-5);
-  align-items: start;
-  padding: 0 var(--space-2);
+  @include index-spine;
 }
 
 .jk-xpr__head {
@@ -63,19 +63,9 @@
   gap: var(--space-8);
 }
 
-/* The mono label treatment belongs to the head, not to the <li>. The <li> also holds
-   the prose, and leaving it there would cascade the mono face into the bullets. */
 .jk-xpr__role-head {
+  @include role-label;
   margin: 0;
-  font-family: var(--font-mono);
-  font-size: var(--text-2xs);
-  letter-spacing: var(--tracking-wide);
-  color: var(--text-dim);
-
-  strong {
-    color: var(--text-body);
-    font-weight: var(--weight-regular);
-  }
 }
 
 .jk-xpr__period {
@@ -83,43 +73,19 @@
 }
 
 .jk-xpr__bullets {
-  margin: var(--space-4) 0 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: var(--space-3);
-  max-width: var(--measure);
-
-  li {
-    position: relative;
-    padding-left: var(--space-5);
-    font-size: var(--text-sm);
-    line-height: var(--leading-normal);
-    color: var(--text-dim);
-  }
-
-  /* The same dot the homepage bullets draw, and drawn the same way — a box rather than
-     a • glyph, so its size and colour answer to the tokens and not to the font. */
-  li::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0.6em;
-    width: 4px;
-    height: 4px;
-    border-radius: var(--radius-pill);
-    background: var(--text-faint);
-  }
+  /* Tighter to its own heading than the roles are to each other, so a bullet is
+     unambiguously attached to the title above it. */
+  @include dotted-list;
+  margin-top: var(--space-4);
 }
 
-/* Published work. A short list at the foot of the record, not a section of its own. */
+/* Published work. A short list at the foot of the record, not a section of its own.
+   It takes the spine too, so "published" lands on the company names rather than on the
+   numbers out in the margin. */
 
 .jk-research {
+  @include index-spine($gap: 0 var(--space-5));
   margin-top: var(--space-11);
-  display: grid;
-  grid-template-columns: 2rem minmax(0, 1fr);
-  gap: 0 var(--space-5);
-  padding: 0 var(--space-2);
 }
 
 .jk-research__title,
@@ -127,8 +93,10 @@
   grid-column: 2;
 }
 
+/* Up a step from --text-3xs, which put this label at the same size as the location and
+   tenure micro-labels it has nothing to do with. It heads a block. */
 .jk-research__title {
-  @include label($size: var(--text-3xs), $tracking: var(--tracking-wide));
+  @include label($size: var(--text-2xs), $tracking: var(--tracking-wide));
   color: var(--text-dim);
   text-transform: lowercase;
 }
@@ -164,35 +132,12 @@
   max-width: var(--measure);
 }
 
-.jk-experience-index__actions {
-  margin-top: var(--space-11);
-  display: grid;
-  grid-template-columns: 2rem minmax(0, 1fr);
-  gap: 0 var(--space-5);
-  padding: 0 var(--space-2);
-
-  > * { grid-column: 2; justify-self: start; }
-}
-
-.jk-experience-index__back {
-  text-decoration: none;
-}
-
 @include down($bp-sm) {
   /* Narrower margin at this width, matching .jk-xp's own small-screen columns. */
-  .jk-xpr,
-  .jk-research,
-  .jk-experience-index__actions {
-    grid-template-columns: 1.75rem minmax(0, 1fr);
-    gap: 0 var(--space-4);
-  }
-
-  .jk-xpr { gap: var(--space-4); }
+  .jk-xpr { @include index-spine($column: 1.75rem, $gap: var(--space-4)); }
+  .jk-research { @include index-spine($column: 1.75rem, $gap: 0 var(--space-4)); }
 
   .jk-experience-index__list { gap: var(--space-9); }
   .jk-xpr__roles { gap: var(--space-7); }
-
-  /* Same trim the homepage bullets take at this width: the indent is the cheapest
-     thing to give back when the measure is scarcest. */
   .jk-xpr__bullets li { padding-left: var(--space-4); }
 }

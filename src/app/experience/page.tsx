@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { EXPERIENCE, RESEARCH } from "@/data/experience";
 import { SECTIONS } from "@/data/site";
-import { ButtonVariant } from "@/models";
-import { Button } from "@/design-system/core/Button";
 import { SectionHead } from "@/design-system/core/SectionHead";
+import { BackLink } from "@/design-system/portfolio/BackLink";
 import { ExperienceRecord } from "@/design-system/portfolio/ExperienceRecord";
 
 export const metadata: Metadata = {
@@ -28,6 +26,8 @@ const ROLE_COUNT = EXPERIENCE.reduce((total, item) => total + item.roles.length,
  */
 const ExperienceIndexPage = () => (
   <section className="jk-section jk-experience-index">
+    <BackLink href="/#experience">back to the page</BackLink>
+
     <SectionHead index={SECTIONS.experience.index} note={`${ROLE_COUNT} roles · 2018–2026`}>
       record
     </SectionHead>
@@ -61,14 +61,6 @@ const ExperienceIndexPage = () => (
         ))}
       </ul>
     </section>
-
-    <div className="jk-experience-index__actions">
-      <Link href="/#experience" className="jk-experience-index__back">
-        <Button as="span" variant={ButtonVariant.Glass}>
-          ← back to the page
-        </Button>
-      </Link>
-    </div>
   </section>
 );
 
