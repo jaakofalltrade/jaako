@@ -68,7 +68,7 @@ To exercise the route directly:
 ```sh
 curl -s localhost:3000/api/contact \
   -H 'content-type: application/json' \
-  -d '{"name":"test","email":"you@example.com","reason":"just saying hi","message":"hello"}'
+  -d '{"name":"test","email":"you@example.com","reason":"SAYING_HI","message":"hello"}'
 ```
 
 ## How the spam protection works
@@ -83,13 +83,14 @@ the message on the floor, so the bot logs a success and never learns to work
 around it.
 
 **Rate limit.** Three sends per IP per ten minutes, held in a `Map` in
-`src/lib/contact.ts`. Deliberately in-memory: on a serverless host the map is
-per-instance and resets on redeploy, which is fine, because the job is stopping
-a script hammering the endpoint in one sitting rather than enforcing a real
-quota. The IP comes from `x-forwarded-for`, which a determined sender can
-rotate — the honeypot is what actually stops bots. If the site ever needs a real
-limiter, swap the `hits` map for Redis; the call site won't change.
+`src/services/contactService.ts`. Deliberately in-memory: on a serverless host
+the map is per-instance and resets on redeploy, which is fine, because the job
+is stopping a script hammering the endpoint in one sitting rather than
+enforcing a real quota. The IP comes from `x-forwarded-for`, which a determined
+sender can rotate — the honeypot is what actually stops bots. If the site ever
+needs a real limiter, swap the `hits` map for Redis; the call site won't change.
 
 Validation is separate from either: name, e-mail and message must be present and
 within length limits, the e-mail must be shaped like an address, and the reason
-has to be one of the values in `src/data/contact.ts`.
+has to be one of the `ContactReason` values in `src/models/Contact.ts` — the enum
+value (`SAYING_HI`), not the label the dropdown shows (`just saying hi`).
