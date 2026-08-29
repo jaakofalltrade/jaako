@@ -13,6 +13,7 @@ export * from "./Env";
 export * from "./Experience";
 export * from "./Handle";
 export * from "./Http";
+export * from "./Lab";
 export * from "./Project";
 export * from "./ServerConfig";
 export * from "./Site";

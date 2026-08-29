@@ -216,4 +216,14 @@ export const NAV_ITEMS: NavItem[] = [
     route: routes.work,
   },
   { label: "contact", href: routes.section({ id: "contact" }), id: "contact" },
+  /**
+   * The odd one out, and the reason NavItem.id is optional.
+   *
+   * The other four name a section of the homepage and scroll to it. The lab is a
+   * route with nothing on this page to scroll to, so it carries no `id` and both
+   * copies of the list follow `href` instead. It is last because it is the only item
+   * that leaves the page, and putting it before contact would bury the contact
+   * details behind a slot machine.
+   */
+  { label: "lab", href: routes.lab.index, route: routes.lab.index },
 ];

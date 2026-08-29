@@ -80,8 +80,13 @@ export const SectionNav = ({ items, className }: SectionNavProps) => {
         <div className="jk-nav__inner">
           <ul className="jk-nav__list">
             {items.map((item) => (
-              <li key={item.id}>
-                <a href={`#${item.id}`} className="jk-nav__link">
+              // Keyed by label rather than by id: the lab item has no id, and every
+              // label in this list is unique because it is the visible text.
+              <li key={item.label}>
+                {/* A bare fragment while the item names a section of this page, since
+                    that is a jump and not a navigation. An item without one is a
+                    destination, so it follows its href — see NavItem in models/Ui.ts. */}
+                <a href={item.id ? `#${item.id}` : item.href} className="jk-nav__link">
                   {item.label}
                 </a>
               </li>

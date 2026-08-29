@@ -1,0 +1,344 @@
+/* The cabinet. /lab/slots.
+
+   READ THIS BEFORE COPYING ANYTHING OUT OF HERE.
+
+   This file breaks two of the site's standing rules on purpose: it glows, and it is
+   dark. Both prohibitions are about the portfolio's frosted palette and both still
+   hold everywhere else in the repo. The exception is scoped to this app, it was
+   chosen deliberately (docs/lab.md), and it is not a precedent for the other two
+   apps in the lab.
+
+   Nothing here reads src/styles/tokens. Every value the cabinet needs is declared
+   below, on .app, because this app is not part of that system and wiring it in would
+   mean a change to the portfolio's palette could quietly repaint a slot machine. The
+   two font faces are the exception: they are loaded once by the root layout and
+   referenced by the variables next/font generates, not by the design tokens that
+   wrap them. */
+
+.app {
+  --slot-void: #07030d;
+  --slot-panel: #12071c;
+  --slot-window: #05020a;
+  --slot-magenta: #ff3ea5;
+  --slot-cyan: #35f0ff;
+  --slot-amber: #ffc247;
+  --slot-dim: #8a6ba8;
+  --slot-hair: rgba(53, 240, 255, 0.28);
+  --slot-font: var(--font-geist-mono), ui-monospace, "Courier New", monospace;
+
+  position: relative;
+  z-index: 0;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  padding: clamp(1.5rem, 1rem + 3vw, 4rem) 1.25rem 4rem;
+  font-family: var(--slot-font);
+  color: var(--slot-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+/* The ground, and the scanlines over it.
+
+   Fixed rather than a background on .app: the page's own ground is two fixed
+   pseudo-elements on <body> at z-index -2 and -1, and a scrolling background would
+   let the cream page show through at the ends of an overscroll. */
+.ground {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(120% 80% at 50% 0%, #24103a 0%, var(--slot-void) 62%),
+    var(--slot-void);
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    /* 3px pitch. Wider reads as a blind, tighter disappears on a 2x screen and only
+       shows up as a shimmer when the page scrolls. */
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.32) 0 1px,
+      transparent 1px 3px
+    );
+    pointer-events: none;
+  }
+}
+
+.cabinet {
+  position: relative;
+  width: min(100%, 34rem);
+  padding: 2.5rem 1.75rem 2rem;
+  background: linear-gradient(180deg, var(--slot-panel), var(--slot-void));
+  border: 2px solid var(--slot-magenta);
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 1px rgba(255, 62, 165, 0.25),
+    0 0 32px rgba(255, 62, 165, 0.35),
+    inset 0 0 40px rgba(255, 62, 165, 0.12);
+  text-align: center;
+}
+
+/* Marquee bulbs. Nine, evenly spaced, alternating colour, and every one of them
+   permanently off-cycle from its neighbours so the row never reads as a progress bar. */
+.bulbs {
+  position: absolute;
+  inset-inline: 1.5rem;
+  top: -7px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.bulb {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--slot-amber);
+  box-shadow: 0 0 8px var(--slot-amber);
+  animation: bulb 1.8s steps(2, end) infinite;
+
+  &:nth-child(even) {
+    background: var(--slot-magenta);
+    box-shadow: 0 0 8px var(--slot-magenta);
+    animation-delay: 0.9s;
+  }
+}
+
+@keyframes bulb {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0.25; }
+}
+
+.title {
+  margin: 0;
+  font-family: var(--slot-font);
+  font-size: clamp(1.5rem, 1.1rem + 2vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--slot-magenta);
+  text-shadow:
+    0 0 8px rgba(255, 62, 165, 0.9),
+    0 0 24px rgba(255, 62, 165, 0.45);
+}
+
+.status {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.3em;
+  color: var(--slot-amber);
+}
+
+.machine {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  margin-top: 2rem;
+}
+
+.reels {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  flex: 1;
+  padding: 0.75rem;
+  background: var(--slot-window);
+  border: 1px solid var(--slot-hair);
+  border-radius: 3px;
+}
+
+/* A reel window, stopped. The flicker is the only motion in here and it is 4% of a
+   cycle: enough to say the tube is live, not enough to look like it is spinning. */
+.reel {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 3 / 4;
+  font-size: clamp(1.75rem, 1.2rem + 3vw, 3rem);
+  font-weight: 700;
+  color: var(--slot-cyan);
+  background: #000;
+  border: 1px solid var(--slot-hair);
+  text-shadow: 0 0 12px rgba(53, 240, 255, 0.7);
+  animation: flicker 5s ease-in-out infinite;
+
+  &[data-position="1"] { animation-delay: 1.7s; }
+  &[data-position="2"] { animation-delay: 3.4s; }
+}
+
+@keyframes flicker {
+  0%, 92%, 100% { opacity: 1; }
+  94% { opacity: 0.45; }
+  96% { opacity: 1; }
+}
+
+/* The lever. Two elements because a stem and a knob behave differently at every
+   width, and one element with a ::after would have to be told twice anyway. */
+.lever {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  align-self: stretch;
+  justify-content: flex-end;
+  width: 2.5rem;
+  /* Matches the reel box's own padding, so the base of the lever sits on the same
+     line as the bottom of the windows rather than floating beside them. */
+  padding-bottom: 0.75rem;
+}
+
+.leverStem {
+  width: 7px;
+  flex: 1;
+  min-height: 4rem;
+  background: linear-gradient(90deg, #6d6683, #ded8ea 45%, #5c5470);
+  border-radius: 4px;
+}
+
+.leverKnob {
+  order: -1;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ff8ec9, #b3125f 70%);
+  box-shadow: 0 0 18px rgba(255, 62, 165, 0.65);
+}
+
+.leverNote {
+  margin: 1rem 0 0;
+  font-size: 0.6875rem;
+  letter-spacing: 0.22em;
+  color: var(--slot-dim);
+}
+
+.readout {
+  display: grid;
+  gap: 0.5rem;
+  margin: 2rem 0 0;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--slot-hair);
+  text-align: left;
+}
+
+.readoutRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.75rem;
+}
+
+.readoutTerm {
+  color: var(--slot-dim);
+  letter-spacing: 0.2em;
+}
+
+.readoutValue {
+  margin: 0;
+  color: var(--slot-amber);
+}
+
+/* The ticket. Off-white and unlit, because it is the one thing in this app that is
+   supposed to leave the screen: it is a printed object, and it should read as paper
+   under all the neon rather than as another lit panel. */
+.voucher {
+  width: min(100%, 21rem);
+  padding: 1.25rem;
+  background: #f4f1ea;
+  color: #14121a;
+  border-radius: 2px;
+  text-align: center;
+  /* The tear line, top and bottom. A dashed border rather than a mask of notches:
+     notches need the colour behind the ticket to be a known flat value, and behind
+     this one is a radial gradient. */
+  border-top: 2px dashed #c9c4ba;
+  border-bottom: 2px dashed #c9c4ba;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
+}
+
+.voucherLabel {
+  margin: 0;
+  font-size: 0.625rem;
+  letter-spacing: 0.28em;
+  color: #6a6478;
+}
+
+/* Seven by seven dead cells. Not a real code, and it must not become one until there
+   is something on the other end of it to claim. */
+.qr {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  width: 6.5rem;
+  margin: 0.875rem auto;
+}
+
+.qrCell {
+  aspect-ratio: 1;
+  background: #d8d4cc;
+
+  &[data-on="true"] {
+    background: #14121a;
+  }
+}
+
+.voucherCode {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+
+.voucherNote {
+  margin: 0.5rem 0 0;
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: none;
+  color: #4a4557;
+}
+
+.footnote {
+  max-width: 28rem;
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.7;
+  letter-spacing: 0.08em;
+  text-transform: none;
+  text-align: center;
+  color: var(--slot-dim);
+}
+
+/* The way out. Every bare app draws its own, because a shared one would be the first
+   piece of site furniture back inside a page that just got rid of all of it. */
+.exit {
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  color: var(--slot-cyan);
+  text-decoration: none;
+  border-bottom: 1px solid var(--slot-hair);
+  padding-bottom: 2px;
+
+  &:hover {
+    color: var(--slot-magenta);
+    border-bottom-color: var(--slot-magenta);
+  }
+}
+
+/* The quietest line on the page, but it still has to be readable: at #4b3a63 on this
+   ground it measured as texture rather than as text, which is not what a label saying
+   which app you are looking at is for. */
+.spec {
+  margin: 0;
+  font-size: 0.625rem;
+  letter-spacing: 0.3em;
+  color: #7c6a94;
+}
+
+/* Two of the three animations here are decorative and the third is a tube flicker.
+   None of them survives the preference. */
+@media (prefers-reduced-motion: reduce) {
+  .bulb,
+  .reel {
+    animation: none;
+  }
+}

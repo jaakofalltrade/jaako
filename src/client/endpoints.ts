@@ -34,6 +34,24 @@ export const routes = {
 
   /** One project's case page. `slug` comes from the Project, never from a title. */
   project: (args: { slug: string }) => `/work/${args.slug}`,
+
+  /**
+   * The lab and the apps in it.
+   *
+   * Written out rather than built from a LabAppId, because a builder would mean the
+   * enum value doubles as a URL segment and the two are allowed to differ. Four
+   * literals also means every path on the site can still be found by searching this
+   * file for the string in the address bar.
+   *
+   * Nested for the same reason `endpoints.spotify` is: these belong together and
+   * flattening them would put four lab entries in the middle of the portfolio's.
+   */
+  lab: {
+    index: "/lab",
+    slots: "/lab/slots",
+    suggest: "/lab/suggest",
+    roast: "/lab/roast",
+  },
 } as const;
 
 /**
