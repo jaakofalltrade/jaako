@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { ICON_SRC } from "@/constants/ui";
+import { ICON_SRC } from "@/constants";
 import { IconName } from "@/models";
 import { cx } from "@/utils/cx";
 

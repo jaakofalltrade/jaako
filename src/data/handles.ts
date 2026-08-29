@@ -11,5 +11,4 @@ export const HANDLES: Handle[] = [
   { name: "jaakofalltrade", status: PresenceStatus.Online },
   { name: "jaakoaandes", status: PresenceStatus.Offline },
   { name: "jaako", status: PresenceStatus.Offline },
-  { name: "djacko", status: PresenceStatus.Offline },
 ];

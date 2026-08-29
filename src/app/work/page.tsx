@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { routes } from "@/client/endpoints";
 import { PROJECTS } from "@/data/projects";
 import { SECTIONS } from "@/data/site";
 import { SectionHead } from "@/design-system/core/SectionHead";
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
  */
 const WorkIndexPage = () => (
   <section className="jk-section jk-work-index">
-    <BackLink href="/#work">back to the page</BackLink>
+    <BackLink href={routes.section({ id: "work" })}>back to the page</BackLink>
 
     <SectionHead
       index={SECTIONS.work.index}

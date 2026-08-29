@@ -33,6 +33,21 @@ export const PREFERRED_ART_WIDTH = 300;
 /** Spotify's image CDN. Anything else is refused rather than put in an <img src>. */
 export const ART_HOST = "i.scdn.co";
 
+/**
+ * The only host a track or artist link is allowed to point at. The counterpart to
+ * ART_HOST above: one names the CDN we will load an image from, this names the site
+ * we will send a visitor to.
+ */
+export const SPOTIFY_LINK_HOST = "open.spotify.com";
+
+/**
+ * Where a track or artist link points when Spotify's payload carries no external
+ * URL of its own, or carries one that fails the host check. Spotify's own home page:
+ * not the right record, but a working link into the right app, which is better than
+ * a dead href on a row that renders.
+ */
+export const SPOTIFY_WEB_URL = `https://${SPOTIFY_LINK_HOST}`;
+
 /** The badge above the track name, per playback state. */
 export const PLAYBACK_BADGE: Record<
   Spotify.PlaybackStatus,

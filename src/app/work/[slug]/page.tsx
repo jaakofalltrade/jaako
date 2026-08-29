@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { PROJECT_STATUS_LABEL, PROJECT_STATUS_TONE } from "@/constants/ui";
+import { routes } from "@/client/endpoints";
+import { PROJECT_STATUS_LABEL, PROJECT_STATUS_TONE } from "@/constants";
 import { PROJECTS, getProject } from "@/data/projects";
 import { AnnotationTone, ButtonVariant, IconName, PlateRatio } from "@/models";
 import { Annotation } from "@/design-system/core/Annotation";
@@ -44,7 +45,7 @@ const ProjectDetailPage = async ({ params }: { params: Promise<{ slug: string }>
 
   return (
     <article className="jk-section jk-detail">
-      <BackLink href="/work">full index</BackLink>
+      <BackLink href={routes.work}>full index</BackLink>
 
       <Plate
         src={project.plate}

@@ -1,10 +1,11 @@
 "use client";
 
 import React, { type CSSProperties } from "react";
-import { spotifyApi } from "@/api/spotifyApi";
-import { PEEK_LOADING, PEEK_OFFLINE_LINES, PEEK_STATUS } from "@/constants/spotify";
+import { spotifyApi } from "@/client/spotifyApi";
+import { PEEK_LOADING, PEEK_OFFLINE_LINES, PEEK_STATUS } from "@/constants";
 import { AnnotationTone, DockState, IconName, Spotify } from "@/models";
 import { clock } from "@/utils/format";
+import { clamp } from "@/utils/number";
 import { cx } from "@/utils/cx";
 import { Annotation } from "../core/Annotation";
 import { Icon } from "../Icon";
@@ -220,7 +221,9 @@ export const NowPlayingDock = () => {
     }
   };
 
-  const progress = track ? Math.min(track.progress_ms + elapsed, track.duration_ms) : 0;
+  const progress = track
+    ? clamp({ value: track.progress_ms + elapsed, min: 0, max: track.duration_ms })
+    : 0;
   const sleeve = dock === DockState.Sleeve;
   const recent = response?.recent ?? [];
 
@@ -338,7 +341,11 @@ export const NowPlayingDock = () => {
                 className="jk-dock__bar"
                 style={
                   {
-                    "--np-progress": `${Math.min(100, (progress / track.duration_ms) * 100)}%`,
+                    "--np-progress": `${clamp({
+                      value: (progress / track.duration_ms) * 100,
+                      min: 0,
+                      max: 100,
+                    })}%`,
                   } as CSSProperties
                 }
               >

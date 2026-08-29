@@ -1,4 +1,4 @@
-import { PRESENCE_CLASS, PRESENCE_LABEL } from "@/constants/ui";
+import { PRESENCE_CLASS, PRESENCE_LABEL } from "@/constants";
 import { HANDLES } from "@/data/handles";
 import { AnnotationTone, DecryptAlphabet } from "@/models";
 import { cx } from "@/utils/cx";
@@ -9,7 +9,7 @@ import { DecryptedText } from "../core/DecryptedText";
  * The handles, under the label they earn.
  *
  * This started as a guestbook signed by invented visitors, became a signature log
- * signed by four of the owner's own handles, and is now just the list of them —
+ * signed by the owner's own handles, and is now just the list of them —
  * which is what it had already become in fact, since a log implies visitors and
  * every name in it was his. "Signature log" was the last piece of the old framing
  * still standing.

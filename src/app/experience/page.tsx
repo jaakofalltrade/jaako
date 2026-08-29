@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { routes } from "@/client/endpoints";
 import { EXPERIENCE, RESEARCH } from "@/data/experience";
 import { SECTIONS } from "@/data/site";
 import { SectionHead } from "@/design-system/core/SectionHead";
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
  */
 const ExperienceIndexPage = () => (
   <section className="jk-section jk-experience-index">
-    <BackLink href="/#experience">back to the page</BackLink>
+    <BackLink href={routes.section({ id: "experience" })}>back to the page</BackLink>
 
     <SectionHead index={SECTIONS.experience.index} note={`${String(ROLE_COUNT).padStart(2, "0")} roles · 2018–2026`}>
       record

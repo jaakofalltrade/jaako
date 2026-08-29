@@ -4,6 +4,7 @@ import { FOOTER, NAV_ITEMS, TICKER, TICKER_STRUCK } from "@/data/site";
 import { Annotation } from "../core/Annotation";
 import { DecryptedText } from "../core/DecryptedText";
 import { Marquee } from "../core/Marquee";
+import { Struck } from "../core/Struck";
 
 /**
  * The footer, and the site's only navigation that appears on every page.
@@ -21,7 +22,7 @@ export const SiteFooter = () => (
   <footer className="jk-footer">
     <Marquee tone={MarqueeTone.Ink} className="jk-footer__ticker">
       <span>
-        <s className="jk-struck">{TICKER_STRUCK.retired}</s> {TICKER_STRUCK.current}
+        <Struck retired={TICKER_STRUCK.retired} current={TICKER_STRUCK.current} />
       </span>
       {TICKER.map((line) => (
         <span key={line}>{line}</span>

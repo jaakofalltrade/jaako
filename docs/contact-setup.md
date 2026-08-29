@@ -88,12 +88,12 @@ neither loads a third-party script.
 
 **Honeypot.** The form renders a `website` field positioned off-screen and out
 of the tab order. A human never sees it; a bot filling every input it finds
-does. When it arrives non-empty the route returns `200 {"ok":true}` and drops
+does. When it arrives non-empty the route returns `200 {"sent":true}` and drops
 the message on the floor, so the bot logs a success and never learns to work
 around it.
 
 **Rate limit.** Three sends per IP per ten minutes, held in a `Map` in
-`src/services/contactService.ts`. Deliberately in-memory: on a serverless host
+`src/server/contact/rateLimiter.ts`. Deliberately in-memory: on a serverless host
 the map is per-instance and resets on redeploy, which is fine, because the job
 is stopping a script hammering the endpoint in one sitting rather than
 enforcing a real quota. The IP comes from `x-forwarded-for`, which a determined

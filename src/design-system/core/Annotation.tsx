@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { ANNOTATION_TONE_CLASS } from "@/constants/ui";
+import { ANNOTATION_TONE_CLASS } from "@/constants";
 import { AnnotationTone } from "@/models";
 import { cx } from "@/utils/cx";
 
