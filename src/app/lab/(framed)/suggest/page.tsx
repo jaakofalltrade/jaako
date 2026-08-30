@@ -102,7 +102,10 @@ const SuggestTeaserPage = async () => {
           </p>
         </div>
 
-        <DefinitionList items={SUGGEST_TEASER.spec} ruled className={styles.spec} />
+        {/* Unruled. A stroke under every pair was doing the same job the grid gap
+            already does, which is the same edit sections/_about.scss records making
+            to the about block's own metadata. */}
+        <DefinitionList items={SUGGEST_TEASER.spec} className={styles.spec} />
       </div>
 
       <SuggestBoard

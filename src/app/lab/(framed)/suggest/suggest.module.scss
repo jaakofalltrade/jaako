@@ -533,6 +533,11 @@
 .head,
 .row {
   display: grid;
+  /* The rules run the full width and the content sits inside them, so the list has
+     ends rather than stopping dead at the first and last character. The same inset the
+     work list uses on its own rows. */
+  padding-inline: var(--space-5);
+  display: grid;
   grid-template-columns:
     2rem                  /* index  */
     2.25rem               /* cover  */
@@ -549,15 +554,20 @@
   gap: var(--space-4);
 }
 
-/* The heading is a label, so it takes the label treatment and none of the row's. */
+/* The heading is a label, so it takes the label treatment and none of the row's.
+
+   Bolder and a step darker than the readouts under it. A heading set in the same
+   weight and the same faint tier as its own column of values is not a heading; it is
+   just the first row. */
 .head {
   padding-bottom: var(--space-3);
   border-bottom: var(--border-1) solid var(--hair-lit);
   font-family: var(--font-mono);
   font-size: var(--text-3xs);
+  font-weight: var(--weight-bold);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--text-faint);
+  color: var(--text-dim);
 }
 
 /* The clock stands in for the word "length". The figures under it are unmistakably
@@ -784,37 +794,52 @@
      here that is a person and the whole point of the list. */
   .head { display: none; }
 
+  /* Five columns: index, cover, artist, name, duration. The title spans the two
+     middle ones on the first line and the credit pair sits under it. */
   .row {
-    grid-template-columns: 1.75rem 2.25rem minmax(0, 1fr) auto;
-    row-gap: var(--space-3);
+    grid-template-columns: 1.75rem 2.25rem auto minmax(0, 1fr) auto;
+    row-gap: var(--space-2);
     padding-block: var(--space-5);
+    padding-inline: var(--space-4);
+    align-items: baseline;
   }
+
+  .head { padding-inline: var(--space-4); }
 
   .rowIndex,
   .rowArt,
-  .rowArtEmpty,
-  .rowBody { grid-row: 1; }
+  .rowArtEmpty { grid-row: 1; }
+
+  /* The cover spans both lines now that the body is two grid rows rather than one
+     flex column, so it stays beside the pair instead of sitting against the title. */
+  .rowArt,
+  .rowArtEmpty { grid-row: 1 / span 2; align-self: center; }
 
   .rowTime {
-    grid-column: 4;
-    grid-row: 1;
+    grid-area: 1 / 5;
     text-align: right;
   }
 
-  /* THE NAME NEEDS ITS LABEL BACK HERE, and this is the bug that only showed up on a
-     real phone. The heading row is hidden at this width, so the name was left as a bare
-     word under the artist - "Stairs / Design19 / la peace" reads as a third line of the
-     credit rather than as who suggested it. The column header carried that meaning on a
-     wide screen and nothing carried it here.
+  /* THE NAME SITS BESIDE THE ARTIST, NOT UNDER IT. On its own line it read as a
+     third line of the credit - "Stairs / Design19 / added by la peace" - which makes
+     every row three lines tall and the attribution look like part of the billing.
 
-     Restored in CSS rather than in markup, because it is not information the row is
-     missing: it is a heading that went away, and it should come back exactly where the
-     heading is gone. */
+     display:contents on the body is what allows it: the title and the artist stop
+     being flex children and become grid items of the row itself, so the artist can
+     take one cell and the name the next one along. No markup changes and no second
+     copy of the name in the DOM to hide at the other breakpoint.
+
+     It keeps its label, because the heading row is hidden here and nothing else says
+     what the name is. */
+  .rowBody { display: contents; }
+
+  .rowTitle { grid-area: 1 / 3 / auto / 5; }
+  .rowArtist { grid-area: 2 / 3; }
+
   .rowBy {
-    grid-column: 3 / -1;
-    grid-row: 2;
+    grid-area: 2 / 4;
     text-align: left;
-    margin-top: var(--space-2);
+    min-width: 0;
   }
 
   .rowBy::before {
@@ -826,5 +851,5 @@
   .rowAlbum,
   .rowWhen { display: none; }
 
-  .rowFailure { grid-column: 3 / -1; }
+  .rowFailure { grid-column: 3 / -1; grid-row: 2; }
 }
