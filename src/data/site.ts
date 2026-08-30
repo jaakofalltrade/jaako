@@ -146,11 +146,23 @@ export const STATUS = {
   location: LOCATION,
 } as const;
 
-/** Footer ticker. The gag lines, still scrolling, still in the footer. */
+/**
+ * Footer ticker. The gag lines, still scrolling, still in the footer.
+ *
+ * THE COOKIE LINE IS LOAD-BEARING NOW, WHICH IT WAS NOT BEFORE. It read "no cookies,
+ * no newsletter", and that stopped being true when /lab/suggest started setting a
+ * visitor id. It is printed on every page, including that one, so it was a sentence
+ * the site could be caught in.
+ *
+ * The replacement stays true rather than being vague enough to survive: the cookie is
+ * set on a successful add and never on a read, so somebody who only listens to the
+ * playlist is still given nothing. If that ever changes, this changes with it.
+ */
 export const TICKER: string[] = [
   LOCATION,
   "display ▸ 1024×768 nominal",
-  "no cookies, no newsletter",
+  "one cookie, and only if you add a song",
+  "no newsletter, no trackers",
   "all systems nominal",
 ];
 
