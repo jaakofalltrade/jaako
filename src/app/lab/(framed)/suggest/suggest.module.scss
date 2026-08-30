@@ -220,19 +220,6 @@
   border-block: var(--border-1) solid var(--hair);
 }
 
-@media (max-width: 47.9375rem) {
-  .playlist {
-    grid-template-columns: 6rem minmax(0, 1fr);
-    gap: var(--space-5);
-  }
-
-  .playlistCover,
-  .playlistCoverEmpty {
-    width: 6rem;
-    height: 6rem;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .playlist,
   .playlistName,
@@ -603,7 +590,15 @@
    Auto-placement meant that omitting one cell - an unattributed row with no name to
    show - slid every cell after it one column left, and the row silently stopped lining
    up with its heading. Named columns make an absent cell an absent cell. */
+.headIndex,
 .rowIndex { grid-column: 1; }
+.headArt { grid-column: 2; }
+.headTrack { grid-column: 3; }
+.headAlbum { grid-column: 4; }
+.headBy { grid-column: 5; }
+.headWhen { grid-column: 6; }
+.headClock { grid-column: 7; }
+
 .rowArt,
 .rowArtEmpty { grid-column: 2; }
 .rowBody { grid-column: 3; }
@@ -763,6 +758,20 @@
   }
 }
 
+/* ============================================================================
+   NARROW SCREENS
+
+   LAST IN THE FILE, AND THAT IS LOAD-BEARING RATHER THAN TIDY. Every rule in here
+   overrides one written above it with exactly the same specificity - .row against
+   .row, .headClock against .headClock - so the only thing deciding the winner is
+   source order. Sitting halfway up the file, this block lost every one of those
+   fights: the heading kept its seven columns, the clock kept display:flex, and
+   because the clock was still placed in column 7 the grid kept generating implicit
+   columns for it. The list came out with four named columns and seven real ones.
+
+   Anything added below this point that the narrow layout needs to beat has to go
+   above it. ============================================================================ */
+
 @media (max-width: 47.9375rem) {
   .resultRow { grid-template-columns: 2.5rem minmax(0, 1fr) auto; }
   .resultTime { display: none; }
@@ -780,76 +789,84 @@
 
   .slab::before { display: none; }
 
-  /* FOUR COLUMNS, NOT SEVEN. Seven in a phone width would be seven unreadable
-     slivers, so three of them go.
+  /* --- the list, at four columns -------------------------------------------------
 
-     THE ALBUM AND THE DATE ARE DROPPED OUTRIGHT rather than stacked under the title.
-     Both are reference, not identity: nobody scans a phone looking for which record a
-     track came from, and stacking them turned every row into three lines and the list
-     into a page of paragraphs. The duration stays, because it fits in its own column
-     without costing the title any width, and it is the one number somebody might
-     actually be checking.
+     TRACK AND WHO ADDED IT. Nothing else.
 
-     The name stays too, on its own line under the track, because it is the only cell
-     here that is a person and the whole point of the list. */
-  .head { display: none; }
+     THIS REPLACED A CLEVERER LAYOUT THAT DID NOT WORK. The name used to sit beside the
+     artist, put there with display:contents so the body's children became grid items
+     of the row. It read correctly in a forced preview and was broken on a real phone:
+     the artist landed in an auto-width column while carrying .scroll, which is
+     overflow:hidden with min-width:0, so it collapsed to nothing and the artist simply
+     disappeared. The lesson is in the shape of what replaced it - four plain columns,
+     no spanning, no display:contents, and the body left as the flex column it is
+     everywhere else.
 
-  /* Five columns: index, cover, artist, name, duration. The title spans the two
-     middle ones on the first line and the credit pair sits under it. */
+     THE HEADING STAYS. It was hidden here, which left the name as a bare word with
+     nothing saying what it was, and every attempt to reintroduce that meaning inside
+     the row made the row worse. The heading is where a column name belongs. */
+  /* THE NAME COLUMN IS A FIXED WIDTH, NOT auto, AND THAT IS NOT A PREFERENCE.
+
+     .rowBy carries .scroll, and .scroll sets container-type: inline-size, which
+     applies contain: inline-size - the element is explicitly not allowed to size
+     itself from its contents. In an auto track it therefore contributes nothing, the
+     column resolves to 0px, and the name vanishes while still being in the DOM.
+
+     THIS EXACT TRAP ATE THE ARTIST FIRST. An earlier attempt put the artist in an auto
+     column for the same reason and it disappeared the same way; the fault looked like
+     two unrelated layout bugs and was one containment rule both times. Any track
+     holding a .scroll cell needs a width of its own: fr, a length, or minmax with a
+     real maximum. Never auto, min-content or max-content. */
+  .head,
   .row {
-    grid-template-columns: 1.75rem 2.25rem auto minmax(0, 1fr) auto;
-    row-gap: var(--space-2);
-    padding-block: var(--space-5);
+    grid-template-columns: 1.75rem 2.25rem minmax(0, 1fr) 6.5rem;
     padding-inline: var(--space-4);
-    align-items: baseline;
+    gap: var(--space-4);
+    align-items: center;
   }
 
-  .head { padding-inline: var(--space-4); }
+  .headIndex,
+  .rowIndex { grid-column: 1; }
 
-  .rowIndex,
+  .headArt,
   .rowArt,
-  .rowArtEmpty { grid-row: 1; }
+  .rowArtEmpty { grid-column: 2; }
 
-  /* The cover spans both lines now that the body is two grid rows rather than one
-     flex column, so it stays beside the pair instead of sitting against the title. */
-  .rowArt,
-  .rowArtEmpty { grid-row: 1 / span 2; align-self: center; }
+  .headTrack,
+  .rowBody { grid-column: 3; }
 
-  .rowTime {
-    grid-area: 1 / 5;
+  /* The name takes the column the duration had. It is the one thing on this row a
+     reader is here for, and a running time is not. */
+  .headBy,
+  .rowBy {
+    grid-column: 4;
     text-align: right;
   }
 
-  /* THE NAME SITS BESIDE THE ARTIST, NOT UNDER IT. On its own line it read as a
-     third line of the credit - "Stairs / Design19 / added by la peace" - which makes
-     every row three lines tall and the attribution look like part of the billing.
+  /* NO FADE ON THE NAME HERE. The mask exists to say "there is more text", and in a
+     column this wide there never is: the field caps at ten characters, which is about
+     4rem of mono at this size inside a 6.5rem track. Left in place it would simply
+     fade the last letter of every right-aligned name for no reason. */
+  .rowBy { mask-image: none; }
 
-     display:contents on the body is what allows it: the title and the artist stop
-     being flex children and become grid items of the row itself, so the artist can
-     take one cell and the name the next one along. No markup changes and no second
-     copy of the name in the DOM to hide at the other breakpoint.
-
-     It keeps its label, because the heading row is hidden here and nothing else says
-     what the name is. */
-  .rowBody { display: contents; }
-
-  .rowTitle { grid-area: 1 / 3 / auto / 5; }
-  .rowArtist { grid-area: 2 / 3; }
-
-  .rowBy {
-    grid-area: 2 / 4;
-    text-align: left;
-    min-width: 0;
-  }
-
-  .rowBy::before {
-    content: "added by ";
-    color: var(--text-faint);
-    font-weight: var(--weight-regular);
-  }
-
+  /* Album, date and duration are gone at this width, heading and cell together. */
+  .headAlbum,
+  .headWhen,
+  .headClock,
   .rowAlbum,
-  .rowWhen { display: none; }
+  .rowWhen,
+  .rowTime { display: none; }
 
-  .rowFailure { grid-column: 3 / -1; grid-row: 2; }
+  .rowFailure { grid-column: 3 / -1; }
+  /* The cover keeps its own proportion at this width. */
+  .playlist {
+    grid-template-columns: 6rem minmax(0, 1fr);
+    gap: var(--space-5);
+  }
+
+  .playlistCover,
+  .playlistCoverEmpty {
+    width: 6rem;
+    height: 6rem;
+  }
 }

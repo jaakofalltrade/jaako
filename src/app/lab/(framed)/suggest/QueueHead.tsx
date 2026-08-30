@@ -20,12 +20,14 @@ import styles from "./suggest.module.scss";
  */
 export const QueueHead = () => (
   <li className={styles.head} aria-hidden="true">
-    <span />
-    <span />
-    <span>{SUGGEST_TEASER.columns.title}</span>
-    <span>{SUGGEST_TEASER.columns.album}</span>
-    <span>{SUGGEST_TEASER.columns.by}</span>
-    <span>{SUGGEST_TEASER.columns.when}</span>
+    {/* Each cell carries the same class as the row cell beneath it, so the narrow
+        layout can place and hide the pair together rather than twice. */}
+    <span className={styles.headIndex} />
+    <span className={styles.headArt} />
+    <span className={styles.headTrack}>{SUGGEST_TEASER.columns.title}</span>
+    <span className={styles.headAlbum}>{SUGGEST_TEASER.columns.album}</span>
+    <span className={styles.headBy}>{SUGGEST_TEASER.columns.by}</span>
+    <span className={styles.headWhen}>{SUGGEST_TEASER.columns.when}</span>
     <span className={styles.headClock}>
       <Icon name={IconName.Clock} size={13} />
     </span>
