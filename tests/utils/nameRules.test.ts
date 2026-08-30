@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { NAME_LIMITS } from "@/constants";
 import { SuggestFailure } from "@/models";
-import { checkDisplayName, normalizeDisplayName } from "./nameRules";
+import { checkDisplayName, normalizeDisplayName } from "@/utils/nameRules";
 
 /** Built rather than typed, so this file carries no bytes a reviewer cannot see. */
 const CONTROL = String.fromCharCode(0, 1, 31);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fromHost, fromHostList } from "./url";
+import { fromHost, fromHostList } from "@/utils/url";
 
 const HOST = "open.spotify.com";
 

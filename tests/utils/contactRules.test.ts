@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { FIELD_LIMITS } from "@/constants";
 import { ValidationFailure } from "@/models";
-import { checkEmail, checkMessage, checkName, normalizeName } from "./contactRules";
+import { checkEmail, checkMessage, checkName, normalizeName } from "@/utils/contactRules";
 
 /**
  * Control characters are built rather than typed, so this file stays free of bytes an

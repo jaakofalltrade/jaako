@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ContactReason, Env } from "@/models";
-import { isEnumValue } from "./enum";
+import { isEnumValue } from "@/utils/enum";
 
 describe("isEnumValue", () => {
   const isReason = isEnumValue(ContactReason);

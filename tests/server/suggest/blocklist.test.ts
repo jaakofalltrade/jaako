@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { createBlocklist } from "./blocklist";
-import { normalizeTerm } from "./normalizeTerm";
+import { createBlocklist } from "@/server/suggest/blocklist";
+import { normalizeTerm } from "@/server/suggest/normalizeTerm";
 
 /**
  * The blocklist, tested against harmless words.

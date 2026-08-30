@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clamp } from "./number";
+import { clamp } from "@/utils/number";
 
 describe("clamp", () => {
   it("leaves a value inside the range alone", () => {

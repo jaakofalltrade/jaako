@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dropSuffix } from "./text";
+import { dropSuffix } from "@/utils/text";
 
 describe("dropSuffix", () => {
   it("removes the suffix", () => {

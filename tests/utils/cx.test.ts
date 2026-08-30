@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cx } from "./cx";
+import { cx } from "@/utils/cx";
 
 describe("cx", () => {
   it("joins the truthy ones with a single space", () => {

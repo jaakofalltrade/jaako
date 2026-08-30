@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clock, runtime, toDigits } from "./format";
+import { clock, runtime, toDigits } from "@/utils/format";
 
 describe("clock", () => {
   it("renders milliseconds as m:ss", () => {

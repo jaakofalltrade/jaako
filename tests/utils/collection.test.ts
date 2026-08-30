@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mostCommon } from "./collection";
+import { mostCommon } from "@/utils/collection";
 
 describe("mostCommon", () => {
   it("returns the value that appears most often", () => {

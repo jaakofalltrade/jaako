@@ -24,7 +24,7 @@ export default defineConfig({
          module is what makes src/server/spotify/mappers.ts testable at all, and it
          costs nothing: the guard exists to fail a BUILD that imports a server
          module from a client one, and this file is not that build. */
-      "server-only": fileURLToPath(new URL("./test/server-only.ts", import.meta.url)),
+      "server-only": fileURLToPath(new URL("./tests/stubs/server-only.ts", import.meta.url)),
     },
   },
   test: {
@@ -32,7 +32,15 @@ export default defineConfig({
        so tsconfig needs no extra `types` entry and `next build` type-checks these
        files with everything else rather than around them. */
     globals: false,
-    include: ["src/**/*.test.ts"],
+    /* Tests live in tests/, mirroring the src tree they cover, rather than beside the
+       files they test. src/ therefore holds only shipped code: nothing under it is
+       excluded from a build by being named a certain way, and the app directory has no
+       files in it that are not part of the app.
+
+       The mirror is what makes it navigable - tests/utils/url.test.ts covers
+       src/utils/url.ts - and it is why every import in a test is an @/ alias rather
+       than a relative path. A relative import from a test is now a bug. */
+    include: ["tests/**/*.test.ts"],
     environment: "node",
   },
 });

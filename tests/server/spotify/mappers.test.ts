@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Spotify } from "@/models";
-import { artistNames, modalGenre, toItemUrl, toPlaylistSummary, toTrack } from "./mappers";
+import { artistNames, modalGenre, toItemUrl, toPlaylistSummary, toTrack } from "@/server/spotify/mappers";
 
 /**
  * The Spotify mappers.
