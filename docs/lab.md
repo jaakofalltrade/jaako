@@ -183,6 +183,12 @@ for the contact form. Not built until asked for.
 
 An agent reads a person's listening data and is unkind about it.
 
+> Superseded in detail by `docs/roast.md`, which is the agreed plan for this one app.
+> The section below is the original sketch and is kept for the reasoning behind the
+> design. Where the two disagree, `roast.md` wins: notably, the token store it
+> describes below turned out to be avoidable, and the roast gets its own Spotify
+> application rather than sharing the site's.
+
 **Design: a messaging app.** Bubbles, a typing indicator between lines, timestamps.
 The roast is streamed, so the pauses are real and read as timing rather than as
 loading. It is also the most screenshot-friendly form, which is the only way a thing
