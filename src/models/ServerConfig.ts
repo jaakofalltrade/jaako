@@ -17,15 +17,17 @@ export type ServerConfig = {
   spotify_client_id: string;
   spotify_client_secret: string;
 
-  // TWO REFRESH TOKENS, ONE ACCOUNT, AND THE SPLIT IS DELIBERATE.
+  // TWO REFRESH TOKENS, ONE ACCOUNT, AND THE SPLIT IS INTENT RATHER THAN ENFORCEMENT.
   //
   // Spotify's scopes are verbs rather than resources, so there is no such thing as a
-  // token that may write to one playlist. The next best thing is a token per job:
-  // everything the site reads runs on a credential that cannot write at all, and the
-  // one route that adds a track is the only thing holding one that can.
+  // token that may write to one playlist. A token per job is the next best thing, and
+  // it matters most for the lab's search proxy, which is public and unauthenticated
+  // and spends the read one.
   //
-  // That matters most for the lab's search proxy, which is public and unauthenticated
-  // and spends the read token. See scripts/spotify-token.mjs for how each is minted.
+  // IT DOES NOT MAKE THE READ TOKEN READ-ONLY. Spotify grants scopes per application,
+  // so approving the write scope widened both of these; "pnpm token:check" shows it.
+  // Nothing should be written that depends on the read credential being unable to
+  // write. See the header of src/server/spotify/auth.ts.
   spotify_refresh_token: string;
   spotify_write_refresh_token: string;
   spotify_token_url: string;

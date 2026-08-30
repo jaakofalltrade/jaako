@@ -13,13 +13,23 @@ import { Spotify } from "@/models";
  * TWO CREDENTIALS, NOT ONE, AND EVERY EXPORT BELOW COMES IN A PAIR BECAUSE OF IT.
  *
  * Spotify's scopes are verbs rather than resources, so no token can be restricted to a
- * single playlist. The next best thing is least privilege per code path: the read token
- * carries only the three read scopes and physically cannot write, and the write token
- * carries playlist-modify-public and nothing else.
+ * single playlist. The intent of the split is least privilege per code path: the read
+ * one is what almost everything spends, including the lab's search proxy, which is
+ * public and unauthenticated, and the write one is reached by exactly one route.
  *
- * The read one is what almost everything spends, including the lab's search proxy,
- * which is public and unauthenticated. The write one is reached by exactly one route.
- * If a third job ever appears, give it its own rather than widening one of these.
+ * WHAT THE SPLIT DOES NOT BUY, MEASURED RATHER THAN ASSUMED. This comment used to say
+ * the read token "physically cannot write". That is false. SPOTIFY GRANTS SCOPES PER
+ * (USER, APPLICATION), NOT PER TOKEN: approving playlist-modify-public for this app
+ * widened the read token as well, retroactively, without it being re-minted. Run
+ * "pnpm token:check" and both come back carrying all four scopes.
+ *
+ * So this pair is intent rather than enforcement today. It still separates rotation,
+ * and it means moving to real isolation is a config change rather than a refactor,
+ * because the two credentials already exist and would only need different client ids.
+ *
+ * THE ONLY REAL SEPARATION IS A SECOND SPOTIFY APPLICATION, with its own client id and
+ * secret, because the application is the boundary Spotify actually enforces. Until one
+ * exists, do not write code that relies on the read token being unable to write.
  */
 
 /**

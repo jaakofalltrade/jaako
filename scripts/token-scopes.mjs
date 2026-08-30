@@ -76,6 +76,28 @@ const check = async (variable) => {
     return false;
   }
 
+  /*
+   * EXCESS IS AS INTERESTING AS MISSING, AND CHECKING ONLY ONE OF THEM IS HOW THIS
+   * SCRIPT ONCE REPORTED "ok" FOR A READ TOKEN THAT COULD WRITE.
+   *
+   * Spotify grants scopes per (user, application), not per token. Approving a new
+   * permission widens EVERY refresh token that application already holds for that
+   * account: the read token here was minted with three scopes, was never re-minted,
+   * and gained playlist-modify-public the moment the write token was approved.
+   *
+   * So a token cannot be confined to a subset of what its application has been
+   * granted, and the only real separation is a second Spotify app with its own
+   * client id.
+   */
+  const excess = granted.filter((scope) => !wants.includes(scope));
+  if (excess.length) {
+    console.log(`  EXCESS : ${excess.join(", ")}`);
+    if (excess.some((scope) => scope.startsWith("playlist-modify"))) {
+      console.log("  This token can WRITE, and is not supposed to be able to.");
+    }
+    return false;
+  }
+
   console.log("  ok");
   return true;
 };
@@ -86,13 +108,17 @@ for (const variable of Object.keys(EXPECTED)) {
 }
 
 if (results.every(Boolean)) {
-  console.log("\nBoth tokens carry what they need.");
+  console.log("\nBoth tokens carry exactly what they need, and nothing else.");
 } else {
   console.log(
-    "\nRe-mint whichever is wrong:\n" +
+    "\nMISSING means the wrong set was minted. Re-mint it:\n" +
       "  pnpm token:read     then paste into SPOTIFY_REFRESH_TOKEN\n" +
       "  pnpm token:write    then paste into SPOTIFY_WRITE_REFRESH_TOKEN\n" +
-      "\nThey are different commands and the values look alike, which is the usual cause."
+      "The two commands differ by one word and the values look alike.\n\n" +
+      "EXCESS cannot be fixed by re-minting. Spotify grants scopes per application,\n" +
+      "not per token, so approving a permission widens every token that application\n" +
+      "holds for the account. Separating read from write means a second Spotify app\n" +
+      "with its own client id. See docs/spotify-setup.md."
   );
   process.exitCode = 1;
 }

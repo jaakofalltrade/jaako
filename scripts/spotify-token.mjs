@@ -12,12 +12,17 @@ import { loadEnvLocal } from "./loadEnv.mjs";
  *
  *     node scripts/spotify-token.mjs <client_id> <client_secret> [read|write]
  *
- * TWO TOKENS, NOT ONE, AND THE SPLIT IS THE POINT. Spotify's scopes are verbs rather
- * than resources, so no token can be restricted to a single playlist. The site holds
- * two for the same account instead, each carrying the least it can: everything it
- * reads runs on a credential that cannot write at all, and the one route that adds a
- * track is the only thing holding one that can. That matters most for the lab's search
- * proxy, which is public and unauthenticated and spends the read token.
+ * TWO TOKENS, NOT ONE. Spotify's scopes are verbs rather than resources, so no token
+ * can be restricted to a single playlist. The site holds two for the same account
+ * instead: everything it reads runs on one, and the single route that adds a track
+ * holds the other. That matters most for the lab's search proxy, which is public and
+ * unauthenticated and spends the read token.
+ *
+ * THE SPLIT IS INTENT, NOT ENFORCEMENT, AND IT IS WORTH KNOWING WHICH. Spotify grants
+ * scopes per (user, application), not per token, so approving the write scope here
+ * widens every token this application already holds for the account, retroactively.
+ * "pnpm token:check" reports exactly that. Real isolation needs a second Spotify app
+ * with its own client id.
  *
  * playlist-modify-PRIVATE is deliberately never requested, so a leak of the write
  * token cannot reach a private playlist. What it could reach is the public playlists

@@ -69,10 +69,25 @@ single playlist. The next best thing is a token per job:
 | `SPOTIFY_REFRESH_TOKEN` | the three read scopes above | the panel, the statistics, and the lab's search proxy |
 | `SPOTIFY_WRITE_REFRESH_TOKEN` | `playlist-modify-public` only | the one route that adds a track |
 
-The read token **cannot write to anything**, which matters most for the search proxy:
-that route is public and unauthenticated, and this is the credential it spends. The
-write token cannot touch a private playlist, because `playlist-modify-private` is a
-separate scope and is never requested.
+The write token cannot touch a private playlist, because `playlist-modify-private` is
+a separate scope and is never requested by either.
+
+> ### The read token is not actually read-only
+>
+> This was measured, not assumed, and it is the thing to know before relying on the
+> split. **Spotify grants scopes per (user, application), not per token.** Approving
+> `playlist-modify-public` for this app widened the *existing* read token too,
+> retroactively, without it being re-minted. `pnpm token:check` reports both tokens
+> carrying all four scopes.
+>
+> So the pair is **intent rather than enforcement**. It still separates rotation, and it
+> means the search proxy and the add route name different credentials, which is what
+> makes the real fix a config change rather than a refactor.
+>
+> **Real isolation needs a second Spotify application**, with its own client id and
+> secret, because the application is the boundary Spotify enforces. The read paths would
+> use app A and the add route app B, and approving a write scope on B could not reach A.
+> That is an open decision, not a thing that has been done.
 
 Mint the second one with:
 
