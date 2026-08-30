@@ -55,3 +55,31 @@ export const GITHUB_URL = `https://${GITHUB_PATH}`;
 export const LINKEDIN_PATH = `linkedin.com/in/${LINKEDIN_HANDLE}`;
 
 export const LINKEDIN_URL = `https://www.${LINKEDIN_PATH}/`;
+
+/**
+ * Where the work is done from, as a pair of numbers rather than a sentence.
+ *
+ * The masthead does two things with this: prints it, and links it to a map. Those two
+ * want different formats — one wants degrees and hemispheres, the other wants a bare
+ * decimal pair — so the numbers are the constant and both strings below are built out
+ * of them. The alternative was a display string in the copy file and a maps URL beside
+ * it, which is the exact drift this file exists to prevent.
+ *
+ * N and E are hard-coded in the label because the site is fixed at one place in the
+ * northern and eastern hemispheres. If it ever moves west or south, those come off the
+ * template and get derived from the sign.
+ */
+export const COORDS = { lat: 12.9714, lon: 123.9944 } as const;
+
+/** The masthead readout. Middot to match every other joined pair on the site. */
+export const COORDS_LABEL = `${COORDS.lat}° N · ${COORDS.lon}° E`;
+
+/**
+ * The same point, as a map.
+ *
+ * `search/?api=1&query=` is Google's documented, versioned URL form; the older bare
+ * `?q=` still resolves but is not part of the contract. A decimal pair with no place
+ * name drops a pin on the coordinates themselves rather than on whatever the geocoder
+ * decides is nearby.
+ */
+export const MAPS_URL = `https://www.google.com/maps/search/?api=1&query=${COORDS.lat},${COORDS.lon}`;

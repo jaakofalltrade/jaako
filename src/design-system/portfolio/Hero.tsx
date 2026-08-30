@@ -1,5 +1,5 @@
 import { DecryptMode } from "@/models";
-import { HERO } from "@/data/site";
+import { HERO, HERO_STOP_HREF } from "@/data/site";
 import { dropSuffix } from "@/utils/text";
 import { DecryptedText } from "../core/DecryptedText";
 import { DefinitionList } from "../core/DefinitionList";
@@ -40,6 +40,26 @@ import { MastheadBar } from "./MastheadBar";
  */
 const titleLead = dropSuffix({ text: HERO.title, suffix: HERO.title_accent });
 
+/**
+ * And the accent splits once more, on its full stop.
+ *
+ * The period is a link — the oldest joke on the internet, behind the smallest target
+ * on the page; see HERO_STOP_HREF. It is peeled off here rather than stored as its own
+ * field because it is punctuation, not copy: HERO.title stays the readable string
+ * "jaako andes." in the data file, and nothing about the name changes if the joke is
+ * ever deleted.
+ *
+ * dropSuffix returns the string whole when the suffix is not there, so a name that
+ * stops carrying a period renders as it always did and the anchor below simply has
+ * nothing left in it to click.
+ */
+const STOP = ".";
+
+const accentLead = dropSuffix({ text: HERO.title_accent, suffix: STOP });
+
+/** "." when the name ends in one, "" when it does not — see the note above. */
+const stop = HERO.title_accent.slice(accentLead.length);
+
 export const Hero = () => (
   <header className="jk-hero">
     {/* The identity strip, shared with every other page on the site. It carries its
@@ -50,7 +70,39 @@ export const Hero = () => (
     <h1 className="jk-hero__title" data-reveal>
       <DecryptedText text={titleLead} duration={920} replayEvery={60_000} />
       <span className="jk-hero__accent">
-        <DecryptedText text={HERO.title_accent} duration={920} replayEvery={60_000} />
+        <DecryptedText text={accentLead} duration={920} replayEvery={60_000} />
+        {/* The full stop, on its own, going somewhere.
+
+            It sits OUTSIDE the accent's DecryptedText rather than inside it, and that
+            is what keeps the joke from moving: a period that scrambled would spend
+            most of a second as some other glyph, and a link whose text changes under
+            the pointer is a different thing to click on than the one you aimed at. It
+            is also the only character here that is never in doubt.
+
+            aria-hidden with tabIndex -1 as a pair, deliberately. A link whose entire
+            accessible name is "." announces as nothing useful and a keyboard user
+            tabbing the masthead would land on a target with no destination they could
+            read; hiding it without also removing it from the tab order would be the
+            worst of both, a focusable element that assistive tech insists is not
+            there. So it is out of both, which is the honest description of an easter
+            egg. The name still reads "jaako andes" either way — this glyph carries no
+            meaning a reader would miss.
+
+            It repeats the accent's clip recipe in _hero.scss for the reason the accent
+            repeats the title's: each element clips its own background to its own
+            glyphs, so a period that only inherited would paint flat over the grain. */}
+        {stop && (
+          <a
+            href={HERO_STOP_HREF}
+            target="_blank"
+            rel="noreferrer"
+            aria-hidden="true"
+            tabIndex={-1}
+            className="jk-hero__stop"
+          >
+            {stop}
+          </a>
+        )}
       </span>
     </h1>
 

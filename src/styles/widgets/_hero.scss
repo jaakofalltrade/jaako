@@ -180,17 +180,43 @@
    The fallback outside the guard is a plain colour, which is correct rather than lazy:
    a browser without background-clip gets solid ember text on solid ink text, which is
    the same design minus the tooth. */
-.jk-hero__accent {
+.jk-hero__accent,
+.jk-hero__stop {
   color: var(--p-ember);
 }
 
 @supports (background-clip: text) {
-  .jk-hero__accent {
+  .jk-hero__accent,
+  .jk-hero__stop {
     background-image: var(--grain-ink), linear-gradient(var(--p-ember), var(--p-ember));
     background-blend-mode: screen, normal;
     background-clip: text;
     color: transparent;
   }
+}
+
+/* The full stop is a link, and the only thing that says so is the cursor.
+
+   It is listed beside the accent above rather than nested inside it because of the
+   same rule the accent itself is subject to: an element clips its own background to
+   its own glyphs, so a period that merely sat inside .jk-hero__accent would inherit
+   `color: transparent` and paint nothing at all. It needs the whole recipe, not the
+   colour.
+
+   text-decoration is removed rather than left to the reset, because this is the one
+   anchor on the site where an underline would be a design change: it would draw a rule
+   under the last glyph of an 88px name. The hover state is deliberately empty too —
+   see the note on FOOTER.credit for why none of these announce themselves. The pointer
+   is the entire affordance, and finding it is the joke.
+
+   NO PADDING, NO INLINE-BLOCK. Both were tried. The target is worth enlarging — a
+   period is about 20px of ink — but this element sits inside a heading that paints one
+   clipped background across all of its text, and giving the anchor a box of its own
+   pushes the following glyphs apart at the one size on the page where a shifted
+   letterform is unmissable. The name comes first. */
+.jk-hero__stop {
+  text-decoration: none;
+  cursor: pointer;
 }
 
 /* --- everything under it ----------------------------------------------------------- */

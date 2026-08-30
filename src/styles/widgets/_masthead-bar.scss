@@ -66,3 +66,27 @@
   /* The tick rule between them has nothing to separate once the row wraps. */
   .jk-bar__row .jk-rule-wrap { display: none; }
 }
+
+/* The coordinates are a link to a map.
+
+   Everything visible about them is the chip's — the anchor is a bare wrapper that
+   contributes no colour, no size and no box, so the strip reads exactly as it did
+   before. `display: inline-flex` is the one thing it does add, and it is there to make
+   the anchor shrink-wrap the chip: an inline anchor around a padded span reports the
+   line box's height as its own, which would put a focus ring taller than the chip
+   around it.
+
+   The underline comes off for the same reason it comes off .jk-footer__nav-link — the
+   row is a technical drawing, and a rule under one of its two readouts would read as
+   part of the drawing. Hover restores it, because unlike the two easter eggs on this
+   page this link is the useful kind and should say so. */
+.jk-bar__map {
+  display: inline-flex;
+  color: inherit;
+  text-decoration: none;
+
+  &:hover .jk-anno {
+    text-decoration: underline;
+    text-underline-offset: .2em;
+  }
+}

@@ -1,3 +1,4 @@
+import { MAPS_URL } from "@/constants";
 import { AnnotationTone, DecryptAlphabet } from "@/models";
 import { HERO } from "@/data/site";
 import { cx } from "@/utils/cx";
@@ -39,9 +40,29 @@ export const MastheadBar = ({ className }: MastheadBarProps) => (
         <DecryptedText text={HERO.kicker} alphabet={DecryptAlphabet.Upper} duration={1620} />
       </Annotation>
       <Rule tick />
-      <Annotation tone={AnnotationTone.Info}>
-        <DecryptedText text={HERO.coords} alphabet={DecryptAlphabet.Upper} />
-      </Annotation>
+      {/* The coordinates open a map, which is the one thing a reader could plausibly
+          want to do with a latitude and a longitude and previously could not.
+
+          The anchor wraps the Annotation rather than sitting inside it, because the
+          chip — the translucent plate that makes this legible over the photograph, see
+          `.jk-bar .jk-anno` in widgets/_masthead-bar.scss — is painted by the
+          annotation's own box. A link inside it would underline half a chip; a link
+          around it makes the whole chip the target, which is also the only version
+          that clears the 44px touch minimum on a phone.
+
+          The visible text is a coordinate pair and nothing else, so where it goes is
+          said out loud for anyone who cannot see the cursor change. */}
+      <a
+        href={MAPS_URL}
+        target="_blank"
+        rel="noreferrer"
+        className="jk-bar__map"
+      >
+        <Annotation tone={AnnotationTone.Info}>
+          <DecryptedText text={HERO.coords} alphabet={DecryptAlphabet.Upper} />
+        </Annotation>
+        <span className="jk-sr-only"> (opens in google maps)</span>
+      </a>
     </div>
 
     {/* The mark under the row. Decorative: it is a stroke, and there is nothing in it

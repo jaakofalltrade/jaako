@@ -1,5 +1,7 @@
+import { Fragment } from "react";
 import Link from "next/link";
 import { AnnotationTone, DecryptAlphabet, MarqueeTone } from "@/models";
+import type { CreditPart } from "@/models";
 import { FOOTER, NAV_ITEMS, TICKER, TICKER_STRUCK } from "@/data/site";
 import { Annotation } from "../core/Annotation";
 import { DecryptedText } from "../core/DecryptedText";
@@ -18,6 +20,45 @@ import { Struck } from "../core/Struck";
  * The hairline that used to sit above the ticker is gone with the rest of the
  * repeated strokes; the footer's own padding separates it from the last section.
  */
+type CreditLineProps = {
+  parts: CreditPart[];
+};
+
+/**
+ * A line of the footer bar, some runs of which go somewhere.
+ *
+ * Both lines in the bar are this shape now — the copyright hides one link in the name,
+ * the credit hides three in its adjectives — so the mapping is written once. It is a
+ * local component rather than an exported one because that is the whole extent of it:
+ * it knows about CreditPart and about one class name, and a second caller outside this
+ * file would be a sign the footer bar had grown into something else.
+ *
+ * NOTHING IN THE STYLING SAYS A RUN IS A LINK. .jk-footer__egg in layout/_footer.scss
+ * inherits colour and size and only lifts an underline on hover. That is the design
+ * rather than an omission: the bar has to read as two flat lines, because a footer
+ * wearing four underlines reads as a nav and sends the reader looking for something
+ * useful behind them. Which runs are links is the copy's business — see FOOTER.
+ */
+const CreditLine = ({ parts }: CreditLineProps) => (
+  <Annotation>
+    {parts.map((part) =>
+      part.href ? (
+        <a
+          key={part.text}
+          href={part.href}
+          target="_blank"
+          rel="noreferrer"
+          className="jk-footer__egg"
+        >
+          {part.text}
+        </a>
+      ) : (
+        <Fragment key={part.text}>{part.text}</Fragment>
+      ),
+    )}
+  </Annotation>
+);
+
 export const SiteFooter = () => (
   <footer className="jk-footer">
     <Marquee tone={MarqueeTone.Ink} className="jk-footer__ticker">
@@ -38,8 +79,8 @@ export const SiteFooter = () => (
     </nav>
 
     <div className="jk-footer__bar">
-      <Annotation>© 2026 jaako andes</Annotation>
-      <Annotation>{FOOTER.credit}</Annotation>
+      <CreditLine parts={FOOTER.copyright} />
+      <CreditLine parts={FOOTER.credit} />
       {/* The plate spec settles too, and it is the only one of the five that is below
           the fold — so it is also the only one that proves the trigger is the page's
           scroll observer rather than page load. Decorative, so Annotation puts
