@@ -25,11 +25,17 @@ the steps to make it show a real one.
 ## 2. Mint a refresh token
 
 Access tokens expire after an hour; the refresh token is the long-lived one the
-server keeps. Run the helper script once:
+server keeps. Put the client id and secret in `.env.local` first (step 3 below, they
+are the same two values), then run the helper once:
 
 ```sh
-node scripts/spotify-token.mjs <client_id> <client_secret>
+pnpm token:read
 ```
+
+It reads `SPOTIFY_CLIENT_ID` and `SPOTIFY_CLIENT_SECRET` out of `.env.local`, so
+there is nothing to pass and nothing to paste into your shell history. Anything already
+exported in the environment still wins over the file, and the credentials can still be
+given as arguments if you would rather not put them in a file at all.
 
 It starts a throwaway listener on `127.0.0.1:8888`, prints a consent URL, and
 waits. Open the URL, approve access, and the script prints:
@@ -57,10 +63,10 @@ that route is public and unauthenticated, and this is the credential it spends. 
 write token cannot touch a private playlist, because `playlist-modify-private` is a
 separate scope and is never requested.
 
-Mint the second one by naming the set:
+Mint the second one with:
 
 ```sh
-node scripts/spotify-token.mjs <client_id> <client_secret> write
+pnpm token:write
 ```
 
 **Do this one first, then reload the homepage and check the panel still works.** Two
@@ -72,9 +78,9 @@ catch a token that came back carrying more than was asked for.
 Only `/lab/suggest` needs the write token. Without it the rest of the site is
 unaffected and adding a track refuses with a 503.
 
-> **Rotating an existing token.** Whichever set you are re-minting, the script defaults
-> to `read`, so the command above without a set argument still does exactly what it
-> always did.
+> **Rotating an existing token.** `pnpm token:read` re-mints the read one and
+> `pnpm token:write` the write one; the script defaults to `read` when neither is
+> named, so the original bare command still does exactly what it always did.
 > `user-top-read` was added for the listening
 > statistics cell in the instrument strip. A refresh token minted before that scope
 > existed will keep working for now-playing but Spotify will answer `403` for

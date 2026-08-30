@@ -37,6 +37,7 @@
  */
 
 import http from "node:http";
+import { loadEnvLocal } from "./loadEnv.mjs";
 
 const PORT = 8888;
 const REDIRECT_URI = `http://127.0.0.1:${PORT}/callback`;
@@ -54,6 +55,10 @@ const VARIABLE = {
 
 // The set is found wherever it appears rather than taken by position, so the command
 // documented before this script grew a second mode still works unchanged.
+// .env.local, so the client pair does not have to be typed on the command line or
+// exported by hand. Anything already in the environment still wins over the file.
+loadEnvLocal();
+
 const positional = process.argv.slice(2);
 const setArg = positional.find((value) => value in SCOPE_SETS);
 const credentials = positional.filter((value) => !(value in SCOPE_SETS));
@@ -66,7 +71,13 @@ const clientId = credentials[0] ?? process.env.SPOTIFY_CLIENT_ID;
 const clientSecret = credentials[1] ?? process.env.SPOTIFY_CLIENT_SECRET;
 
 if (!clientId || !clientSecret) {
-  console.error("Missing credentials.\n  node scripts/spotify-token.mjs <client_id> <client_secret> [read|write]");
+  console.error(
+    "Missing credentials." + "\n\n" +
+      "Put SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET in .env.local, then:" + "\n" +
+      "  pnpm token:read     mints the read token" + "\n" +
+      "  pnpm token:write    mints the write token" + "\n\n" +
+      "Or pass them: node scripts/spotify-token.mjs <client_id> <client_secret> [read|write]"
+  );
   process.exit(1);
 }
 

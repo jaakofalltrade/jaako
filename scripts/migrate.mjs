@@ -2,6 +2,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { neon } from "@neondatabase/serverless";
+import { loadEnvLocal } from "./loadEnv.mjs";
 
 /**
  * Applies every migration in src/server/db/migrations that has not run yet.
@@ -20,34 +21,6 @@ import { neon } from "@neondatabase/serverless";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const migrations = join(here, "..", "src", "server", "db", "migrations");
-
-/**
- * Reads .env.local the way `next dev` would.
- *
- * Deliberately not a dependency and deliberately not `--env-file`: this script has to
- * run in two places, a laptop where the variables are in a file and a host where they
- * are already in the environment. Anything already set wins, so running it against a
- * production connection string is a matter of exporting one variable.
- */
-const loadEnvLocal = () => {
-  let contents;
-  try {
-    contents = readFileSync(join(here, "..", ".env.local"), "utf8");
-  } catch {
-    return; // No file. The host supplies the environment instead.
-  }
-
-  for (const line of contents.split("\n")) {
-    const match = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)$/);
-    if (!match) continue;
-
-    const [, key, rawValue] = match;
-    if (process.env[key]) continue;
-
-    // Strip one layer of matching quotes, which is all .env files ever carry.
-    process.env[key] = rawValue.trim().replace(/^(['"])(.*)\1$/, "$2");
-  }
-};
 
 const run = async () => {
   loadEnvLocal();

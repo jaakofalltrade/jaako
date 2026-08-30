@@ -30,11 +30,12 @@ Adding a track needs `playlist-modify-public`. That is a **second** refresh toke
 rather than a wider version of the existing one:
 
 ```sh
-node scripts/spotify-token.mjs <client_id> <client_secret> write
+pnpm token:write
 ```
 
-Put the printed value in `.env.local` as `SPOTIFY_WRITE_REFRESH_TOKEN`, and on the
-host. **Leave `SPOTIFY_REFRESH_TOKEN` alone.**
+The client id and secret come from `.env.local`, so there is nothing to pass. Put the
+printed value back in `.env.local` as `SPOTIFY_WRITE_REFRESH_TOKEN`, and on the host.
+**Leave `SPOTIFY_REFRESH_TOKEN` alone.**
 
 ### What this does and does not protect
 

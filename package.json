@@ -10,6 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:migrate": "node scripts/migrate.mjs",
+    "token:read": "node scripts/spotify-token.mjs read",
+    "token:write": "node scripts/spotify-token.mjs write",
     "build-icons": "node scripts/build-icons.mjs",
     "build-blocklist": "tsx scripts/build-blocklist.ts"
   },

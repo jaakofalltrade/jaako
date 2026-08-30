@@ -66,8 +66,9 @@ applied 1 migration(s).
 Run it again and it will tell you there is nothing to do. It is safe to run as often
 as you like.
 
-The script reads `.env.local` itself, and anything already exported in the environment
-wins over the file. So pointing it at production is one variable:
+The script reads `.env.local` itself through `scripts/loadEnv.mjs`, which the token
+script shares, and anything already exported in the environment wins over the file. So
+pointing it at production is one variable:
 
 ```sh
 DATABASE_URL='postgresql://...' pnpm db:migrate
