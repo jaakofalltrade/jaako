@@ -164,6 +164,7 @@ prunes those; delete them by hand if you ever care.
 | Symptom | Cause |
 | --- | --- |
 | `DATABASE_URL is not set` from `pnpm db:migrate` | No `.env.local`, or the variable is not in it. |
+| `cannot insert multiple commands into a prepared statement` | A migration was run through the HTTP driver. The migrate script uses `Pool` for exactly this reason; see its header. |
 | Suggestions render without names | The database is unreachable. The page degrades on purpose; the server logs the reason. |
 | Adds answer 503 | Same, or the Spotify playlist is not configured. See `docs/suggest-setup.md`. |
 | Queries are slow from production but fast locally | The project is in a different region from the host, or you took the unpooled connection string. |

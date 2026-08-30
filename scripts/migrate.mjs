@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { neon } from "@neondatabase/serverless";
+import { Pool } from "@neondatabase/serverless";
 import { loadEnvLocal } from "./loadEnv.mjs";
 
 /**
@@ -11,12 +11,39 @@ import { loadEnvLocal } from "./loadEnv.mjs";
  *
  * A script rather than a migration framework, and that is the same trade the rest of
  * this repo makes: there is one table of applied filenames, files are applied in
- * filename order, and each one runs once. What a framework would add on top of that
- * is rollbacks and generated diffs, neither of which is worth a dependency for a
- * schema this size.
+ * filename order, and each one runs once. What a framework would add on top of that is
+ * rollbacks and generated diffs, neither of which is worth a dependency for a schema
+ * this size.
  *
- * SAFE TO RUN REPEATEDLY. Every statement in the migrations is written `if not
- * exists` as well, so the ledger and the SQL agree even if the two ever disagree.
+ * SAFE TO RUN REPEATEDLY, twice over. The ledger skips a file that has already run,
+ * and every statement in the migrations is written `if not exists` as well.
+ *
+ * PER BRANCH. The ledger lives inside the database it describes, so a Neon branch that
+ * has never been migrated has no tables however many times this has run elsewhere.
+ * Point it at another branch by exporting the variable, which wins over .env.local:
+ *
+ *     DATABASE_URL='<main pooled string>' pnpm db:migrate
+ *
+ * POOL RATHER THAN THE HTTP DRIVER, WHICH IS THE OPPOSITE OF src/server/db/index.ts.
+ *
+ * That file uses neon() over HTTP because a route handler is short-lived and there is
+ * no connection to keep. This is neither: it is a one-off CLI, and it needs two things
+ * the HTTP driver cannot give it.
+ *
+ *   1. MULTIPLE STATEMENTS IN ONE QUERY. neon() sends a prepared statement, and
+ *      Postgres refuses more than one command in one of those: "cannot insert multiple
+ *      commands into a prepared statement", error 42601. Every migration here is
+ *      several statements, so every migration failed. Splitting the file on semicolons
+ *      would be the other fix and a worse one, because doing that correctly means
+ *      parsing SQL rather than searching it.
+ *
+ *   2. A REAL TRANSACTION. A migration that fails halfway should leave nothing behind,
+ *      and the ledger row should land only if the SQL did. Wrapping both in one BEGIN
+ *      is what makes "applied" mean what it says.
+ *
+ * Pool speaks the Postgres wire protocol over a WebSocket, which is exactly the thing
+ * that would be wrong in a serverless request handler and is fine in a script that
+ * runs once and exits.
  */
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -34,49 +61,65 @@ const run = async () => {
     process.exit(1);
   }
 
-  const sql = neon(url);
+  const pool = new Pool({ connectionString: url });
+  const client = await pool.connect();
 
-  // The ledger. Created by this script rather than by a migration, because a
-  // migration that creates the table recording which migrations have run is a
-  // chicken and egg nobody enjoys reading.
-  await sql`
-    create table if not exists schema_migration (
-      filename    text          primary key,
-      applied_at  timestamptz   not null default now()
-    )
-  `;
+  try {
+    // The ledger. Created by this script rather than by a migration, because a
+    // migration that creates the table recording which migrations have run is a
+    // chicken and egg nobody enjoys reading.
+    await client.query(`
+      create table if not exists schema_migration (
+        filename    text          primary key,
+        applied_at  timestamptz   not null default now()
+      )
+    `);
 
-  const applied = new Set(
-    (await sql`select filename from schema_migration`).map((row) => row.filename)
-  );
+    const { rows } = await client.query("select filename from schema_migration");
+    const applied = new Set(rows.map((row) => row.filename));
 
-  // Filename order, which is why they are numbered. 001, 002, 010: zero-padded so
-  // the tenth migration does not sort before the second.
-  const files = readdirSync(migrations)
-    .filter((file) => file.endsWith(".sql"))
-    .sort();
+    // Filename order, which is why they are numbered. 001, 002, 010: zero-padded so
+    // the tenth migration does not sort before the second.
+    const files = readdirSync(migrations)
+      .filter((file) => file.endsWith(".sql"))
+      .sort();
 
-  const pending = files.filter((file) => !applied.has(file));
+    const pending = files.filter((file) => !applied.has(file));
 
-  if (!pending.length) {
-    console.log(`nothing to apply. ${files.length} migration(s) already on this database.`);
-    return;
+    if (!pending.length) {
+      console.log(
+        `nothing to apply. ${files.length} migration(s) already on this database.`
+      );
+      return;
+    }
+
+    for (const file of pending) {
+      const contents = readFileSync(join(migrations, file), "utf8");
+      console.log(`applying ${file}`);
+
+      // One transaction per file. The SQL and its ledger row land together or not at
+      // all, so a failure halfway through leaves the database exactly as it was and
+      // the file still counts as pending on the next run.
+      await client.query("begin");
+      try {
+        await client.query(contents);
+        await client.query("insert into schema_migration (filename) values ($1)", [file]);
+        await client.query("commit");
+      } catch (error) {
+        await client.query("rollback");
+        throw new Error(`${file}: ${error.message}`, { cause: error });
+      }
+    }
+
+    console.log(`applied ${pending.length} migration(s).`);
+  } finally {
+    client.release();
+    // Without this the WebSocket keeps the process alive and the script never exits.
+    await pool.end();
   }
-
-  for (const file of pending) {
-    const contents = readFileSync(join(migrations, file), "utf8");
-    console.log(`applying ${file}`);
-
-    // One HTTP round trip per file, not per statement. The driver sends the whole
-    // script, so a file either lands or it does not.
-    await sql.query(contents);
-    await sql`insert into schema_migration (filename) values (${file})`;
-  }
-
-  console.log(`applied ${pending.length} migration(s).`);
 };
 
 run().catch((error) => {
-  console.error("migration failed:", error);
+  console.error("migration failed:", error.message);
   process.exit(1);
 });
