@@ -74,11 +74,53 @@ pointing it at production is one variable:
 DATABASE_URL='postgresql://...' pnpm db:migrate
 ```
 
-## 5. Deployment
+## 5. A branch for local work
 
-Add `DATABASE_URL` to the host's environment settings (Vercel: Settings →
-Environment Variables), then redeploy. Run the migration once against the production
-database using the form above.
+**One project, two branches. Not two projects.**
+
+A Neon branch is a copy-on-write clone with its own connection string, made in seconds
+and costing almost no storage. Two projects would give the same isolation and two of
+everything to manage.
+
+    jaako-lab
+    |- main    production        the host's environment variable
+    `- dev     your laptop       .env.local
+
+Create it in the console, or:
+
+```sh
+npx neonctl branches create --name dev
+npx neonctl connection-string dev --pooled
+```
+
+**The migration runs per branch.** The `schema_migration` ledger lives *inside* each
+database, so a branch that has never been migrated has no tables however many times you
+have run the command elsewhere. This is the step that gets forgotten:
+
+```sh
+pnpm db:migrate                                       # .env.local, so dev
+DATABASE_URL='<main pooled string>' pnpm db:migrate   # production
+```
+
+That second form works because `scripts/loadEnv.mjs` lets an exported value win over
+the file.
+
+**Resetting dev from main** is a click in the console, or `npx neonctl branches reset
+dev --parent`. That is the payoff over separate projects: throwing away your test data
+and re-cloning production is not a dump and a restore.
+
+**If you are not deploying yet** you can skip `dev` and use `main` locally. The cost
+is that your test suggestions become real rows, with invented names attached to real
+tracks, that want cleaning up before launch. The branch takes thirty seconds; take it.
+
+> Neon's free-tier limits on projects and branches change. Check what your plan allows
+> rather than assuming two branches are free.
+
+## 6. Deployment
+
+Add `main`'s pooled string to the host as `DATABASE_URL` (Vercel: Settings →
+Environment Variables), then redeploy. Run the migration against it once, using the
+exported form above.
 
 If the site is on Vercel, check the integrations marketplace first. Provisioning Neon
 through it wires the variable in for you and saves this step.
