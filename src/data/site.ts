@@ -172,6 +172,19 @@ export const SECTIONS: Record<
 };
 
 export const FOOTER = {
+  // The copyright, and the fourth easter egg. The name goes to a record sleeve on
+  // Spotify's image CDN — a flat .jpg rather than a track page, so it opens as a
+  // picture and nothing else, which is the whole of the joke.
+  //
+  // Only the name is a link. "© 2026" is a plain run, because a copyright notice that
+  // was entirely clickable would read as a claim about the destination.
+  copyright: [
+    { text: "© 2026 " },
+    {
+      text: "jaako andes",
+      href: "https://i.scdn.co/image/ab67616d0000b273d45ec66aa3cf3864205fd068",
+    },
+  ] as CreditPart[],
   // The old line was "hand-built, no template". Half of that stopped being true: the
   // template part still holds, the hand-built part is doing a lot of work for a page
   // most of which was talked into existence rather than typed. Saying so is funnier
