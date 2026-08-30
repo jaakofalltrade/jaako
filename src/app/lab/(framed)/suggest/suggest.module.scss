@@ -14,7 +14,7 @@
 
 .lead {
   max-width: var(--measure);
-  margin-block: 0 var(--space-10);
+  margin: 0;
   font-size: var(--text-lg);
   line-height: var(--leading-loose);
   color: var(--text-body);
@@ -40,10 +40,19 @@
   }
 }
 
+/* The card and the pitch, stacked. The sentence sits close under the card rather
+   than a section-gap away, because it is about that card. */
+.introMain {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
 /* The card carries its own vertical rhythm when it stands alone; inside the grid the
    grid owns it. */
-.intro .playlist,
-.intro .playlistOffline {
+.introMain .playlist,
+.introMain .playlistOffline {
   margin-block: 0;
 }
 
@@ -396,6 +405,9 @@
 }
 
 .result {
+  /* The anchor for the slab, which is positioned out of the row rather than pushing
+     the rows below it down. */
+  position: relative;
   border-top: var(--border-1) solid var(--hair);
 
   &:last-child { border-bottom: var(--border-1) solid var(--hair); }
@@ -428,8 +440,6 @@
 .resultTitle {
   font-size: var(--text-sm);
   color: var(--text-strong);
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -448,16 +458,33 @@
   color: var(--text-faint);
 }
 
-/* The name slab: opened by the first add, under the row it belongs to. Inset so it
-   reads as belonging to that row rather than as a new section. */
+/* The name slab, opened by the first add.
+
+   IT OPENS TO THE RIGHT RATHER THAN UNDERNEATH, and that is what makes it feel like a
+   thing attached to one row instead of a section arriving in the middle of the list.
+   Underneath, it shoved every result below it down the page by its own height, so the
+   track somebody was reading moved the instant they asked to add it.
+
+   Positioned out of the flow entirely, which is affordable here for one specific
+   reason: the search column stops at the measure and the page does not, so there is
+   always empty page to the right of it on a wide screen. This is not floating over
+   content; it is using the margin.
+
+   It needs a real surface because it is over the background photograph rather than
+   over the page, which is the one case base/_mixins.scss says to ask about. */
 .slab {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  z-index: 2;
+  width: 19rem;
+  margin-left: var(--space-6);
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  margin-left: 3.5rem;
-  margin-bottom: var(--space-4);
-  padding: var(--space-4);
-  background: var(--surface-well);
+  padding: var(--space-5);
+  background: var(--surface-raised, rgba(242, 239, 231, .92));
+  border: var(--border-1) solid var(--hair-lit);
   border-left: var(--border-2) solid var(--p-mid);
 }
 
@@ -521,6 +548,11 @@
   padding-block: var(--space-4);
   border-top: var(--border-1) solid var(--hair);
 
+  /* The heading already draws the line above the first row. Without this the two sit a
+     pixel apart and read as a double rule, which is the only place on the page where
+     two strokes do the same job. */
+  .head + & { border-top: 0; }
+
   &:last-child { border-bottom: var(--border-1) solid var(--hair); }
 
   /* An unconfirmed row, and it should look like one. Dimmed rather than animated: a
@@ -561,6 +593,11 @@
   color: var(--text-strong);
 }
 
+.rowArtist,
+.rowTitle {
+  min-width: 0;
+}
+
 .rowArtist {
   font-size: var(--text-3xs);
   color: var(--text-dim);
@@ -575,7 +612,6 @@
 .rowTime {
   min-width: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
   font-family: var(--font-mono);
   font-size: var(--text-3xs);
@@ -616,6 +652,57 @@
   text-transform: none;
   letter-spacing: normal;
   white-space: normal;
+}
+
+/* --- long text ------------------------------------------------------------------
+
+   A title too long for its column scrolls while the row is pointed at, and sits still
+   the rest of the time.
+
+   NOT THE Marquee COMPONENT, which is the obvious reuse and the wrong one: it scrolls
+   continuously and duplicates its content to loop seamlessly. That is right for a
+   ticker nobody has to read a specific word of, and wrong for a track title, which is
+   a thing somebody is trying to read. A title that never stops moving cannot be read
+   at all.
+
+   IT TURNS ITSELF OFF WHEN THE TEXT FITS, with no JavaScript and no measuring. The
+   cell is a container, so 100cqw is its own width and 100% inside the translate is the
+   TEXT's width. calc(100cqw - 100%) is therefore negative exactly when the text
+   overflows, and min() with zero clamps everything that fits to no movement at all. So
+   a short title has an animation attached and does not budge.
+
+   The mask replaces text-overflow: ellipsis, which cannot work here: an ellipsis needs
+   the text to be the overflowing box itself, and the text has to be an inline-block
+   child to be transformed. A fade says the same thing and does not have to disappear
+   when the scroll starts. */
+.scroll {
+  container-type: inline-size;
+  overflow: hidden;
+  mask-image: linear-gradient(to right, #000 calc(100% - 1.25rem), transparent);
+}
+
+.scroll > span {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.row:hover .scroll > span,
+.result:hover .scroll > span {
+  animation: suggest-scroll 6s var(--ease-in-out) infinite alternate;
+}
+
+@keyframes suggest-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(min(0px, calc(100cqw - 100%))); }
+}
+
+/* Reduced motion takes the movement and keeps the fade, which is the part that says
+   there is more text. */
+@media (prefers-reduced-motion: reduce) {
+  .row:hover .scroll > span,
+  .result:hover .scroll > span {
+    animation: none;
+  }
 }
 
 @media (max-width: 47.9375rem) {

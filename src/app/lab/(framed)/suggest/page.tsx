@@ -91,14 +91,19 @@ const SuggestTeaserPage = async () => {
           way here, and both were wrong for the same reason - it was describing the
           playlist, and it belongs against the playlist. */}
       <div className={styles.intro}>
-        <PlaylistCard playlist={snapshot?.summary ?? null} />
+        {/* The card and the pitch are one column, so the sentence sits directly under
+            the thing it is talking about rather than under the whole grid. The spec
+            keeps the second column beside both. */}
+        <div className={styles.introMain}>
+          <PlaylistCard playlist={snapshot?.summary ?? null} />
+
+          <p className={styles.lead} data-reveal>
+            {SUGGEST_TEASER.lead}
+          </p>
+        </div>
 
         <DefinitionList items={SUGGEST_TEASER.spec} ruled className={styles.spec} />
       </div>
-
-      <p className={styles.lead} data-reveal>
-        {SUGGEST_TEASER.lead}
-      </p>
 
       <SuggestBoard
         initialQueue={queue}

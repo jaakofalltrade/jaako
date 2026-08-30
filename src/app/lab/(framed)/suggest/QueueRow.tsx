@@ -39,9 +39,15 @@ export const QueueRow = ({ entry, state, error, index, onRetry }: QueueRowProps)
       <span className={styles.rowArtEmpty} aria-hidden="true" />
     )}
 
+    {/* The inner span is what moves; the cell is the window it moves inside. See
+        .scroll in the module for why this is not the Marquee component. */}
     <span className={styles.rowBody}>
-      <span className={styles.rowTitle}>{entry.title}</span>
-      <span className={styles.rowArtist}>{entry.artist}</span>
+      <span className={`${styles.rowTitle} ${styles.scroll}`}>
+        <span>{entry.title}</span>
+      </span>
+      <span className={`${styles.rowArtist} ${styles.scroll}`}>
+        <span>{entry.artist}</span>
+      </span>
     </span>
 
     {/* FAILED COLLAPSES THE REMAINING COLUMNS INTO ONE. A row that did not land has
@@ -56,9 +62,13 @@ export const QueueRow = ({ entry, state, error, index, onRetry }: QueueRowProps)
       </span>
     ) : (
       <>
-        <span className={styles.rowAlbum}>{entry.album}</span>
+        <span className={`${styles.rowAlbum} ${styles.scroll}`}>
+          <span>{entry.album}</span>
+        </span>
 
-        <span className={styles.rowBy}>{entry.added_by ?? ""}</span>
+        <span className={`${styles.rowBy} ${styles.scroll}`}>
+          <span>{entry.added_by ?? ""}</span>
+        </span>
 
         <span className={styles.rowWhen}>
           {state === RowState.Adding ? SUGGEST_TEASER.adding : shortDate({ iso: entry.added_at })}

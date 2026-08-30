@@ -205,10 +205,17 @@ export const SUGGEST_TEASER = {
   /** Only when the playlist is genuinely empty, or Spotify could not be reached. */
   queue_empty: "Nothing on it yet. Be the first.",
 
-  /** The name slab, opened by the first add and skipped by every one after it. */
-  name_label: "sign it",
+  /**
+   * The name slab, opened by the first add and skipped by every one after it.
+   *
+   * "sign it" was a nice phrase and a bad label: it named the gesture rather than the
+   * field, so the one thing it did not say was what to type. A label on a control
+   * should answer that and nothing else, and the flourish moves to the hint where it
+   * costs nobody anything.
+   */
+  name_label: "your name",
   name_placeholder: "a name",
-  name_hint: "3 to 10 characters. It shows next to the track.",
+  name_hint: "3 to 10 characters. It signs the track.",
 
   /** While a search is in flight and there is nothing to show yet. */
   searching: "looking...",

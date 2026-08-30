@@ -45,8 +45,12 @@ export const SearchRow = ({
       )}
 
       <span className={styles.resultBody}>
-        <span className={styles.resultTitle}>{track.title}</span>
-        <span className={styles.resultArtist}>{track.artist}</span>
+        <span className={`${styles.resultTitle} ${styles.scroll}`}>
+          <span>{track.title}</span>
+        </span>
+        <span className={`${styles.resultArtist} ${styles.scroll}`}>
+          <span>{track.artist}</span>
+        </span>
       </span>
 
       <span className={styles.resultTime}>{clock(track.duration_ms)}</span>
