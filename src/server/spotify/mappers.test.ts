@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Spotify } from "@/models";
-import { artistNames, modalGenre, toItemUrl, toTrack } from "./mappers";
+import { artistNames, modalGenre, toItemUrl, toPlaylistSummary, toTrack } from "./mappers";
 
 /**
  * The Spotify mappers.
@@ -161,5 +161,84 @@ describe("modalGenre", () => {
      the intended end, not an oversight, so it is pinned. */
   it("is null when the field is absent, which is how this ends", () => {
     expect(modalGenre([{ name: "a" }, { name: "b" }])).toBeNull();
+  });
+});
+
+describe("toPlaylistSummary", () => {
+  /* Shaped exactly as the real lab playlist answered, including the null dimensions on
+     the cover and the count living under `items` rather than `tracks`. */
+  const real: Spotify.PlaylistResponse = {
+    name: "Portfolio Playlist",
+    description: "Song suggestions from my portfolio.",
+    external_urls: { spotify: "https://open.spotify.com/playlist/2CK3Ap0UNSCwatm9cIijx2" },
+    images: [
+      { url: "https://image-cdn-fa.spotifycdn.com/image/ab67706c0000da84", width: null, height: null },
+    ],
+    owner: { display_name: "jaako" },
+    followers: { total: 0 },
+    items: { total: 1 },
+  };
+
+  it("maps the playlist as Spotify actually returns it", () => {
+    expect(toPlaylistSummary({ playlist: real, runtime_ms: 236_560 })).toEqual({
+      name: "Portfolio Playlist",
+      description: "Song suggestions from my portfolio.",
+      cover: "https://image-cdn-fa.spotifycdn.com/image/ab67706c0000da84",
+      url: "https://open.spotify.com/playlist/2CK3Ap0UNSCwatm9cIijx2",
+      track_count: 1,
+      runtime_ms: 236_560,
+      owner: "jaako",
+    });
+  });
+
+  /* THE FIELD IS `items`, NOT `tracks`. Asking Spotify for tracks(total) returns a 200
+     with the key absent, so this is the assertion that would catch the projection
+     drifting back to the shape the older documentation describes. */
+  it("takes the count from items.total and ignores a tracks key", () => {
+    const wrong = { ...real, items: undefined } as Spotify.PlaylistResponse;
+    expect(toPlaylistSummary({ playlist: wrong, runtime_ms: 0 }).track_count).toBe(0);
+  });
+
+  /* A cover on a rotating spotifycdn subdomain has to survive; anything else must not. */
+  it("keeps a cover on either spotifycdn subdomain", () => {
+    const ak = { ...real, images: [{ url: "https://image-cdn-ak.spotifycdn.com/image/x" }] };
+    expect(toPlaylistSummary({ playlist: ak, runtime_ms: 0 }).cover).toBe(
+      "https://image-cdn-ak.spotifycdn.com/image/x"
+    );
+  });
+
+  it("keeps a cover on i.scdn.co, which is where a mosaic lands", () => {
+    const mosaic = { ...real, images: [{ url: "https://i.scdn.co/image/x", width: 640 }] };
+    expect(toPlaylistSummary({ playlist: mosaic, runtime_ms: 0 }).cover).toBe(
+      "https://i.scdn.co/image/x"
+    );
+  });
+
+  it("refuses a cover from anywhere else, so the card renders its placeholder", () => {
+    const bad = { ...real, images: [{ url: "https://example.test/cover.jpg" }] };
+    expect(toPlaylistSummary({ playlist: bad, runtime_ms: 0 }).cover).toBeNull();
+  });
+
+  it("has no cover when there are no images", () => {
+    expect(toPlaylistSummary({ playlist: { ...real, images: [] }, runtime_ms: 0 }).cover).toBeNull();
+  });
+
+  /* Every field on Spotify's playlist object is optional in its schema, and the header
+     must render something for each one rather than letting undefined reach JSX. */
+  it("maps an entirely empty playlist without producing undefined", () => {
+    expect(toPlaylistSummary({ playlist: {}, runtime_ms: 0 })).toEqual({
+      name: "the playlist",
+      description: "",
+      cover: null,
+      url: "https://open.spotify.com",
+      track_count: 0,
+      runtime_ms: 0,
+      owner: "",
+    });
+  });
+
+  it("falls back to Spotify's home page for a link on another host", () => {
+    const bad = { ...real, external_urls: { spotify: "https://example.test/playlist" } };
+    expect(toPlaylistSummary({ playlist: bad, runtime_ms: 0 }).url).toBe("https://open.spotify.com");
   });
 });

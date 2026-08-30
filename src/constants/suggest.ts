@@ -1,13 +1,66 @@
 import { SuggestFailure } from "@/models";
+import { ART_HOST } from "./spotify";
 
 /**
  * Fixed values and copy for /lab/suggest.
  *
  * Same split as constants/contact.ts against models/Contact.ts: the enum values are
- * identifiers, so everything a human reads is mapped here. None of these vary by
- * deployment, which is why they are not in ServerConfig. The one value that does vary
- * is the playlist id, and that is why it is the exception.
+ * identifiers, so everything a human reads is mapped here.
+ *
+ * The playlist id is the one value here that a deployment may want to change, and it
+ * still lives in this file rather than only in the environment. It is public, it does
+ * not change, and a clone should render the real playlist without anybody being told
+ * to set a variable first; serverConfig reads SPOTIFY_PLAYLIST_ID over the top of it
+ * when there is one.
  */
+
+/**
+ * The lab playlist: <https://open.spotify.com/playlist/2CK3Ap0UNSCwatm9cIijx2>
+ *
+ * "Portfolio Playlist", public, owned by the site's own Spotify account. It exists,
+ * so this is the real value rather than a placeholder.
+ *
+ * A CONSTANT WITH AN ENVIRONMENT OVERRIDE, RATHER THAN AN ENVIRONMENT VARIABLE WITH NO
+ * DEFAULT. It is not a secret — it is in the address bar of a public page — and it does
+ * not change, so a clone of this repository should render the real playlist without
+ * anybody having to be told to set something first. serverConfig still reads
+ * SPOTIFY_PLAYLIST_ID over the top of it, which is what a staging deployment would use
+ * to avoid test adds landing on the playlist jaako actually listens to.
+ */
+export const SUGGEST_PLAYLIST_ID = "2CK3Ap0UNSCwatm9cIijx2";
+
+/**
+ * Hosts a playlist cover is allowed to come from.
+ *
+ * Album art is always i.scdn.co, which ART_HOST already covers. A playlist's uploaded
+ * cover is not: it comes back on spotifycdn.com with a ROTATING SUBDOMAIN — the same
+ * image answered as image-cdn-ak and image-cdn-fa on two consecutive requests — so this
+ * one has to be a suffix. The leading dot is the safety: ".spotifycdn.com" cannot be
+ * satisfied by "evilspotifycdn.com". See fromHostList in utils/url.ts.
+ *
+ * next.config.ts has to agree with this, and it does: img-src carries the same pair.
+ */
+export const PLAYLIST_ART_HOSTS = [ART_HOST] as const;
+export const PLAYLIST_ART_SUFFIXES = [".spotifycdn.com"] as const;
+
+/**
+ * How long the playlist header is served from memory.
+ *
+ * The header changes when somebody adds a track, which is rare, and it costs one
+ * request per page of items to rebuild because the runtime has to be summed. Five
+ * minutes of staleness on a track count is invisible; the alternative is paying for
+ * that sum on every page load.
+ */
+export const PLAYLIST_SUMMARY_TTL_MS = 5 * 60 * 1000;
+
+/**
+ * How many pages of durations the runtime sum will walk before it gives up.
+ *
+ * A hundred items each, so this is two thousand tracks — far past anything this
+ * playlist will be. It exists so a paging bug cannot turn one page render into an
+ * unbounded loop against Spotify, not because the limit is expected to be reached.
+ */
+export const PLAYLIST_MAX_PAGES = 20;
 
 /**
  * The display name. Three to ten characters, measured after normalizeDisplayName.

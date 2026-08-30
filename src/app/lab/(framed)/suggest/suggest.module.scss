@@ -85,3 +85,134 @@
   max-width: var(--measure);
   margin-top: var(--space-10);
 }
+
+/* --- the playlist header ----------------------------------------------------------
+
+   The one live block on this page. It reads the site's own custom properties like the
+   rest of this module, because /lab/suggest is the app that keeps the portfolio's
+   design; a rule in here that named a colour or a type size would mean the page is
+   drifting away from the thing it is supposed to be sharing. */
+
+.playlist {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  gap: var(--space-6);
+  align-items: start;
+  margin-block: var(--space-8);
+  padding: var(--space-5) var(--space-2);
+  text-decoration: none;
+  color: inherit;
+  transition:
+    padding-left var(--dur-base) var(--ease-out),
+    background var(--dur-base) var(--ease-out);
+
+  /* The same step forward the work list and the lab index use, because this is the
+     same gesture: a row that leads somewhere, answering when it is pointed at. Three
+     hover treatments for one idea was what made the lab index read as sloppy. */
+  &:hover,
+  &:focus-visible {
+    padding-left: var(--space-4);
+    background: linear-gradient(90deg, rgba(51, 104, 160, .09), transparent 70%);
+  }
+}
+
+.playlistCover,
+.playlistCoverEmpty {
+  grid-column: 1;
+  width: 7rem;
+  height: 7rem;
+  /* Square, and sharp. Spotify rounds its covers and this page does not round
+     anything; --radius-none is the site's default and is restated here because a cover
+     is the one element a reader might expect to arrive with corners. */
+  border-radius: var(--radius-none);
+  object-fit: cover;
+}
+
+/* No image, either because the playlist has no cover or because the URL failed its
+   host check. A square of the quietest surface in the palette, never a broken icon. */
+.playlistCoverEmpty {
+  display: block;
+  background: var(--surface-well);
+  border: var(--border-1) solid var(--hair);
+}
+
+.playlistBody {
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.playlistName {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-display);
+  text-transform: lowercase;
+  color: var(--text-body);
+  transition: color var(--dur-base) var(--ease-out);
+
+  .playlist:hover &,
+  .playlist:focus-visible & {
+    color: var(--text-strong);
+  }
+}
+
+.playlistDescription {
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--text-dim);
+  max-width: var(--measure);
+}
+
+.playlistSpec {
+  margin-top: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* The one part of the spec line that says the card goes somewhere. It only takes the
+   link colour on hover, so at rest the row reads as a readout rather than as a
+   control, which is what the rest of the site does with its quiet links. */
+.playlistOpen {
+  color: var(--text-dim);
+  transition: color var(--dur-base) var(--ease-out);
+
+  .playlist:hover &,
+  .playlist:focus-visible & {
+    color: var(--text-link);
+  }
+}
+
+/* Spotify unreachable, or no playlist configured. One quiet line where the card was:
+   reads degrade, and the rest of the page still explains itself. */
+.playlistOffline {
+  margin-block: var(--space-8);
+  padding-block: var(--space-5);
+  border-block: var(--border-1) solid var(--hair);
+}
+
+@media (max-width: 47.9375rem) {
+  .playlist {
+    grid-template-columns: 5rem minmax(0, 1fr);
+    gap: var(--space-5);
+  }
+
+  .playlistCover,
+  .playlistCoverEmpty {
+    width: 5rem;
+    height: 5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .playlist,
+  .playlistName,
+  .playlistOpen {
+    transition: none;
+  }
+}

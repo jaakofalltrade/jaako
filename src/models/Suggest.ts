@@ -82,6 +82,25 @@ export type QueueEntry = {
   added_by: string | null;
 };
 
+/**
+ * The playlist itself, as the page's header renders it.
+ *
+ * Read on the server and passed down, so the browser never learns the playlist id and
+ * never calls Spotify. `runtime_ms` is summed across every page of items, because
+ * Spotify reports a count and never a duration.
+ */
+export type PlaylistSummary = {
+  name: string;
+  description: string;
+  /** The cover, host-checked, or null when there is none we will render. */
+  cover: string | null;
+  /** Public page for the playlist. Where the header links. */
+  url: string;
+  track_count: number;
+  runtime_ms: number;
+  owner: string;
+};
+
 export type SearchResponse = {
   results: SearchResult[];
 };

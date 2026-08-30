@@ -1,13 +1,16 @@
 import "server-only";
 import {
   ART_HOST,
+  PLAYLIST_ART_HOSTS,
+  PLAYLIST_ART_SUFFIXES,
   PREFERRED_ART_WIDTH,
   SPOTIFY_LINK_HOST,
   SPOTIFY_WEB_URL,
 } from "@/constants";
 import { Spotify } from "@/models";
+import type { PlaylistSummary } from "@/models";
 import { mostCommon } from "@/utils/collection";
-import { fromHost } from "@/utils/url";
+import { fromHost, fromHostList } from "@/utils/url";
 
 /**
  * Spotify's response shapes in, our own shapes out.
@@ -69,8 +72,8 @@ export const toItemUrl = (item: { external_urls?: { spotify?: string } }): strin
  * is why the sort coalesces it. A null width scores as 0 and sorts furthest from the
  * target, so an image of unknown size is the last one picked rather than the first.
  */
-const pickArt = (images: Spotify.ImageResponse[] | undefined): string | null => {
-  if (!images?.length) return null;
+const pickArtUrl = (images: Spotify.ImageResponse[] | undefined): string | undefined => {
+  if (!images?.length) return undefined;
 
   const byCloseness = [...images].sort(
     (a, b) =>
@@ -78,8 +81,17 @@ const pickArt = (images: Spotify.ImageResponse[] | undefined): string | null => 
       Math.abs((b.width ?? 0) - PREFERRED_ART_WIDTH)
   );
 
-  return toArtUrl(byCloseness[0]?.url);
+  return byCloseness[0]?.url;
 };
+
+/**
+ * Choosing which image and deciding whether it is allowed used to be one function, and
+ * they are two now because the two callers disagree about the second half: album art is
+ * only ever i.scdn.co, and a playlist cover is only ever spotifycdn.com. Picking the
+ * closest size is the same job for both; the host check is not.
+ */
+const pickArt = (images: Spotify.ImageResponse[] | undefined): string | null =>
+  toArtUrl(pickArtUrl(images));
 
 export const toTrack = (args: {
   track: Spotify.TrackResponse;
@@ -115,3 +127,41 @@ export const toTrack = (args: {
  */
 export const modalGenre = (artists: Spotify.TopArtistResponse[]): string | null =>
   mostCommon(artists.flatMap((artist) => artist.genres ?? []));
+
+/**
+ * The playlist's own record, for the header on /lab/suggest.
+ *
+ * `runtime_ms` is passed in rather than read off the playlist, because Spotify does
+ * not report a duration anywhere: the only way to a total is to sum every track, which
+ * is a different call and possibly several. Keeping the sum outside this function is
+ * what keeps this one pure.
+ *
+ * THE COUNT COMES FROM `items.total`, NOT `tracks.total`. See the note in
+ * models/Spotify.ts — asking for the wrong one returns a 200 with the field missing.
+ *
+ * The cover takes a wider host check than album art does, because a playlist's
+ * uploaded cover is served from a rotating spotifycdn.com subdomain rather than from
+ * i.scdn.co. Everything else is refused and comes out null, so the header renders its
+ * placeholder instead of an image from a host we did not expect.
+ */
+export const toPlaylistSummary = (args: {
+  playlist: Spotify.PlaylistResponse;
+  runtime_ms: number;
+}): PlaylistSummary => {
+  const { playlist, runtime_ms } = args;
+
+  return {
+    name: playlist.name ?? "the playlist",
+    description: playlist.description ?? "",
+    cover: fromHostList({
+      url: pickArtUrl(playlist.images),
+      hosts: PLAYLIST_ART_HOSTS,
+      suffixes: PLAYLIST_ART_SUFFIXES,
+      fallback: null,
+    }),
+    url: toSpotifyUrl(playlist.external_urls?.spotify),
+    track_count: playlist.items?.total ?? 0,
+    runtime_ms,
+    owner: playlist.owner?.display_name ?? "",
+  };
+};

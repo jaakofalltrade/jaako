@@ -13,8 +13,12 @@ import type { NextConfig } from "next";
  *   next/font injects a style element.
  * - font-src is 'self' alone: next/font self-hosts every face at build time, so
  *   nothing is fetched from Google at runtime.
- * - img-src admits Spotify's CDN, which is where album art comes from. The
- *   service already refuses any other host, so this is the second of two locks.
+ * - img-src admits Spotify's two image CDNs. Album art is on i.scdn.co. Playlist
+ *   COVER art is not: a custom-uploaded cover comes back on spotifycdn.com, and the
+ *   subdomain rotates - the same image answered as image-cdn-ak and image-cdn-fa on
+ *   two consecutive requests - so that one has to be a wildcard rather than a host.
+ *   Measured against the real lab playlist, not assumed. The service host-checks every
+ *   URL before it reaches an <img>, so this is the second of two locks.
  */
 const isProduction = process.env.NODE_ENV === "production";
 
@@ -23,7 +27,7 @@ const CONTENT_SECURITY_POLICY = [
   `script-src 'self' 'unsafe-inline'${isProduction ? "" : " 'unsafe-eval'"}`,
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self'",
-  "img-src 'self' data: https://i.scdn.co",
+  "img-src 'self' data: https://i.scdn.co https://*.spotifycdn.com",
   "connect-src 'self'",
   "form-action 'self'",
   "base-uri 'self'",

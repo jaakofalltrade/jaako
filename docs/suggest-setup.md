@@ -8,24 +8,21 @@ pick each one up as it lands.
 
 ---
 
-## 1. Create the playlist
+## 1. The playlist — already done
 
-A **new** playlist, made for the lab, rather than one you already care about. If a bug
-or a bored stranger does something you did not want, the blast radius should be a
-playlist that exists only for this.
+<https://open.spotify.com/playlist/2CK3Ap0UNSCwatm9cIijx2>
 
-1. Create it in Spotify and make it **public**.
-2. Copy the share link. It looks like
-   `https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M?si=...`
-3. The id is the segment after `/playlist/`, before the `?`.
+**Portfolio Playlist**, public, owned by the site's Spotify account. Its id is
+`SUGGEST_PLAYLIST_ID` in `src/constants/suggest.ts`, so nothing has to be set for
+the page to render it: a fresh clone shows the live playlist straight away.
 
-```
-SPOTIFY_PLAYLIST_ID=37i9dQZF1DXcBWIGoYBM5M
-```
+`SPOTIFY_PLAYLIST_ID` still overrides it per deployment, and that is the one reason to
+set it — staging writing to this playlist would mean test adds on the one you actually
+listen to.
 
-It goes in `.env.local` and on the host. It is not a secret, but it does vary by
-deployment, which is why it is a variable rather than a constant: staging pointing at
-the real playlist would mean test adds on the playlist you actually listen to.
+> **If you ever swap it for a different playlist,** make it a new one rather than
+> something you already care about. Public, so `playlist-modify-public` is enough and
+> the write token never needs the private scope.
 
 ## 2. Mint the write token
 
@@ -143,9 +140,28 @@ Once the code is built:
 
 | Variable | Where | Without it |
 | --- | --- | --- |
-| `SPOTIFY_PLAYLIST_ID` | `.env.local` and the host | The page says the playlist is not open yet. |
+| `SPOTIFY_PLAYLIST_ID` | optional | Defaults to the real lab playlist. Set it only to point a deployment elsewhere. |
 | `SPOTIFY_WRITE_REFRESH_TOKEN` | `.env.local` and the host | Reads work, adds refuse with a 503. |
 | `DATABASE_URL` | `.env.local` and the host | List renders without names, adds refuse. See `docs/neon-setup.md`. |
+
+## What the API actually returns
+
+Written down because it differs from Spotify's older documentation in three ways, and
+each one fails by returning a 200 with no data rather than an error.
+
+1. The playlist object's paging field is **`items`**, not `tracks`. A `fields`
+   projection asking for `tracks(total)` comes back with the key simply absent.
+2. The collection is read from **`/playlists/{id}/items`**. The `/tracks` sub-path
+   answers **403 Forbidden**, even to the owner of a public playlist.
+3. Inside a page, the track hangs off **`item`**, not `track`.
+
+All three were measured against this playlist rather than assumed. `src/server/endpoints.ts`
+carries the projections, and `toPlaylistSummary` in `mappers.test.ts` pins the shape.
+
+**Still unverified:** whether adding is `POST /playlists/{id}/items` or the older
+`/tracks`. Given the GET behaviour above it is very likely `/items`, but confirming
+it means making a write, which needs the write token first. Check it before trusting
+the add route.
 
 ## The numbers
 

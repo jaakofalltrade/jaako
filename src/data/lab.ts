@@ -1,4 +1,5 @@
 import { routes } from "@/client/endpoints";
+import { DAILY_ADD_CAP, MAX_TRACK_MS, NAME_LIMITS } from "@/constants";
 import { LabAppId, LabShell, LabStatus } from "@/models";
 import type { LabApp, MetaPair } from "@/models";
 
@@ -108,9 +109,21 @@ const slotsReadout: MetaPair[] = [
   { term: "prize", value: "a code, mailed in" },
 ];
 
+/*
+ * DERIVED, NOT WRITTEN OUT, and the row that forced it is "adds". It said two a day
+ * while DAILY_ADD_CAP said three, which is the worst kind of wrong: the page states a
+ * rule the server does not enforce, nobody notices, and the first visitor to find out
+ * is told they have run out one add earlier than the page promised.
+ *
+ * Copy stays copy and numbers come from the constants that the route reads. The same
+ * argument as counting ROLE_COUNT in the /experience metadata rather than writing
+ * "six titles" twice.
+ */
 const suggestSpec: MetaPair[] = [
   { term: "playlist", value: "public, one of mine" },
-  { term: "adds", value: "2 per person per day" },
+  { term: "adds", value: `${DAILY_ADD_CAP} per person per day` },
+  { term: "name", value: `${NAME_LIMITS.min} to ${NAME_LIMITS.max} characters` },
+  { term: "longest track", value: `${MAX_TRACK_MS / 60_000} minutes` },
   { term: "approval", value: "none, it is instant" },
   { term: "duplicates", value: "refused" },
 ];
@@ -155,8 +168,17 @@ export const ROAST_TEASER = {
 /** /lab/suggest. The only teaser in the site's own clothes. */
 export const SUGGEST_TEASER = {
   title: "song suggestions",
-  note: "playlist not open yet",
+  /**
+   * The playlist is real and public now, so the note says what is actually missing,
+   * which is the adding. "Playlist not open yet" stopped being true the moment the
+   * header below it started rendering the live thing.
+   */
+  note: "you cannot add to it yet",
   lead: "Search Spotify, pick a track, and it goes straight onto a public playlist. No account, no waiting for me to approve it.",
+  /** The label above the live playlist header. */
+  playlist_label: "the playlist",
+  /** Stands in for the cover while nothing has been fetched, or when Spotify is quiet. */
+  playlist_offline: "Cannot reach the playlist right now.",
   search_label: "find a track",
   search_placeholder: "artist, or song title",
   search_hint: "Search is not connected yet.",

@@ -59,8 +59,54 @@ export const topItems = (args: {
   limit: number;
 }) => `/me/top/${args.type}?time_range=${args.time_range}&limit=${args.limit}`;
 
+/**
+ * One playlist's own record: name, description, cover, owner, and the item count.
+ *
+ * `fields` IS NOT AN OPTIMISATION HERE, IT IS THE INTERFACE. Without it this returns
+ * the first hundred items inline, which is a large payload for a header that needs six
+ * strings. With it, ask for the wrong key and the response is a 200 carrying an empty
+ * object — so the projection below is part of the contract and not a tuning knob.
+ *
+ * THE COUNT IS UNDER `items`, NOT `tracks`. That is measured against the live API,
+ * not read from documentation: `fields=tracks(total)` answers 200 with the field
+ * simply absent, which is the quietest way this call can be wrong.
+ */
+export const playlist = (args: { id: string }) =>
+  `/playlists/${args.id}?fields=` +
+  "name,description,external_urls,images,owner(display_name),followers(total),items(total)";
+
+/**
+ * One page of what is on it.
+ *
+ * `/items`, NOT `/tracks`. The tracks sub-path answers 403 Forbidden even to the
+ * owner of a public playlist, which reads as a permissions problem and is not one.
+ *
+ * The track hangs off `item` inside each entry, so the projection says item(...) and
+ * a projection saying track(...) comes back empty without complaining.
+ *
+ * `limit`: Spotify allows 1–100. The response carries `next` as an absolute URL, so
+ * a caller paging through strips the API base before passing it back here.
+ */
+export const playlistItems = (args: { id: string; limit: number }) =>
+  `/playlists/${args.id}/items?limit=${args.limit}&fields=` +
+  "total,next,items(added_at,item(uri,name,duration_ms,artists(name),album(name,images),external_urls))";
+
+/**
+ * The same page, asking for durations and nothing else.
+ *
+ * A playlist's total runtime is not a field Spotify has: the only way to it is to sum
+ * every track, which means every page. This projection makes that cheap — a hundred
+ * items come back as a hundred integers — so the sum costs bandwidth proportional to
+ * the count rather than to the catalogue.
+ */
+export const playlistDurations = (args: { id: string; limit: number }) =>
+  `/playlists/${args.id}/items?limit=${args.limit}&fields=total,next,items(item(duration_ms))`;
+
 export const spotifyEndpoints = {
   currentlyPlaying,
   recentlyPlayed,
   topItems,
+  playlist,
+  playlistItems,
+  playlistDurations,
 };
