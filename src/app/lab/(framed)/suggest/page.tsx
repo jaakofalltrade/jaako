@@ -87,14 +87,22 @@ const SuggestTeaserPage = async () => {
 
       <PlaylistCard playlist={snapshot?.summary ?? null} />
 
-      <p className={styles.lead} data-reveal>
-        {SUGGEST_TEASER.lead}
-      </p>
+      {/* The pitch and the rules it plays by, side by side. The spec used to sit
+          beside the search field, where it read as instructions for the control next to
+          it; it belongs with the sentence that makes the offer, because that is the
+          moment somebody is deciding whether to bother. */}
+      <div className={styles.intro}>
+        <p className={styles.lead} data-reveal>
+          {SUGGEST_TEASER.lead}
+        </p>
+
+        <DefinitionList items={SUGGEST_TEASER.spec} ruled className={styles.spec} />
+      </div>
 
       <SuggestBoard
         initialQueue={queue}
         canAdd={suggestService.isConfigured()}
-        spec={<DefinitionList items={SUGGEST_TEASER.spec} ruled className={styles.spec} />}
+        playlistUrl={snapshot?.summary.url ?? null}
       />
 
       <Annotation tone={AnnotationTone.Info} className={styles.footnote}>

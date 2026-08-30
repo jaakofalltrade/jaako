@@ -14,21 +14,28 @@
 
 .lead {
   max-width: var(--measure);
-  margin-block: var(--space-5) var(--space-9);
+  margin: 0;
   font-size: var(--text-lg);
+  line-height: var(--leading-loose);
   color: var(--text-body);
 }
 
-/* Two columns on a wide screen: the thing you do on the left, the rules it plays by
-   on the right. One column below that, form first, because the spec is a footnote to
-   an action and not the other way round. */
-.grid {
+/* The pitch and the rules it plays by, side by side.
+
+   This grid used to hold the search field and the spec, which put the table of numbers
+   next to a control and made it read as instructions for that control. It belongs with
+   the sentence making the offer: that is the moment somebody decides whether to bother,
+   and three per day and ten characters are what they are deciding on.
+
+   Prose leads because it is what gets read; the spec is the reference beside it. */
+.intro {
   display: grid;
-  gap: var(--space-9);
+  gap: var(--space-8) var(--space-10);
   align-items: start;
+  margin-block: var(--space-5) var(--space-10);
 
   @media (min-width: 48rem) {
-    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
   }
 }
 
@@ -219,10 +226,114 @@
 
 /* --- search --------------------------------------------------------------------- */
 
+/* The measure belongs here, not on the field alone.
+
+   With it on the field only, the results underneath ran the full width of the page
+   while the input stopped at 60ch, so the add controls ended up a screen away from the
+   track they belonged to. Field, results and notes are one column. */
 .search {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  max-width: var(--measure);
+}
+
+/* THE SEARCH FIELD IS NOT A FORM CONTROL, AND LOOKING LIKE ONE WAS THE PROBLEM.
+
+   It used to be .jk-input: a bordered box on a filled surface. That is right in the
+   contact form, where a field has to show where it starts and ends among several
+   others, and wrong here, where it was the only box on a page made of hairlines and
+   open ground.
+
+   So it is a rule with type on it. One hairline underneath, no fill, no border, and
+   the label above in the same tracked mono caps every other label on the site uses.
+   The line is what moves on focus, which is the only state this needs. */
+.searchField {
+  display: block;
+}
+
+.searchLabel {
+  display: block;
+  margin-bottom: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-3xs);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.searchInput {
+  width: 100%;
+  padding: var(--space-3) 0;
+  border: 0;
+  /* Not a box. The rule under it is the whole field. */
+  border-bottom: var(--border-1) solid var(--hair-lit);
+  border-radius: var(--radius-none);
+  background: none;
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  /* Editorial rather than mono: this is somebody typing a song title, not entering a
+     value. --text-xl is a floor of 18px, comfortably past the 16px under which iOS
+     zooms the page on focus and leaves it zoomed. */
+  font-size: var(--text-xl);
+  letter-spacing: var(--tracking-display);
+  transition: border-color var(--dur-base) var(--ease-out);
+
+  &::placeholder {
+    /* --text-dim, not --text-faint. Placeholder text is still text, and the faint tier
+       fails on this ground. */
+    color: var(--text-dim);
+    font-family: var(--font-body);
+    font-size: var(--text-lg);
+    letter-spacing: normal;
+  }
+
+  &:hover { border-bottom-color: var(--text-link); }
+
+  /* THE OUTLINE IS SUPPRESSED HERE AND NOWHERE ELSE ON THE SITE, and it is replaced
+     rather than removed.
+
+     A text input ALWAYS matches :focus-visible when it is focused, mouse or keyboard,
+     which is not true of a button. So the ring from base/_reset.scss drew a rectangle
+     around this field the moment anybody clicked into it, which is precisely the box
+     the field was redesigned to stop being.
+
+     What replaces it is the rule itself: on focus it doubles in weight and takes the
+     focus colour, spanning the full width of the control. That is a visible, high
+     contrast, unmissable change of state, and it is the same stroke the design already
+     uses to mean "this is the live one". Deleting the outline without that would be an
+     accessibility regression; swapping it for this is not. */
+  &:focus,
+  &:focus-visible {
+    outline: none;
+    border-bottom-color: var(--focus-ring);
+    border-bottom-width: var(--border-2);
+    /* The border thickening would otherwise move the text by a pixel on focus. */
+    padding-bottom: calc(var(--space-3) - var(--border-1));
+  }
+
+  /* Chrome's own clear button, which arrives with type="search" and is a small grey
+     cross that belongs to no design on this page. */
+  &::-webkit-search-cancel-button { display: none; }
+}
+
+/* "and 42 more on spotify". The same quiet-link treatment as the rest of the site. */
+.more {
+  display: inline-block;
+  margin-top: var(--space-5);
+  font-family: var(--font-mono);
+  font-size: var(--text-3xs);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-dim);
+  text-decoration: none;
+  border-bottom: var(--border-1) solid var(--hair);
+  padding-bottom: var(--space-2);
+
+  &:hover {
+    color: var(--text-link);
+    border-bottom-color: var(--hair-lit);
+  }
 }
 
 /* "adding as mona · change". Mono and small, so it reads as a readout rather than a
@@ -352,8 +463,12 @@
 
 .row {
   display: grid;
-  grid-template-columns: 2rem minmax(0, 1fr) auto;
-  align-items: baseline;
+  grid-template-columns: 2rem 2.25rem minmax(0, 1fr) auto;
+  /* CENTRE, NOT BASELINE. The body is two lines and the meta is one, so aligning them
+     on a shared baseline hung the title, the index and the duration off the top of the
+     row while the cover sat below them. Nothing in this row is prose that has to line
+     up with prose; they are four things that should read as one line. */
+  align-items: center;
   gap: var(--space-4);
   padding-block: var(--space-4);
   border-top: var(--border-1) solid var(--hair);
@@ -375,6 +490,20 @@
   font-size: var(--text-2xs);
   font-variant-numeric: tabular-nums;
   color: var(--text-faint);
+}
+
+.rowArt,
+.rowArtEmpty {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-none);
+  object-fit: cover;
+}
+
+.rowArtEmpty {
+  display: block;
+  background: var(--surface-well);
+  border: var(--border-1) solid var(--hair);
 }
 
 .rowBody { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
@@ -421,6 +550,6 @@
   .resultTime { display: none; }
   .slab { margin-left: 0; }
 
-  .row { grid-template-columns: 1.75rem minmax(0, 1fr); }
-  .rowMeta { grid-column: 2; margin-top: var(--space-2); flex-wrap: wrap; }
+  .row { grid-template-columns: 1.75rem 2.25rem minmax(0, 1fr); }
+  .rowMeta { grid-column: 3; margin-top: var(--space-2); flex-wrap: wrap; }
 }

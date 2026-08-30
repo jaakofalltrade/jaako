@@ -23,10 +23,21 @@ export type QueueRowProps = {
  *
  * A row is not a link. The whole card at the top of the page opens Spotify, and giving
  * every row its own target would mean nine ways to leave the page and no obvious one.
+ *
+ * THE COVER COSTS NOTHING. Album art is already on the playlist projection the page
+ * makes anyway - album(name,images) - and toQueueEntry already maps it, so rendering it
+ * is not one extra request, it is a field that was arriving and being thrown away.
  */
 export const QueueRow = ({ entry, state, error, index, onRetry }: QueueRowProps) => (
   <li className={styles.row} data-state={state.toLowerCase()}>
     <span className={styles.rowIndex} aria-hidden="true">{index}</span>
+
+    {entry.album_art ? (
+      /* eslint-disable-next-line @next/next/no-img-element */
+      <img className={styles.rowArt} src={entry.album_art} alt="" width={36} height={36} />
+    ) : (
+      <span className={styles.rowArtEmpty} aria-hidden="true" />
+    )}
 
     <span className={styles.rowBody}>
       <span className={styles.rowTitle}>{entry.title}</span>

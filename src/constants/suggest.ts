@@ -128,6 +128,20 @@ export const SEARCH_CACHE_MAX = 200;
  */
 export const SEARCH_RATE = { max: 30, window_ms: 60_000 } as const;
 
+/**
+ * How many rows the page actually renders.
+ *
+ * The read walks every page of the playlist, because the runtime sum needs all of them
+ * and the duplicate set does too. Rendering all of them is a different question: the
+ * playlist is unbounded by design, and two hundred rows is a page nobody scrolls to the
+ * end of. The newest two dozen is the part anybody reads, and the rest is one link away
+ * on Spotify, which the card at the top already opens.
+ *
+ * Only meaningful because tracks go in at position 0. Appending would make this the
+ * OLDEST twenty-four, which is the wrong two dozen.
+ */
+export const QUEUE_SHOWN = 24;
+
 /** How many playlist rows the page reads. One request; see the note on insert position. */
 export const QUEUE_READ_LIMIT = 100;
 

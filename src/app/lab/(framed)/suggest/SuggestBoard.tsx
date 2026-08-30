@@ -2,13 +2,11 @@
 
 import React from "react";
 import { suggestApi } from "@/client/suggestApi";
-import { MIN_QUERY_LENGTH, NAME_LIMITS, SEARCH_DEBOUNCE_MS } from "@/constants";
+import { MIN_QUERY_LENGTH, NAME_LIMITS, QUEUE_SHOWN, SEARCH_DEBOUNCE_MS } from "@/constants";
 import { RowState, SuggestFailure } from "@/models";
 import type { QueueEntry, SearchResult } from "@/models";
 import { SUGGEST_TEASER } from "@/data/lab";
 import { checkDisplayName, normalizeDisplayName } from "@/utils/nameRules";
-import { Field } from "@/design-system/forms/Field";
-import { Input } from "@/design-system/forms/Input";
 import { QueueRow } from "./QueueRow";
 import { SearchRow } from "./SearchRow";
 import styles from "./suggest.module.scss";
@@ -18,13 +16,8 @@ export type SuggestBoardProps = {
   initialQueue: QueueEntry[];
   /** False when the write token or the database is missing. Search still works. */
   canAdd: boolean;
-  /**
-   * The spec table, rendered by the server and placed in the second column here.
-   *
-   * Passed in rather than imported, so the two-column layout lives in one place and
-   * the server keeps rendering the half of it that never changes.
-   */
-  spec: React.ReactNode;
+  /** Where "and N more" points. Null when the playlist could not be read. */
+  playlistUrl: string | null;
 };
 
 /**
@@ -68,7 +61,7 @@ const optimistic = (args: { track: SearchResult; signedAs: string }): Row => ({
   state: RowState.Adding,
 });
 
-export const SuggestBoard = ({ initialQueue, canAdd, spec }: SuggestBoardProps) => {
+export const SuggestBoard = ({ initialQueue, canAdd, playlistUrl }: SuggestBoardProps) => {
   const [query, setQuery] = React.useState("");
   const [rows, setRows] = React.useState<Row[]>(() => initialQueue.map(settled));
 
@@ -171,6 +164,13 @@ export const SuggestBoard = ({ initialQueue, canAdd, spec }: SuggestBoardProps) 
     void submit({ track: args.track, signedAs: normalizeDisplayName(name) });
   };
 
+  /*
+   * Newest first, because tracks go in at position 0. Appending would make this the
+   * OLDEST two dozen, which is the wrong end of the list to show.
+   */
+  const shown = rows.slice(0, QUEUE_SHOWN);
+  const hidden = rows.length - shown.length;
+
   const retry = (row: Row) => {
     setRows((current) => current.filter((other) => other.key !== row.key));
     void submit({ track: row, signedAs: row.added_by ?? known });
@@ -178,19 +178,27 @@ export const SuggestBoard = ({ initialQueue, canAdd, spec }: SuggestBoardProps) 
 
   return (
     <>
-      <div className={styles.grid}>
-        <div className={styles.search}>
-          <Field
-            label={SUGGEST_TEASER.search_label}
-            hint={canAdd ? undefined : SUGGEST_TEASER.closed_hint}
-          >
-            <Input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder={SUGGEST_TEASER.search_placeholder}
-              autoComplete="off"
-            />
-          </Field>
+      <div className={styles.search}>
+        <label className={styles.searchField}>
+          <span className={styles.searchLabel}>{SUGGEST_TEASER.search_label}</span>
+          {/* A bare input rather than the design system's Input, and this is the one
+              place on the page that departs from it. .jk-input is a FORM control: a
+              bordered box on a filled surface, which is right in the contact form and
+              wrong here, where the page is hairlines and open ground and this is the
+              only box on it. Restyling the global class from a module is what
+              docs/lab.md rules out, so the field is local instead. */}
+          <input
+            className={styles.searchInput}
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder={SUGGEST_TEASER.search_placeholder}
+            autoComplete="off"
+            spellCheck={false}
+          />
+        </label>
+
+        {canAdd ? null : <p className={styles.searchNote}>{SUGGEST_TEASER.closed_hint}</p>}
 
             {/* The line that makes a returning visitor's add one click, and their way
               back to the field.
@@ -238,12 +246,9 @@ export const SuggestBoard = ({ initialQueue, canAdd, spec }: SuggestBoardProps) 
             </ul>
           ) : null}
 
-          {searching && !results.length ? (
-            <p className={styles.searchNote}>{SUGGEST_TEASER.searching}</p>
-          ) : null}
-        </div>
-
-        {spec}
+        {searching && !results.length ? (
+          <p className={styles.searchNote}>{SUGGEST_TEASER.searching}</p>
+        ) : null}
       </div>
 
       <div className={styles.queue}>
@@ -251,7 +256,7 @@ export const SuggestBoard = ({ initialQueue, canAdd, spec }: SuggestBoardProps) 
 
         {rows.length ? (
           <ul className={styles.rows}>
-            {rows.map((row, index) => (
+            {shown.map((row, index) => (
               <QueueRow
                 key={row.key}
                 entry={row}
@@ -265,6 +270,14 @@ export const SuggestBoard = ({ initialQueue, canAdd, spec }: SuggestBoardProps) 
         ) : (
           <p className={styles.queueNote}>{SUGGEST_TEASER.queue_empty}</p>
         )}
+
+        {/* The playlist is unbounded by design, so the page shows the newest handful
+            and sends the rest where the whole thing already lives. */}
+        {hidden > 0 && playlistUrl ? (
+          <a className={styles.more} href={playlistUrl} target="_blank" rel="noopener noreferrer">
+            and {hidden} more on spotify &rarr;
+          </a>
+        ) : null}
       </div>
 
     </>

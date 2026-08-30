@@ -118,14 +118,18 @@ const slotsReadout: MetaPair[] = [
  * Copy stays copy and numbers come from the constants that the route reads. The same
  * argument as counting ROLE_COUNT in the /experience metadata rather than writing
  * "six titles" twice.
+ *
+ * "approval: none, it is instant" and "duplicates: refused" are gone. Both described
+ * something a visitor finds out by doing it: the track appears immediately, and a
+ * duplicate is refused with a sentence saying so. A spec should carry the numbers that
+ * cannot be discovered by trying, and those two were filling the table rather than
+ * answering anything.
  */
 const suggestSpec: MetaPair[] = [
   { term: "playlist", value: "public, one of mine" },
   { term: "adds", value: `${DAILY_ADD_CAP} per person per day` },
   { term: "name", value: `${NAME_LIMITS.min} to ${NAME_LIMITS.max} characters` },
   { term: "longest track", value: `${MAX_TRACK_MS / 60_000} minutes` },
-  { term: "approval", value: "none, it is instant" },
-  { term: "duplicates", value: "refused" },
 ];
 
 /** /lab/slots. Read on a dead cabinet: the reels are stopped, the lever does nothing. */
