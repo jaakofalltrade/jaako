@@ -11,6 +11,7 @@ import { SectionHead } from "@/design-system/core/SectionHead";
 import { Field } from "@/design-system/forms/Field";
 import { Input } from "@/design-system/forms/Input";
 import { BackLink } from "@/design-system/portfolio/BackLink";
+import { MastheadBar } from "@/design-system/portfolio/MastheadBar";
 import styles from "./suggest.module.scss";
 
 const app = LAB_APP[LabAppId.Suggest];
@@ -37,6 +38,8 @@ export const metadata: Metadata = {
  */
 const SuggestTeaserPage = () => (
   <section className="jk-section">
+    <MastheadBar />
+
     <BackLink href={routes.lab.index}>back to the lab</BackLink>
 
     <SectionHead index={app.index} note={SUGGEST_TEASER.note} noteIsInformational>
