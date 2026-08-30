@@ -84,6 +84,7 @@ export enum PresenceStatus {
 
 /** Every Lucide SVG in public/icons. Adding a file here is what makes it usable. */
 export enum IconName {
+  Clock = "CLOCK",
   Disc = "DISC",
   Globe = "GLOBE",
   Link = "LINK",

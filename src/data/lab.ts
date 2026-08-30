@@ -1,4 +1,5 @@
 import { routes } from "@/client/endpoints";
+import { DAILY_ADD_CAP, MAX_TRACK_MS, NAME_LIMITS } from "@/constants";
 import { LabAppId, LabShell, LabStatus } from "@/models";
 import type { LabApp, MetaPair } from "@/models";
 
@@ -108,11 +109,27 @@ const slotsReadout: MetaPair[] = [
   { term: "prize", value: "a code, mailed in" },
 ];
 
+/*
+ * DERIVED, NOT WRITTEN OUT, and the row that forced it is "adds". It said two a day
+ * while DAILY_ADD_CAP said three, which is the worst kind of wrong: the page states a
+ * rule the server does not enforce, nobody notices, and the first visitor to find out
+ * is told they have run out one add earlier than the page promised.
+ *
+ * Copy stays copy and numbers come from the constants that the route reads. The same
+ * argument as counting ROLE_COUNT in the /experience metadata rather than writing
+ * "six titles" twice.
+ *
+ * "approval: none, it is instant" and "duplicates: refused" are gone. Both described
+ * something a visitor finds out by doing it: the track appears immediately, and a
+ * duplicate is refused with a sentence saying so. A spec should carry the numbers that
+ * cannot be discovered by trying, and those two were filling the table rather than
+ * answering anything.
+ */
 const suggestSpec: MetaPair[] = [
   { term: "playlist", value: "public, one of mine" },
-  { term: "adds", value: "2 per person per day" },
-  { term: "approval", value: "none, it is instant" },
-  { term: "duplicates", value: "refused" },
+  { term: "adds", value: `${DAILY_ADD_CAP} per person per day` },
+  { term: "name", value: `${NAME_LIMITS.min} to ${NAME_LIMITS.max} characters` },
+  { term: "longest track", value: `${MAX_TRACK_MS / 60_000} minutes` },
 ];
 
 /** /lab/slots. Read on a dead cabinet: the reels are stopped, the lever does nothing. */
@@ -155,15 +172,64 @@ export const ROAST_TEASER = {
 /** /lab/suggest. The only teaser in the site's own clothes. */
 export const SUGGEST_TEASER = {
   title: "song suggestions",
-  note: "playlist not open yet",
-  lead: "Search Spotify, pick a track, and it goes straight onto a public playlist. No account, no waiting for me to approve it.",
+  /**
+   * The playlist is real and public now, so the note says what is actually missing,
+   * which is the adding. "Playlist not open yet" stopped being true the moment the
+   * header below it started rendering the live thing.
+   */
+  /** Shown while the write path is switched off. The page picks between the two. */
+  note: "you cannot add to it yet",
+  /** Shown once it is on. Derived, so the number cannot drift from the route's. */
+  open_note: `${DAILY_ADD_CAP} a day, and it is instant`,
+  /**
+   * An invitation, not a description of the mechanism.
+   *
+   * It used to open "Search Spotify, pick a track", which is instructions for a
+   * control the reader has not been offered yet and says nothing about why they would
+   * want to. The ask comes first now and the mechanics follow it in one clause.
+   */
+  lead: "Suggest a song you like and it goes straight onto the playlist above. Search Spotify, pick a track, and it is on there: no account, and no waiting for me to approve it.",
+  /** The label above the live playlist header. */
+  playlist_label: "the playlist",
+  /** Stands in for the cover while nothing has been fetched, or when Spotify is quiet. */
+  playlist_offline: "Cannot reach the playlist right now.",
   search_label: "find a track",
   search_placeholder: "artist, or song title",
   search_hint: "Search is not connected yet.",
   submit_label: "add to playlist",
   spec: suggestSpec,
-  /** Placeholder rows where the playlist will be. Deliberately not fake track names. */
   queue_label: "what is on it",
-  queue_note: "The playlist will be listed here, newest first.",
+  /**
+   * The column headings. Length has no word: it is a clock icon, because the figures
+   * under it are unmistakably durations and "length" over a column of 3:57 is a label
+   * explaining something nobody was confused by.
+   */
+  columns: { title: "track", album: "album", by: "added by", when: "added" },
+  /** Only when the playlist is genuinely empty, or Spotify could not be reached. */
+  queue_empty: "Nothing on it yet. Be the first.",
+
+  /**
+   * The name slab, opened by the first add and skipped by every one after it.
+   *
+   * "sign it" was a nice phrase and a bad label: it named the gesture rather than the
+   * field, so the one thing it did not say was what to type. A label on a control
+   * should answer that and nothing else, and the flourish moves to the hint where it
+   * costs nobody anything.
+   */
+  name_label: "your name",
+  name_placeholder: "a name",
+  // Derived, for the reason the note above suggestSpec gives: this hint sits directly
+  // beside an input whose maxLength comes from the same constant.
+  name_hint: `${NAME_LIMITS.min} to ${NAME_LIMITS.max} characters. It signs the track.`,
+
+  /** While a search is in flight and there is nothing to show yet. */
+  searching: "looking...",
+
+  /** On an optimistic row, and on one whose add came back an error with no sentence. */
+  adding: "adding",
+  add_failed: "That did not go through.",
+
+  /** Under the search field when adding is switched off but reading still works. */
+  closed_hint: "Not taking suggestions right now.",
   footnote: "The one app in the lab that keeps this design, because it is about the music this site already talks about.",
 } as const;

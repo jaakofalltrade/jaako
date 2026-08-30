@@ -1,4 +1,5 @@
 import "server-only";
+import { SUGGEST_PLAYLIST_ID } from "@/constants";
 import { Env, ServerConfig } from "@/models";
 import { isEnumValue } from "@/utils/enum";
 
@@ -45,8 +46,11 @@ const localConfig: ServerConfig = {
   spotify_client_id: process.env.SPOTIFY_CLIENT_ID ?? "",
   spotify_client_secret: process.env.SPOTIFY_CLIENT_SECRET ?? "",
   spotify_refresh_token: process.env.SPOTIFY_REFRESH_TOKEN ?? "",
+  spotify_write_refresh_token: process.env.SPOTIFY_WRITE_REFRESH_TOKEN ?? "",
   spotify_token_url: SPOTIFY_TOKEN_URL,
   spotify_api_url: SPOTIFY_API_URL,
+  spotify_playlist_id: process.env.SPOTIFY_PLAYLIST_ID || SUGGEST_PLAYLIST_ID,
+  database_url: process.env.DATABASE_URL ?? "",
   resend_api_key: process.env.RESEND_API_KEY ?? "",
 };
 
@@ -55,8 +59,11 @@ const stagingConfig: ServerConfig = {
   spotify_client_id: process.env.SPOTIFY_CLIENT_ID ?? "",
   spotify_client_secret: process.env.SPOTIFY_CLIENT_SECRET ?? "",
   spotify_refresh_token: process.env.SPOTIFY_REFRESH_TOKEN ?? "",
+  spotify_write_refresh_token: process.env.SPOTIFY_WRITE_REFRESH_TOKEN ?? "",
   spotify_token_url: SPOTIFY_TOKEN_URL,
   spotify_api_url: SPOTIFY_API_URL,
+  spotify_playlist_id: process.env.SPOTIFY_PLAYLIST_ID || SUGGEST_PLAYLIST_ID,
+  database_url: process.env.DATABASE_URL ?? "",
   resend_api_key: process.env.RESEND_API_KEY ?? "",
 };
 
@@ -65,8 +72,11 @@ const productionConfig: ServerConfig = {
   spotify_client_id: process.env.SPOTIFY_CLIENT_ID ?? "",
   spotify_client_secret: process.env.SPOTIFY_CLIENT_SECRET ?? "",
   spotify_refresh_token: process.env.SPOTIFY_REFRESH_TOKEN ?? "",
+  spotify_write_refresh_token: process.env.SPOTIFY_WRITE_REFRESH_TOKEN ?? "",
   spotify_token_url: SPOTIFY_TOKEN_URL,
   spotify_api_url: SPOTIFY_API_URL,
+  spotify_playlist_id: process.env.SPOTIFY_PLAYLIST_ID || SUGGEST_PLAYLIST_ID,
+  database_url: process.env.DATABASE_URL ?? "",
   resend_api_key: process.env.RESEND_API_KEY ?? "",
 };
 

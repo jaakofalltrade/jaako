@@ -9,8 +9,8 @@ import {
   TOP_TRACK_LIMIT,
 } from "@/constants";
 import { Spotify } from "@/models";
-import { serverConfig } from "@/server/serverConfig";
-import { getAccessToken, hasCredentials } from "./auth";
+import { hasCredentials } from "./auth";
+import { spotifyFetch } from "./request";
 import { spotifyEndpoints } from "@/server/endpoints";
 import { artistNames, modalGenre, toItemUrl, toTrack } from "./mappers";
 
@@ -28,13 +28,14 @@ import { artistNames, modalGenre, toItemUrl, toTrack } from "./mappers";
  * does not.
  */
 
-const get = async <T>(args: { path: string; token: string }): Promise<T | null> => {
-  const { path, token } = args;
+/* Through spotifyFetch, which retries once on a 401 with a freshly minted token. The
+   panel shares its access-token cache with the lab, so it shared the fault: a token
+   revoked before its clock ran out left this answering 401 until the process
+   restarted, and the panel would simply have gone quiet for an hour. */
+const get = async <T>(args: { path: string }): Promise<T | null> => {
+  const { path } = args;
 
-  const response = await fetch(`${serverConfig.spotify_api_url}${path}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
+  const response = await spotifyFetch({ path });
 
   // 204 means "nothing is playing" and carries no body at all — calling .json()
   // on it throws, so it has to be caught before parsing.
@@ -58,16 +59,12 @@ const getNowPlaying = async (): Promise<Spotify.NowPlayingResponse> => {
     // so anything that escapes here is a 500 rather than the offline panel.
     if (!hasCredentials()) return OFFLINE_RESPONSE;
 
-    const token = await getAccessToken();
-
     const [current, history] = await Promise.all([
       get<Spotify.CurrentlyPlayingResponse>({
         path: spotifyEndpoints.currentlyPlaying(),
-        token,
       }),
       get<Spotify.RecentlyPlayedResponse>({
         path: spotifyEndpoints.recentlyPlayed({ limit: RECENT_LIMIT }),
-        token,
       }),
     ]);
 
@@ -130,8 +127,6 @@ const getTopItems = async (): Promise<Spotify.TopItemsResponse> => {
   try {
     if (!hasCredentials()) return TOP_ITEMS_OFFLINE;
 
-    const token = await getAccessToken();
-
     const [artists, tracks] = await Promise.all([
       get<Spotify.TopArtistsResponse>({
         path: spotifyEndpoints.topItems({
@@ -139,7 +134,6 @@ const getTopItems = async (): Promise<Spotify.TopItemsResponse> => {
           time_range: TOP_TIME_RANGE,
           limit: TOP_ARTIST_LIMIT,
         }),
-        token,
       }),
       get<Spotify.TopTracksResponse>({
         path: spotifyEndpoints.topItems({
@@ -147,7 +141,6 @@ const getTopItems = async (): Promise<Spotify.TopItemsResponse> => {
           time_range: TOP_TIME_RANGE,
           limit: TOP_TRACK_LIMIT,
         }),
-        token,
       }),
     ]);
 

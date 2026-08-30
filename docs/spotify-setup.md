@@ -25,11 +25,17 @@ the steps to make it show a real one.
 ## 2. Mint a refresh token
 
 Access tokens expire after an hour; the refresh token is the long-lived one the
-server keeps. Run the helper script once:
+server keeps. Put the client id and secret in `.env.local` first (step 3 below, they
+are the same two values), then run the helper once:
 
 ```sh
-node scripts/spotify-token.mjs <client_id> <client_secret>
+pnpm token:read
 ```
+
+It reads `SPOTIFY_CLIENT_ID` and `SPOTIFY_CLIENT_SECRET` out of `.env.local`, so
+there is nothing to pass and nothing to paste into your shell history. Anything already
+exported in the environment still wins over the file, and the credentials can still be
+given as arguments if you would rather not put them in a file at all.
 
 It starts a throwaway listener on `127.0.0.1:8888`, prints a consent URL, and
 waits. Open the URL, approve access, and the script prints:
@@ -41,7 +47,67 @@ SPOTIFY_REFRESH_TOKEN=AQD...
 The scopes requested are `user-read-currently-playing`, `user-read-recently-played`
 and `user-top-read` — all read-only, no playback control.
 
-> **Rotating an existing token.** `user-top-read` was added for the listening
+### If the token comes back with the wrong scopes
+
+The script refuses to print it, and says so. The cause is nearly always the browser
+opening a **cached authorize URL from an earlier run** instead of the one just printed:
+the address bar autocompletes, the old page asks for the old scopes, and what you get
+back is a perfectly valid token for the wrong job.
+
+Copy the URL rather than typing into the address bar, close any Spotify authorization
+tabs left open, and check that the consent screen names the scope the terminal asked
+for. `pnpm token:check` confirms both stored tokens afterwards.
+
+### The second token
+
+The site holds **two** refresh tokens for the same account, and `/lab/suggest` is why.
+Spotify's scopes are verbs rather than resources, so no token can be restricted to a
+single playlist. The next best thing is a token per job:
+
+| | Scopes | Used by |
+| --- | --- | --- |
+| `SPOTIFY_REFRESH_TOKEN` | the three read scopes above | the panel, the statistics, and the lab's search proxy |
+| `SPOTIFY_WRITE_REFRESH_TOKEN` | `playlist-modify-public` only | the one route that adds a track |
+
+The write token cannot touch a private playlist, because `playlist-modify-private` is
+a separate scope and is never requested by either.
+
+> ### The read token is not actually read-only
+>
+> This was measured, not assumed, and it is the thing to know before relying on the
+> split. **Spotify grants scopes per (user, application), not per token.** Approving
+> `playlist-modify-public` for this app widened the *existing* read token too,
+> retroactively, without it being re-minted. `pnpm token:check` reports both tokens
+> carrying all four scopes.
+>
+> So the pair is **intent rather than enforcement**. It still separates rotation, and it
+> means the search proxy and the add route name different credentials, which is what
+> makes the real fix a config change rather than a refactor.
+>
+> **Real isolation needs a second Spotify application**, with its own client id and
+> secret, because the application is the boundary Spotify enforces. The read paths would
+> use app A and the add route app B, and approving a write scope on B could not reach A.
+> That is an open decision, not a thing that has been done.
+
+Mint the second one with:
+
+```sh
+pnpm token:write
+```
+
+**Do this one first, then reload the homepage and check the panel still works.** Two
+refresh tokens for one app and one account are expected to coexist, and Spotify does
+not document that as a guarantee. The script prints the scopes that were actually
+granted alongside the token; read that line rather than assuming, because it is how you
+catch a token that came back carrying more than was asked for.
+
+Only `/lab/suggest` needs the write token. Without it the rest of the site is
+unaffected and adding a track refuses with a 503.
+
+> **Rotating an existing token.** `pnpm token:read` re-mints the read one and
+> `pnpm token:write` the write one; the script defaults to `read` when neither is
+> named, so the original bare command still does exactly what it always did.
+> `user-top-read` was added for the listening
 > statistics cell in the instrument strip. A refresh token minted before that scope
 > existed will keep working for now-playing but Spotify will answer `403` for
 > `/me/top/*`, and the statistics cell renders its unavailable state instead. Re-run

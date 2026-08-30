@@ -45,11 +45,20 @@ export type TokenResponse = {
 
 export type ImageResponse = {
   url?: string;
-  width?: number;
+  /**
+   * Nullable, and not defensively. Album art carries real numbers; a playlist's
+   * uploaded cover comes back {"height":null,"width":null,"url":...}, measured against
+   * the real lab playlist. pickArt scores a missing width as 0 and sorts it last,
+   * which is the behaviour that wants, not a bug to guard.
+   */
+  width?: number | null;
+  height?: number | null;
 };
 
 /** Only the fields we actually read off Spotify's track object. */
 export type TrackResponse = {
+  /** `spotify:track:<22 chars>`. Present on search results and playlist items. */
+  uri?: string;
   name?: string;
   duration_ms?: number;
   artists?: { name?: string }[];
@@ -113,4 +122,61 @@ export type TopArtistsResponse = {
 
 export type TopTracksResponse = {
   items?: TrackResponse[];
+};
+
+/* ---------------- the lab playlist ----------------
+
+   WHAT SPOTIFY ACTUALLY RETURNS, WHICH IS NOT WHAT ITS OLDER DOCUMENTATION SAYS.
+   Every shape below was measured against the real playlist rather than assumed, and
+   three of them differ from the form that is still widely written down:
+
+     1. The playlist object's paging field is `items`, NOT `tracks`. A `fields`
+        projection asking for tracks(total) returns nothing at all, silently.
+     2. The collection is read from /playlists/{id}/items. /playlists/{id}/tracks
+        answers 403 Forbidden, even for the owner of a public playlist.
+     3. Inside a page, the track hangs off `item`, NOT `track`.
+
+   Get any of those wrong and the call succeeds with an empty projection, which is the
+   worst failure shape available: no error, no data, and nothing to grep for. */
+
+export type PlaylistItemResponse = {
+  added_at?: string;
+  /** The track. Not `track` — see the note above. */
+  item?: TrackResponse;
+};
+
+export type PlaylistItemsResponse = {
+  total?: number;
+  /** An absolute URL to the next page, or null on the last one. */
+  next?: string | null;
+  items?: PlaylistItemResponse[];
+};
+
+/**
+ * The playlist record, with its first page of items embedded.
+ *
+ * That embedding is the whole reason one request serves the page: `items` is a full
+ * paging object, not just a count, so the header and the list arrive together.
+ */
+export type PlaylistResponse = {
+  name?: string;
+  description?: string;
+  external_urls?: { spotify?: string };
+  images?: ImageResponse[];
+  owner?: { display_name?: string };
+  followers?: { total?: number };
+  /** Not `tracks` — see the note above. */
+  items?: PlaylistItemsResponse;
+};
+
+/** What /search?type=track answers with. */
+export type SearchTracksResponse = {
+  tracks?: {
+    items?: TrackResponse[];
+  };
+};
+
+/** What POST /playlists/{id}/items answers with. 201, and this is the whole body. */
+export type PlaylistAddResponse = {
+  snapshot_id?: string;
 };

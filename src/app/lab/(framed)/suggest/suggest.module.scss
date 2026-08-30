@@ -14,22 +14,46 @@
 
 .lead {
   max-width: var(--measure);
-  margin-block: var(--space-5) var(--space-9);
+  margin: 0;
   font-size: var(--text-lg);
+  line-height: var(--leading-loose);
   color: var(--text-body);
 }
 
-/* Two columns on a wide screen: the thing you do on the left, the rules it plays by
-   on the right. One column below that, form first, because the spec is a footnote to
-   an action and not the other way round. */
-.grid {
+/* The playlist and its specification, side by side.
+
+   The same arrangement the rest of the site already uses: a plate with its readout, a
+   role with its dates. The spec has been beside the search field and beside the lead on
+   the way here, and both were wrong for the same reason. It describes the PLAYLIST, so
+   it belongs against the playlist.
+
+   align-items:start rather than stretch, so the spec sits level with the top of the
+   cover instead of stretching to match a card taller than it. */
+.intro {
   display: grid;
-  gap: var(--space-9);
+  gap: var(--space-8) var(--space-10);
   align-items: start;
+  margin-block: var(--space-8) var(--space-9);
 
   @media (min-width: 48rem) {
-    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
   }
+}
+
+/* The card and the pitch, stacked. The sentence sits close under the card rather
+   than a section-gap away, because it is about that card. */
+.introMain {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+/* The card carries its own vertical rhythm when it stands alone; inside the grid the
+   grid owns it. */
+.introMain .playlist,
+.introMain .playlistOffline {
+  margin-block: 0;
 }
 
 .form {
@@ -84,4 +108,778 @@
   display: block;
   max-width: var(--measure);
   margin-top: var(--space-10);
+}
+
+/* --- the playlist header ----------------------------------------------------------
+
+   The one live block on this page. It reads the site's own custom properties like the
+   rest of this module, because /lab/suggest is the app that keeps the portfolio's
+   design; a rule in here that named a colour or a type size would mean the page is
+   drifting away from the thing it is supposed to be sharing. */
+
+.playlist {
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr);
+  gap: var(--space-6);
+  align-items: start;
+  margin-block: var(--space-8);
+  padding: var(--space-5) var(--space-2);
+  text-decoration: none;
+  color: inherit;
+  transition:
+    padding-left var(--dur-base) var(--ease-out),
+    background var(--dur-base) var(--ease-out);
+
+  /* The same step forward the work list and the lab index use, because this is the
+     same gesture: a row that leads somewhere, answering when it is pointed at. Three
+     hover treatments for one idea was what made the lab index read as sloppy. */
+  &:hover,
+  &:focus-visible {
+    padding-left: var(--space-4);
+    background: linear-gradient(90deg, rgba(51, 104, 160, .09), transparent 70%);
+  }
+}
+
+.playlistCover,
+.playlistCoverEmpty {
+  grid-column: 1;
+  width: 9rem;
+  height: 9rem;
+  /* Square, and sharp. Spotify rounds its covers and this page does not round
+     anything; --radius-none is the site's default and is restated here because a cover
+     is the one element a reader might expect to arrive with corners. */
+  border-radius: var(--radius-none);
+  object-fit: cover;
+}
+
+/* No image, either because the playlist has no cover or because the URL failed its
+   host check. A square of the quietest surface in the palette, never a broken icon. */
+.playlistCoverEmpty {
+  display: block;
+  background: var(--surface-well);
+  border: var(--border-1) solid var(--hair);
+}
+
+.playlistBody {
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.playlistName {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-display);
+  text-transform: lowercase;
+  color: var(--text-body);
+  transition: color var(--dur-base) var(--ease-out);
+
+  .playlist:hover &,
+  .playlist:focus-visible & {
+    color: var(--text-strong);
+  }
+}
+
+.playlistDescription {
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--text-dim);
+  max-width: var(--measure);
+}
+
+.playlistSpec {
+  margin-top: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* The one part of the spec line that says the card goes somewhere. It only takes the
+   link colour on hover, so at rest the row reads as a readout rather than as a
+   control, which is what the rest of the site does with its quiet links. */
+.playlistOpen {
+  color: var(--text-dim);
+  transition: color var(--dur-base) var(--ease-out);
+
+  .playlist:hover &,
+  .playlist:focus-visible & {
+    color: var(--text-link);
+  }
+}
+
+/* Spotify unreachable, or no playlist configured. One quiet line where the card was:
+   reads degrade, and the rest of the page still explains itself. */
+.playlistOffline {
+  margin-block: var(--space-8);
+  padding-block: var(--space-5);
+  border-block: var(--border-1) solid var(--hair);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .playlist,
+  .playlistName,
+  .playlistOpen {
+    transition: none;
+  }
+}
+
+/* --- search --------------------------------------------------------------------- */
+
+/* The measure belongs here, not on the field alone.
+
+   With it on the field only, the results underneath ran the full width of the page
+   while the input stopped at 60ch, so the add controls ended up a screen away from the
+   track they belonged to. Field, results and notes are one column. */
+.search {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: var(--measure);
+}
+
+/* THE SEARCH FIELD IS NOT A FORM CONTROL, AND LOOKING LIKE ONE WAS THE PROBLEM.
+
+   It used to be .jk-input: a bordered box on a filled surface. That is right in the
+   contact form, where a field has to show where it starts and ends among several
+   others, and wrong here, where it was the only box on a page made of hairlines and
+   open ground.
+
+   So it is a rule with type on it. One hairline underneath, no fill, no border, and
+   the label above in the same tracked mono caps every other label on the site uses.
+   The line is what moves on focus, which is the only state this needs. */
+.searchField {
+  display: block;
+}
+
+.searchLabel {
+  display: block;
+  /* Matched to the input's inset, so the label sits over the text it names rather than
+     over the start of the rule. */
+  padding-left: var(--space-4);
+  margin-bottom: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-3xs);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.searchInput {
+  width: 100%;
+  /* Inset from the left rather than flush against the start of its own underline. Text
+     sitting hard on the origin of the rule reads as a mistake; a little air makes the
+     rule read as a field the text sits IN rather than a line it is balanced on. The
+     right stays flush, because there is nothing over there to collide with. */
+  padding: var(--space-3) 0 var(--space-3) var(--space-4);
+  border: 0;
+  /* Not a box. The rule under it is the whole field. */
+  border-bottom: var(--border-1) solid var(--hair-lit);
+  border-radius: var(--radius-none);
+  background: none;
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  /* Editorial rather than mono: this is somebody typing a song title, not entering a
+     value. --text-xl is a floor of 18px, comfortably past the 16px under which iOS
+     zooms the page on focus and leaves it zoomed. */
+  font-size: var(--text-xl);
+  letter-spacing: var(--tracking-display);
+  transition: border-color var(--dur-base) var(--ease-out);
+
+  &::placeholder {
+    /* --text-dim, not --text-faint. Placeholder text is still text, and the faint tier
+       fails on this ground. */
+    color: var(--text-dim);
+    font-family: var(--font-body);
+    font-size: var(--text-lg);
+    letter-spacing: normal;
+  }
+
+  &:hover { border-bottom-color: var(--text-link); }
+
+  /* THE OUTLINE IS SUPPRESSED HERE AND NOWHERE ELSE ON THE SITE, and it is replaced
+     rather than removed.
+
+     A text input ALWAYS matches :focus-visible when it is focused, mouse or keyboard,
+     which is not true of a button. So the ring from base/_reset.scss drew a rectangle
+     around this field the moment anybody clicked into it, which is precisely the box
+     the field was redesigned to stop being.
+
+     What replaces it is the rule itself: on focus it doubles in weight and takes the
+     focus colour, spanning the full width of the control. That is a visible, high
+     contrast, unmissable change of state, and it is the same stroke the design already
+     uses to mean "this is the live one". Deleting the outline without that would be an
+     accessibility regression; swapping it for this is not. */
+  &:focus,
+  &:focus-visible {
+    outline: none;
+    border-bottom-color: var(--focus-ring);
+    border-bottom-width: var(--border-2);
+    /* The border thickening would otherwise move the text by a pixel on focus. */
+    padding-bottom: calc(var(--space-3) - var(--border-1));
+  }
+
+  /* Chrome's own clear button, which arrives with type="search" and is a small grey
+     cross that belongs to no design on this page. */
+  &::-webkit-search-cancel-button { display: none; }
+}
+
+/* "and 42 more on spotify". The same quiet-link treatment as the rest of the site. */
+.more {
+  display: inline-block;
+  margin-top: var(--space-5);
+  font-family: var(--font-mono);
+  font-size: var(--text-3xs);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-dim);
+  text-decoration: none;
+  border-bottom: var(--border-1) solid var(--hair);
+  padding-bottom: var(--space-2);
+
+  &:hover {
+    color: var(--text-link);
+    border-bottom-color: var(--hair-lit);
+  }
+}
+
+/* "adding as mona · change". Mono and small, so it reads as a readout rather than a
+   control, which is what the rest of the site does with anything this quiet. */
+.signedAs {
+  font-family: var(--font-mono);
+  font-size: var(--text-3xs);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* A button that has to look like a link, because it is one in everything but element:
+   it changes what happens next rather than navigating. Sharing .jk-back__link would
+   have meant a global class inside a module, which docs/lab.md rules out. */
+.change {
+  margin-left: var(--space-3);
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: var(--text-link);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+
+  &:hover { color: var(--text-link-hover); }
+}
+
+.searchNote {
+  font-family: var(--font-mono);
+  font-size: var(--text-3xs);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+.result {
+  /* The anchor for the slab, which is positioned out of the row rather than pushing
+     the rows below it down. */
+  position: relative;
+  border-top: var(--border-1) solid var(--hair);
+
+  &:last-child { border-bottom: var(--border-1) solid var(--hair); }
+}
+
+.resultRow {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--space-4);
+  padding-block: var(--space-3);
+}
+
+.resultArt,
+.resultArtEmpty {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-none);
+  object-fit: cover;
+}
+
+.resultArtEmpty {
+  display: block;
+  background: var(--surface-well);
+  border: var(--border-1) solid var(--hair);
+}
+
+.resultBody { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+
+.resultTitle {
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+  white-space: nowrap;
+}
+
+.resultArtist {
+  font-size: var(--text-3xs);
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resultTime {
+  font-family: var(--font-mono);
+  font-size: var(--text-3xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+}
+
+/* The name slab, opened by the first add.
+
+   IT OPENS TO THE RIGHT RATHER THAN UNDERNEATH, and that is what makes it feel like a
+   thing attached to one row instead of a section arriving in the middle of the list.
+   Underneath, it shoved every result below it down the page by its own height, so the
+   track somebody was reading moved the instant they asked to add it.
+
+   Positioned out of the flow entirely, which is affordable here for one specific
+   reason: the search column stops at the measure and the page does not, so there is
+   always empty page to the right of it on a wide screen. This is not floating over
+   content; it is using the margin.
+
+   It needs a real surface because it is over the background photograph rather than
+   over the page, which is the one case base/_mixins.scss says to ask about. */
+.slab {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  z-index: 2;
+  width: 19rem;
+  margin-left: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-6);
+
+  /* THE SITE'S OWN FLOATING SURFACE, NOT ONE INVENTED HERE. --surface-raised and
+     --shadow-float are what .jk-dock uses, and the dock is the site's one precedent for
+     a thing that hovers over the page with content behind it. base/_mixins.scss says to
+     ask whether an element is really overlaying something before giving it a surface;
+     this one is, so it takes the surface that already answers that question.
+
+     It had a two-pixel mint bar down its left edge, which was the only element of its
+     kind anywhere on the site. Sharp corners and one hairline instead, which is what
+     everything else here is made of. */
+  background: var(--surface-raised);
+  border: var(--border-1) solid var(--hair);
+  box-shadow: var(--shadow-float);
+  border-radius: var(--radius-none);
+}
+
+/* The pointer back to the row it belongs to. A four-pixel square on the left edge,
+   level with the row's own centre: the same editorial tick Rule draws at the start of
+   a dimension line, rather than a speech-bubble arrow. */
+.slab::before {
+  content: "";
+  position: absolute;
+  top: var(--space-7);
+  right: 100%;
+  width: var(--space-6);
+  height: var(--border-1);
+  background: var(--hair-lit);
+}
+
+.slabActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+/* --- the list ------------------------------------------------------------------- */
+
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+/* ONE GRID, DECLARED ONCE, SHARED BY THE HEADING AND EVERY ROW. Two matching column
+   lists would drift the first time one of them changed width, and a heading that no
+   longer sits over the thing it names is worse than no heading. */
+.head,
+.row {
+  display: grid;
+  /* The rules run the full width and the content sits inside them, so the list has
+     ends rather than stopping dead at the first and last character. The same inset the
+     work list uses on its own rows. */
+  padding-inline: var(--space-5);
+  display: grid;
+  grid-template-columns:
+    2rem                  /* index  */
+    2.25rem               /* cover  */
+    minmax(0, 2fr)        /* track  */
+    minmax(0, 1.4fr)      /* album  */
+    minmax(0, 1fr)        /* by     */
+    5.5rem                /* added  */
+    3.5rem;               /* length */
+  /* CENTRE, NOT BASELINE. The track cell is two lines and the rest are one, so a
+     shared baseline hung the title, the index and the duration off the top of the row
+     while the cover sat below them. Nothing here is prose that has to line up with
+     prose; they are seven things that should read as one line. */
+  align-items: center;
+  gap: var(--space-4);
+}
+
+/* The heading is a label, so it takes the label treatment and none of the row's.
+
+   Bolder and a step darker than the readouts under it. A heading set in the same
+   weight and the same faint tier as its own column of values is not a heading; it is
+   just the first row. */
+.head {
+  padding-bottom: var(--space-3);
+  border-bottom: var(--border-1) solid var(--hair-lit);
+  font-family: var(--font-mono);
+  font-size: var(--text-3xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* The clock stands in for the word "length". The figures under it are unmistakably
+   durations, and a label explaining that is a label explaining nothing. */
+.headClock {
+  display: flex;
+  justify-content: flex-end;
+  opacity: .75;
+}
+
+.row {
+  padding-block: var(--space-4);
+  border-top: var(--border-1) solid var(--hair);
+
+  /* The heading already draws the line above the first row. Without this the two sit a
+     pixel apart and read as a double rule, which is the only place on the page where
+     two strokes do the same job. */
+  .head + & { border-top: 0; }
+
+  &:last-child { border-bottom: var(--border-1) solid var(--hair); }
+
+  /* An unconfirmed row, and it should look like one. Dimmed rather than animated: a
+     spinner on a row that lands in 300ms is noise, and the state has to be legible in
+     a screenshot as well as in motion. */
+  &[data-state="adding"] { opacity: .55; }
+
+  /* Failed keeps its full weight. It is the one state a reader has to act on, and
+     fading it would say the opposite. */
+  &[data-state="failed"] .rowTitle { color: var(--text-dim); }
+}
+
+/* EVERY CELL NAMES ITS OWN COLUMN, rather than relying on the order it appears in.
+   Auto-placement meant that omitting one cell - an unattributed row with no name to
+   show - slid every cell after it one column left, and the row silently stopped lining
+   up with its heading. Named columns make an absent cell an absent cell. */
+.headIndex,
+.rowIndex { grid-column: 1; }
+.headArt { grid-column: 2; }
+.headTrack { grid-column: 3; }
+.headAlbum { grid-column: 4; }
+.headBy { grid-column: 5; }
+.headWhen { grid-column: 6; }
+.headClock { grid-column: 7; }
+
+.rowArt,
+.rowArtEmpty { grid-column: 2; }
+.rowBody { grid-column: 3; }
+.rowAlbum { grid-column: 4; }
+.rowBy { grid-column: 5; }
+.rowWhen { grid-column: 6; }
+.rowTime { grid-column: 7; }
+
+.rowIndex {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+}
+
+.rowArt,
+.rowArtEmpty {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-none);
+  object-fit: cover;
+}
+
+.rowArtEmpty {
+  display: block;
+  background: var(--surface-well);
+  border: var(--border-1) solid var(--hair);
+}
+
+.rowBody { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+
+.rowTitle {
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+}
+
+.rowArtist,
+.rowTitle {
+  min-width: 0;
+}
+
+.rowArtist {
+  font-size: var(--text-3xs);
+  color: var(--text-dim);
+}
+
+/* The four quiet cells. Mono and small, like every other readout on the site, and
+   truncated rather than wrapped: a row is one line, and an album with a long title
+   should shorten rather than push the row to two. */
+.rowAlbum,
+.rowBy,
+.rowWhen,
+.rowTime {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: var(--text-3xs);
+  letter-spacing: var(--tracking-wide);
+}
+
+.rowAlbum { color: var(--text-dim); }
+
+/* The one cell in the row that is somebody rather than something, so it is the one
+   that takes weight. It is also the only reason most of these rows are here.
+
+   THE WEIGHT IS ON THE NAME, NOT ON THE CELL, and that is what lets the narrow layout
+   put a quiet "added by" in front of it without the label arriving in bold too. */
+.rowBy { color: var(--text-dim); }
+
+.rowBy > span {
+  color: var(--text-body);
+  font-weight: var(--weight-semi);
+}
+
+.rowWhen {
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.rowTime {
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* A failed row has nothing true to say about album, author or date, so it spends the
+   remaining columns on the reason and the way out instead. */
+.rowFailure {
+  grid-column: 3 / -1;
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  font-family: var(--font-mono);
+  font-size: var(--text-3xs);
+  letter-spacing: var(--tracking-wide);
+}
+
+/* The one place on this page that uses the alert colour, because it is the one thing
+   a visitor has to do something about. */
+.rowError {
+  color: var(--p-ember);
+  text-transform: none;
+  letter-spacing: normal;
+  white-space: normal;
+}
+
+/* --- long text ------------------------------------------------------------------
+
+   A title too long for its column scrolls while the row is pointed at, and sits still
+   the rest of the time.
+
+   NOT THE Marquee COMPONENT, which is the obvious reuse and the wrong one: it scrolls
+   continuously and duplicates its content to loop seamlessly. That is right for a
+   ticker nobody has to read a specific word of, and wrong for a track title, which is
+   a thing somebody is trying to read. A title that never stops moving cannot be read
+   at all.
+
+   IT TURNS ITSELF OFF WHEN THE TEXT FITS, with no JavaScript and no measuring. The
+   cell is a container, so 100cqw is its own width and 100% inside the translate is the
+   TEXT's width. calc(100cqw - 100%) is therefore negative exactly when the text
+   overflows, and min() with zero clamps everything that fits to no movement at all. So
+   a short title has an animation attached and does not budge.
+
+   The mask replaces text-overflow: ellipsis, which cannot work here: an ellipsis needs
+   the text to be the overflowing box itself, and the text has to be an inline-block
+   child to be transformed. A fade says the same thing and does not have to disappear
+   when the scroll starts. */
+.scroll {
+  container-type: inline-size;
+  overflow: hidden;
+  mask-image: linear-gradient(to right, #000 calc(100% - 1.25rem), transparent);
+}
+
+.scroll > span {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.row:hover .scroll > span,
+.result:hover .scroll > span {
+  animation: suggest-scroll 6s var(--ease-in-out) infinite alternate;
+}
+
+@keyframes suggest-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(min(0px, calc(100cqw - 100%))); }
+}
+
+/* Reduced motion takes the movement and keeps the fade, which is the part that says
+   there is more text. */
+@media (prefers-reduced-motion: reduce) {
+  .row:hover .scroll > span,
+  .result:hover .scroll > span {
+    animation: none;
+  }
+}
+
+/* ============================================================================
+   NARROW SCREENS
+
+   LAST IN THE FILE, AND THAT IS LOAD-BEARING RATHER THAN TIDY. Every rule in here
+   overrides one written above it with exactly the same specificity - .row against
+   .row, .headClock against .headClock - so the only thing deciding the winner is
+   source order. Sitting halfway up the file, this block lost every one of those
+   fights: the heading kept its seven columns, the clock kept display:flex, and
+   because the clock was still placed in column 7 the grid kept generating implicit
+   columns for it. The list came out with four named columns and seven real ones.
+
+   Anything added below this point that the narrow layout needs to beat has to go
+   above it. ============================================================================ */
+
+@media (max-width: 47.9375rem) {
+  .resultRow { grid-template-columns: 2.5rem minmax(0, 1fr) auto; }
+  .resultTime { display: none; }
+
+  /* THE SLAB GOES BACK UNDER THE ROW HERE, because the thing that made opening to the
+     right affordable was the empty page beside a column that stops at the measure, and
+     on a phone there is no page beside anything. Back in the flow, full width. */
+  .slab {
+    position: static;
+    width: auto;
+    margin-left: 0;
+    margin-bottom: var(--space-4);
+    box-shadow: none;
+  }
+
+  .slab::before { display: none; }
+
+  /* --- the list, at four columns -------------------------------------------------
+
+     TRACK AND WHO ADDED IT. Nothing else.
+
+     THIS REPLACED A CLEVERER LAYOUT THAT DID NOT WORK. The name used to sit beside the
+     artist, put there with display:contents so the body's children became grid items
+     of the row. It read correctly in a forced preview and was broken on a real phone:
+     the artist landed in an auto-width column while carrying .scroll, which is
+     overflow:hidden with min-width:0, so it collapsed to nothing and the artist simply
+     disappeared. The lesson is in the shape of what replaced it - four plain columns,
+     no spanning, no display:contents, and the body left as the flex column it is
+     everywhere else.
+
+     THE HEADING STAYS. It was hidden here, which left the name as a bare word with
+     nothing saying what it was, and every attempt to reintroduce that meaning inside
+     the row made the row worse. The heading is where a column name belongs. */
+  /* THE NAME COLUMN IS A FIXED WIDTH, NOT auto, AND THAT IS NOT A PREFERENCE.
+
+     .rowBy carries .scroll, and .scroll sets container-type: inline-size, which
+     applies contain: inline-size - the element is explicitly not allowed to size
+     itself from its contents. In an auto track it therefore contributes nothing, the
+     column resolves to 0px, and the name vanishes while still being in the DOM.
+
+     THIS EXACT TRAP ATE THE ARTIST FIRST. An earlier attempt put the artist in an auto
+     column for the same reason and it disappeared the same way; the fault looked like
+     two unrelated layout bugs and was one containment rule both times. Any track
+     holding a .scroll cell needs a width of its own: fr, a length, or minmax with a
+     real maximum. Never auto, min-content or max-content. */
+  .head,
+  .row {
+    grid-template-columns: 1.75rem 2.25rem minmax(0, 1fr) 6.5rem;
+    padding-inline: var(--space-4);
+    gap: var(--space-4);
+    align-items: center;
+  }
+
+  .headIndex,
+  .rowIndex { grid-column: 1; }
+
+  .headArt,
+  .rowArt,
+  .rowArtEmpty { grid-column: 2; }
+
+  .headTrack,
+  .rowBody { grid-column: 3; }
+
+  /* The name takes the column the duration had. It is the one thing on this row a
+     reader is here for, and a running time is not. */
+  .headBy,
+  .rowBy {
+    grid-column: 4;
+    text-align: right;
+  }
+
+  /* NO FADE ON THE NAME HERE. The mask exists to say "there is more text", and in a
+     column this wide there never is: the field caps at ten characters, which is about
+     4rem of mono at this size inside a 6.5rem track. Left in place it would simply
+     fade the last letter of every right-aligned name for no reason. */
+  .rowBy { mask-image: none; }
+
+  /* Album, date and duration are gone at this width, heading and cell together. */
+  .headAlbum,
+  .headWhen,
+  .headClock,
+  .rowAlbum,
+  .rowWhen,
+  .rowTime { display: none; }
+
+  /* THE OPTIMISTIC STATE HAS TO SURVIVE THIS. .rowWhen is the only cell carrying the
+     word "adding", and hiding it left a pending row signalled by nothing but the row's
+     own dimming - which is real, but thin for the one state the design says must never
+     pass as settled. While a row is adding it says so in the column the name would
+     otherwise have. */
+  .row[data-state="adding"] .rowBy { display: none; }
+
+  .row[data-state="adding"] .rowWhen {
+    display: block;
+    grid-column: 4;
+    text-align: right;
+  }
+
+  .rowFailure { grid-column: 3 / -1; }
+  /* The cover keeps its own proportion at this width. */
+  .playlist {
+    grid-template-columns: 6rem minmax(0, 1fr);
+    gap: var(--space-5);
+  }
+
+  .playlistCover,
+  .playlistCoverEmpty {
+    width: 6rem;
+    height: 6rem;
+  }
 }
