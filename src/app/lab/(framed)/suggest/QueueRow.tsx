@@ -66,9 +66,15 @@ export const QueueRow = ({ entry, state, error, index, onRetry }: QueueRowProps)
           <span>{entry.album}</span>
         </span>
 
-        <span className={`${styles.rowBy} ${styles.scroll}`}>
-          <span>{entry.added_by ?? ""}</span>
-        </span>
+        {/* Omitted rather than rendered empty. Every cell names its own grid column,
+            so an absent one leaves a gap instead of shifting the rest along - and on a
+            phone, where the name has a line to itself, an empty cell would otherwise
+            leave every unattributed row a blank line taller than the ones beside it. */}
+        {entry.added_by ? (
+          <span className={`${styles.rowBy} ${styles.scroll}`}>
+            <span>{entry.added_by}</span>
+          </span>
+        ) : null}
 
         <span className={styles.rowWhen}>
           {state === RowState.Adding ? SUGGEST_TEASER.adding : shortDate({ iso: entry.added_at })}

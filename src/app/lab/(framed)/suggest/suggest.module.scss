@@ -119,7 +119,7 @@
 
 .playlist {
   display: grid;
-  grid-template-columns: 7rem minmax(0, 1fr);
+  grid-template-columns: 9rem minmax(0, 1fr);
   gap: var(--space-6);
   align-items: start;
   margin-block: var(--space-8);
@@ -143,8 +143,8 @@
 .playlistCover,
 .playlistCoverEmpty {
   grid-column: 1;
-  width: 7rem;
-  height: 7rem;
+  width: 9rem;
+  height: 9rem;
   /* Square, and sharp. Spotify rounds its covers and this page does not round
      anything; --radius-none is the site's default and is restated here because a cover
      is the one element a reader might expect to arrive with corners. */
@@ -222,14 +222,14 @@
 
 @media (max-width: 47.9375rem) {
   .playlist {
-    grid-template-columns: 5rem minmax(0, 1fr);
+    grid-template-columns: 6rem minmax(0, 1fr);
     gap: var(--space-5);
   }
 
   .playlistCover,
   .playlistCoverEmpty {
-    width: 5rem;
-    height: 5rem;
+    width: 6rem;
+    height: 6rem;
   }
 }
 
@@ -482,10 +482,34 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  padding: var(--space-5);
-  background: var(--surface-raised, rgba(242, 239, 231, .92));
-  border: var(--border-1) solid var(--hair-lit);
-  border-left: var(--border-2) solid var(--p-mid);
+  padding: var(--space-6);
+
+  /* THE SITE'S OWN FLOATING SURFACE, NOT ONE INVENTED HERE. --surface-raised and
+     --shadow-float are what .jk-dock uses, and the dock is the site's one precedent for
+     a thing that hovers over the page with content behind it. base/_mixins.scss says to
+     ask whether an element is really overlaying something before giving it a surface;
+     this one is, so it takes the surface that already answers that question.
+
+     It had a two-pixel mint bar down its left edge, which was the only element of its
+     kind anywhere on the site. Sharp corners and one hairline instead, which is what
+     everything else here is made of. */
+  background: var(--surface-raised);
+  border: var(--border-1) solid var(--hair);
+  box-shadow: var(--shadow-float);
+  border-radius: var(--radius-none);
+}
+
+/* The pointer back to the row it belongs to. A four-pixel square on the left edge,
+   level with the row's own centre: the same editorial tick Rule draws at the start of
+   a dimension line, rather than a speech-bubble arrow. */
+.slab::before {
+  content: "";
+  position: absolute;
+  top: var(--space-7);
+  right: 100%;
+  width: var(--space-6);
+  height: var(--border-1);
+  background: var(--hair-lit);
 }
 
 .slabActions {
@@ -565,6 +589,19 @@
   &[data-state="failed"] .rowTitle { color: var(--text-dim); }
 }
 
+/* EVERY CELL NAMES ITS OWN COLUMN, rather than relying on the order it appears in.
+   Auto-placement meant that omitting one cell - an unattributed row with no name to
+   show - slid every cell after it one column left, and the row silently stopped lining
+   up with its heading. Named columns make an absent cell an absent cell. */
+.rowIndex { grid-column: 1; }
+.rowArt,
+.rowArtEmpty { grid-column: 2; }
+.rowBody { grid-column: 3; }
+.rowAlbum { grid-column: 4; }
+.rowBy { grid-column: 5; }
+.rowWhen { grid-column: 6; }
+.rowTime { grid-column: 7; }
+
 .rowIndex {
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
@@ -619,7 +656,13 @@
 }
 
 .rowAlbum { color: var(--text-dim); }
-.rowBy { color: var(--text-dim); }
+
+/* The one cell in the row that is somebody rather than something, so it is the one
+   that takes weight. It is also the only reason most of these rows are here. */
+.rowBy {
+  color: var(--text-body);
+  font-weight: var(--weight-semi);
+}
 
 .rowWhen {
   color: var(--text-faint);
@@ -708,34 +751,58 @@
 @media (max-width: 47.9375rem) {
   .resultRow { grid-template-columns: 2.5rem minmax(0, 1fr) auto; }
   .resultTime { display: none; }
-  .slab { margin-left: 0; }
 
-  /* THE COLUMNS FOLD RATHER THAN SHRINK. Seven of them in a phone width would be
-     seven unreadable slivers; the track keeps the row and the rest stack under it,
-     which is what the row was before it had a heading. */
+  /* THE SLAB GOES BACK UNDER THE ROW HERE, because the thing that made opening to the
+     right affordable was the empty page beside a column that stops at the measure, and
+     on a phone there is no page beside anything. Back in the flow, full width. */
+  .slab {
+    position: static;
+    width: auto;
+    margin-left: 0;
+    margin-bottom: var(--space-4);
+    box-shadow: none;
+  }
+
+  .slab::before { display: none; }
+
+  /* FOUR COLUMNS, NOT SEVEN. Seven in a phone width would be seven unreadable
+     slivers, so three of them go.
+
+     THE ALBUM AND THE DATE ARE DROPPED OUTRIGHT rather than stacked under the title.
+     Both are reference, not identity: nobody scans a phone looking for which record a
+     track came from, and stacking them turned every row into three lines and the list
+     into a page of paragraphs. The duration stays, because it fits in its own column
+     without costing the title any width, and it is the one number somebody might
+     actually be checking.
+
+     The name stays too, on its own line under the track, because it is the only cell
+     here that is a person and the whole point of the list. */
   .head { display: none; }
 
   .row {
-    grid-template-columns: 1.75rem 2.25rem minmax(0, 1fr);
+    grid-template-columns: 1.75rem 2.25rem minmax(0, 1fr) auto;
     row-gap: var(--space-2);
   }
 
-  .rowAlbum,
-  .rowBy,
-  .rowWhen,
+  .rowIndex,
+  .rowArt,
+  .rowArtEmpty,
+  .rowBody { grid-row: 1; }
+
   .rowTime {
-    grid-column: 3;
+    grid-column: 4;
+    grid-row: 1;
+    text-align: right;
+  }
+
+  .rowBy {
+    grid-column: 3 / -1;
+    grid-row: 2;
     text-align: left;
   }
 
-  .rowAlbum { grid-row: 2; }
-  .rowBy { grid-row: 3; }
+  .rowAlbum,
+  .rowWhen { display: none; }
 
-  /* Dropped rather than stacked. The date and the duration are the two a reader is
-     least likely to want on a phone, and four stacked mono lines per row turns a list
-     of twenty-four tracks into a page of paragraphs. */
-  .rowWhen,
-  .rowTime { display: none; }
-
-  .rowFailure { grid-column: 3; }
+  .rowFailure { grid-column: 3 / -1; }
 }
