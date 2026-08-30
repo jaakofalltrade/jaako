@@ -658,8 +658,13 @@
 .rowAlbum { color: var(--text-dim); }
 
 /* The one cell in the row that is somebody rather than something, so it is the one
-   that takes weight. It is also the only reason most of these rows are here. */
-.rowBy {
+   that takes weight. It is also the only reason most of these rows are here.
+
+   THE WEIGHT IS ON THE NAME, NOT ON THE CELL, and that is what lets the narrow layout
+   put a quiet "added by" in front of it without the label arriving in bold too. */
+.rowBy { color: var(--text-dim); }
+
+.rowBy > span {
   color: var(--text-body);
   font-weight: var(--weight-semi);
 }
@@ -781,7 +786,8 @@
 
   .row {
     grid-template-columns: 1.75rem 2.25rem minmax(0, 1fr) auto;
-    row-gap: var(--space-2);
+    row-gap: var(--space-3);
+    padding-block: var(--space-5);
   }
 
   .rowIndex,
@@ -795,10 +801,26 @@
     text-align: right;
   }
 
+  /* THE NAME NEEDS ITS LABEL BACK HERE, and this is the bug that only showed up on a
+     real phone. The heading row is hidden at this width, so the name was left as a bare
+     word under the artist - "Stairs / Design19 / la peace" reads as a third line of the
+     credit rather than as who suggested it. The column header carried that meaning on a
+     wide screen and nothing carried it here.
+
+     Restored in CSS rather than in markup, because it is not information the row is
+     missing: it is a heading that went away, and it should come back exactly where the
+     heading is gone. */
   .rowBy {
     grid-column: 3 / -1;
     grid-row: 2;
     text-align: left;
+    margin-top: var(--space-2);
+  }
+
+  .rowBy::before {
+    content: "added by ";
+    color: var(--text-faint);
+    font-weight: var(--weight-regular);
   }
 
   .rowAlbum,
