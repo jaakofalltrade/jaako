@@ -1,5 +1,6 @@
 import { routes } from "@/client/endpoints";
 import {
+  COORDS_LABEL,
   GITHUB_PATH,
   GITHUB_URL,
   LINKEDIN_PATH,
@@ -14,6 +15,7 @@ import {
 import { IconName } from "@/models";
 import type {
   ContactLink,
+  CreditPart,
   HeroCopy,
   MetaPair,
   NavItem,
@@ -38,7 +40,7 @@ export const HERO: HeroCopy = {
     "I think therefore I am. Full-stack odd jobs: Next.js, Django, Discord bots, and whatever else the week needs.",
   struck: { retired: "for hire", current: "employed, still curious" },
   kicker: `jaako andes · portfolio · rev ${SITE_REV}`,
-  coords: "12.9714° N · 123.9944° E",
+  coords: COORDS_LABEL,
   meta: [
     { term: "role", value: "technical lead" },
     { term: "at", value: "restoplus" },
@@ -175,9 +177,33 @@ export const FOOTER = {
   // most of which was talked into existence rather than typed. Saying so is funnier
   // than the boast was, and it is the only line in the footer that is about how the
   // thing was made rather than what it is made of.
-  credit: "80 % unethical · 20 % handmade · 0 % template",
+  //
+  // It reads "80 % unethical · 20 % handmade · 0 % template" and it is broken into
+  // runs because each of the three words is now a link — see CreditPart. The
+  // percentages are the plain runs; the words are the punchline and the punchline is
+  // somewhere else. Nothing marks them: a footer credit that announced three easter
+  // eggs with underlines would be a nav, and the joke is that you have to be reading
+  // it closely enough to hover.
+  credit: [
+    { text: "80 % " },
+    { text: "unethical", href: "https://www.youtube.com/watch?v=TsHrJM1AExc" },
+    { text: " · 20 % " },
+    { text: "handmade", href: "https://www.youtube.com/watch?v=OyDyOweu-PA" },
+    { text: " · 0 % " },
+    { text: "template", href: "https://www.youtube.com/watch?v=DhVHnTKkl3U" },
+  ] as CreditPart[],
   spec: "plate 01-05 · duotone c-2 · 6400 k",
 } as const;
+
+/**
+ * Where the full stop at the end of the name goes.
+ *
+ * The oldest joke on the internet, hidden behind the smallest clickable thing on the
+ * page. It is a period in 88px display type, which is roughly a 20px target — small
+ * enough that nobody finds it by accident and large enough that anyone who suspects
+ * it can hit it.
+ */
+export const HERO_STOP_HREF = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
 
 /**
  * Recast hit counter. The number is the number; the unit label is the joke.

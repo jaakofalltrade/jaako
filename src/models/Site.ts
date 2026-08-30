@@ -40,3 +40,19 @@ export type HeroCopy = {
   kicker: string;
   coords: string;
 };
+
+/**
+ * One run of the footer credit line.
+ *
+ * The line is three percentages and three words, and three of those words go
+ * somewhere. It is an array rather than a string with a lookup table beside it
+ * because the alternative is splitting prose on its own words at render time, which
+ * is a parser standing in for punctuation that is already there in the source.
+ *
+ * `href` is what makes a run a link. Runs without one are plain text, and that is the
+ * only difference between them.
+ */
+export type CreditPart = {
+  text: string;
+  href?: string;
+};

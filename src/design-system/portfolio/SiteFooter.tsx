@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import Link from "next/link";
 import { AnnotationTone, DecryptAlphabet, MarqueeTone } from "@/models";
 import { FOOTER, NAV_ITEMS, TICKER, TICKER_STRUCK } from "@/data/site";
@@ -39,7 +40,31 @@ export const SiteFooter = () => (
 
     <div className="jk-footer__bar">
       <Annotation>© 2026 jaako andes</Annotation>
-      <Annotation>{FOOTER.credit}</Annotation>
+      {/* The credit line, three words of which are links.
+
+          Nothing in the styling says so — see .jk-footer__egg in layout/_footer.scss,
+          which inherits everything and only lifts the underline on hover. That is the
+          whole design: the line has to read as one flat sentence, because a footer
+          credit wearing three underlines reads as a nav and the reader would go looking
+          for something useful behind them. Whether a run is a link is FOOTER.credit's
+          business rather than this file's; see CreditPart. */}
+      <Annotation>
+        {FOOTER.credit.map((part) =>
+          part.href ? (
+            <a
+              key={part.text}
+              href={part.href}
+              target="_blank"
+              rel="noreferrer"
+              className="jk-footer__egg"
+            >
+              {part.text}
+            </a>
+          ) : (
+            <Fragment key={part.text}>{part.text}</Fragment>
+          ),
+        )}
+      </Annotation>
       {/* The plate spec settles too, and it is the only one of the five that is below
           the fold — so it is also the only one that proves the trigger is the page's
           scroll observer rather than page load. Decorative, so Annotation puts

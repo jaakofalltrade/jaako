@@ -99,3 +99,27 @@
 @media (prefers-reduced-motion: reduce) {
   .jk-footer__nav-link { transition: none; }
 }
+
+/* The three words in the credit line that go somewhere.
+
+   This rule exists to make them look like nothing. They inherit the annotation's
+   colour and size, drop the underline the reset gives an anchor, and take a pointer —
+   which is the only tell, and is meant to be. The line has to keep reading as one flat
+   sentence: three underlined words in a footer credit read as a fourth navigation and
+   send the reader looking for something useful behind them.
+
+   Hover brings the underline back, so anyone who has already found one gets
+   confirmation rather than doubt. No transition on it, unlike .jk-footer__nav-link
+   above: that link fades a colour, this one switches a decoration on, and
+   text-decoration-line is not an animatable property — a duration written here would
+   be dead CSS that reads as if the switch were eased. */
+.jk-footer__egg {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+    text-underline-offset: .2em;
+  }
+}
