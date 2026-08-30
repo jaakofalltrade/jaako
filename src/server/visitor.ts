@@ -43,16 +43,7 @@ const isUuid = (value: unknown): value is string =>
  * A malformed id would otherwise reach a uuid column and become a database error
  * instead of a fresh visitor.
  */
-export const readVisitor = (args: { request: Request }): Visitor | null => {
-  const header = args.request.headers.get("cookie");
-  if (!header) return null;
-
-  const raw = header
-    .split(";")
-    .map((part) => part.trim())
-    .find((part) => part.startsWith(`${VISITOR_COOKIE}=`))
-    ?.slice(VISITOR_COOKIE.length + 1);
-
+export const parseVisitor = (raw: string | undefined): Visitor | null => {
   if (!raw) return null;
 
   try {
@@ -73,6 +64,23 @@ export const readVisitor = (args: { request: Request }): Visitor | null => {
     return null;
   }
 };
+
+/**
+ * From a route handler, which has the raw header.
+ *
+ * The page reads the same cookie through next/headers instead; both go through
+ * parseVisitor, because the re-validation above is the point and doing it twice is how
+ * the two would come to disagree about what a valid cookie looks like.
+ */
+export const readVisitor = (args: { request: Request }): Visitor | null =>
+  parseVisitor(
+    args.request.headers
+      .get("cookie")
+      ?.split(";")
+      .map((part) => part.trim())
+      .find((part) => part.startsWith(`${VISITOR_COOKIE}=`))
+      ?.slice(VISITOR_COOKIE.length + 1)
+  );
 
 /** A new visitor. Not persisted until something is worth counting against it. */
 export const mintVisitor = (): Visitor => ({ id: randomUUID(), name: null });

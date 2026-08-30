@@ -4,8 +4,9 @@ import {
   MAX_TRACK_MS,
   SUGGEST_MESSAGE,
 } from "@/constants";
-import { HttpStatus, SuggestFailure } from "@/models";
+import { Env, HttpStatus, SuggestFailure } from "@/models";
 import type { AddResponse, QueueEntry } from "@/models";
+import { serverConfig } from "@/server/serverConfig";
 import { playlistService } from "@/server/spotify";
 import { suggestService } from "@/server/suggest";
 import { mintVisitor, readVisitor, visitorCookie } from "@/server/visitor";
@@ -163,9 +164,13 @@ export const POST = async (request: Request) => {
     // The name rides along, so a returning visitor adds in one click. Secure is off on
     // plain-http localhost only, where setting it would drop the cookie silently.
     headers: {
+      /* SECURE COMES FROM THE DEPLOYMENT, NOT THE REQUEST URL. Behind a proxy that
+         terminates TLS, request.url is http on an https site, and the cookie would go
+         out without Secure exactly where it matters most. The environment is the thing
+         that actually knows. */
       "Set-Cookie": visitorCookie({
         visitor: { id: visitor.id, name },
-        secure: new URL(request.url).protocol === "https:",
+        secure: serverConfig.env !== Env.Local,
       }),
     },
   });

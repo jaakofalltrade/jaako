@@ -9,7 +9,10 @@ import { DefinitionList } from "@/design-system/core/DefinitionList";
 import { SectionHead } from "@/design-system/core/SectionHead";
 import { BackLink } from "@/design-system/portfolio/BackLink";
 import { MastheadBar } from "@/design-system/portfolio/MastheadBar";
+import { cookies } from "next/headers";
+import { QUEUE_SHOWN, VISITOR_COOKIE } from "@/constants";
 import { playlistService } from "@/server/spotify";
+import { parseVisitor } from "@/server/visitor";
 import { suggestService } from "@/server/suggest";
 import { PlaylistCard } from "./PlaylistCard";
 import { SuggestBoard } from "./SuggestBoard";
@@ -48,6 +51,14 @@ export const metadata: Metadata = {
  * Async, and therefore a server component, which is what keeps the playlist id and the
  * Spotify token on this side of the boundary. The browser is handed six strings.
  */
+/*
+ * READS A COOKIE AND LIVE DATA, SO IT CANNOT BE PRERENDERED. Without this the route
+ * built as static and the playlist was whatever it had been at build time: correct on
+ * the first deploy and frozen from then on, which is the kind of wrong that looks like
+ * caching working.
+ */
+export const dynamic = "force-dynamic";
+
 const SuggestTeaserPage = async () => {
   const snapshot = await playlistService.snapshot();
 
@@ -57,19 +68,40 @@ const SuggestTeaserPage = async () => {
    * the list still renders, because the playlist is the source of truth and our rows
    * only annotate it.
    */
-  const names = snapshot
+  /*
+   * SLICED BEFORE THE JOIN AND BEFORE IT CROSSES TO THE BROWSER, which is two costs
+   * rather than one. The snapshot walks every page of the playlist, because the runtime
+   * sum and the duplicate set both need all of it, so this array can hold a couple of
+   * thousand entries. Only QUEUE_SHOWN of them are ever rendered.
+   *
+   * Unsliced, a four-hundred-track playlist meant four hundred full track objects
+   * serialised into the payload of every page load to paint twenty-four rows, and four
+   * hundred uris bound into the name query to look up twenty-four names.
+   */
+  const shown = (snapshot?.queue ?? []).slice(0, QUEUE_SHOWN);
+
+  const names = shown.length
     ? await suggestService
-        .namesByUri({ uris: snapshot.queue.map((entry) => entry.uri) })
+        .namesByUri({ uris: shown.map((entry) => entry.uri) })
         .catch((error) => {
           console.error("[suggest] names failed:", error);
           return {} as Record<string, string>;
         })
     : {};
 
-  const queue = (snapshot?.queue ?? []).map((entry) => ({
+  const queue = shown.map((entry) => ({
     ...entry,
     added_by: names[entry.uri] ?? null,
   }));
+
+  const canAdd = suggestService.isConfigured();
+
+  /*
+   * The name this visitor last signed with, so a returning one adds in a single click.
+   * Read here rather than in the browser because the cookie is httpOnly, which is the
+   * whole reason it was worth setting.
+   */
+  const visitor = parseVisitor((await cookies()).get(VISITOR_COOKIE)?.value);
 
   return (
     <section className="jk-section">
@@ -77,7 +109,13 @@ const SuggestTeaserPage = async () => {
 
       <BackLink href={routes.lab.index}>back to the lab</BackLink>
 
-      <SectionHead index={app.index} note={SUGGEST_TEASER.note} noteIsInformational>
+      {/* The note said adding was off while the add button worked. It follows the
+          same flag the board does now. */}
+      <SectionHead
+        index={app.index}
+        note={canAdd ? SUGGEST_TEASER.open_note : SUGGEST_TEASER.note}
+        noteIsInformational
+      >
         {SUGGEST_TEASER.title}
       </SectionHead>
 
@@ -110,7 +148,9 @@ const SuggestTeaserPage = async () => {
 
       <SuggestBoard
         initialQueue={queue}
-        canAdd={suggestService.isConfigured()}
+        initialName={visitor?.name ?? ""}
+        totalOnPlaylist={snapshot?.summary.track_count ?? queue.length}
+        canAdd={canAdd}
         playlistUrl={snapshot?.summary.url ?? null}
       />
 

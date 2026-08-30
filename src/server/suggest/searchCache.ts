@@ -79,6 +79,16 @@ const createSearchThrottle = () => {
         return false;
       }
 
+      /* BOUNDED, LIKE THE CACHE ABOVE IT. Timestamps are pruned only for a key that is
+         asked about again, so a key never seen twice keeps its entry for the life of
+         the process. One permanent entry per distinct address, on a public route hit
+         on every keystroke, is a leak with a queue of visitors feeding it. Map yields
+         insertion order, so the first key out is the least recently created. */
+      if (hits.size >= SEARCH_RATE.keys && !hits.has(key)) {
+        const oldest = hits.keys().next().value;
+        if (oldest !== undefined) hits.delete(oldest);
+      }
+
       hits.set(key, [...recent, now]);
       return true;
     },

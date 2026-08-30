@@ -177,7 +177,10 @@ export const SUGGEST_TEASER = {
    * which is the adding. "Playlist not open yet" stopped being true the moment the
    * header below it started rendering the live thing.
    */
+  /** Shown while the write path is switched off. The page picks between the two. */
   note: "you cannot add to it yet",
+  /** Shown once it is on. Derived, so the number cannot drift from the route's. */
+  open_note: `${DAILY_ADD_CAP} a day, and it is instant`,
   /**
    * An invitation, not a description of the mechanism.
    *
@@ -215,7 +218,9 @@ export const SUGGEST_TEASER = {
    */
   name_label: "your name",
   name_placeholder: "a name",
-  name_hint: "3 to 10 characters. It signs the track.",
+  // Derived, for the reason the note above suggestSpec gives: this hint sits directly
+  // beside an input whose maxLength comes from the same constant.
+  name_hint: `${NAME_LIMITS.min} to ${NAME_LIMITS.max} characters. It signs the track.`,
 
   /** While a search is in flight and there is nothing to show yet. */
   searching: "looking...",

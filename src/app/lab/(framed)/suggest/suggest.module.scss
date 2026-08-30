@@ -857,6 +857,19 @@
   .rowWhen,
   .rowTime { display: none; }
 
+  /* THE OPTIMISTIC STATE HAS TO SURVIVE THIS. .rowWhen is the only cell carrying the
+     word "adding", and hiding it left a pending row signalled by nothing but the row's
+     own dimming - which is real, but thin for the one state the design says must never
+     pass as settled. While a row is adding it says so in the column the name would
+     otherwise have. */
+  .row[data-state="adding"] .rowBy { display: none; }
+
+  .row[data-state="adding"] .rowWhen {
+    display: block;
+    grid-column: 4;
+    text-align: right;
+  }
+
   .rowFailure { grid-column: 3 / -1; }
   /* The cover keeps its own proportion at this width. */
   .playlist {

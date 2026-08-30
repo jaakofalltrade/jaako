@@ -126,7 +126,12 @@ export const SEARCH_CACHE_MAX = 200;
  * human does. Keyed on IP, because the visitor cookie does not exist until somebody's
  * first successful add.
  */
-export const SEARCH_RATE = { max: 30, window_ms: 60_000 } as const;
+export const SEARCH_RATE = {
+  max: 30,
+  window_ms: 60_000,
+  /** How many addresses the throttle remembers before dropping the oldest. */
+  keys: 500,
+} as const;
 
 /**
  * How many rows the page actually renders.

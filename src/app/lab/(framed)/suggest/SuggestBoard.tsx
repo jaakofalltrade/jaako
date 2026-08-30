@@ -2,8 +2,8 @@
 
 import React from "react";
 import { suggestApi } from "@/client/suggestApi";
-import { MIN_QUERY_LENGTH, NAME_LIMITS, QUEUE_SHOWN, SEARCH_DEBOUNCE_MS } from "@/constants";
-import { RowState, SuggestFailure } from "@/models";
+import { MIN_QUERY_LENGTH, QUEUE_SHOWN, SEARCH_DEBOUNCE_MS, SUGGEST_MESSAGE } from "@/constants";
+import { RowState } from "@/models";
 import type { QueueEntry, SearchResult } from "@/models";
 import { SUGGEST_TEASER } from "@/data/lab";
 import { checkDisplayName, normalizeDisplayName } from "@/utils/nameRules";
@@ -15,6 +15,10 @@ import styles from "./suggest.module.scss";
 export type SuggestBoardProps = {
   /** Rendered on the server, so the list is in the HTML before any script runs. */
   initialQueue: QueueEntry[];
+  /** The name this visitor last signed with, from the cookie. Empty for a new one. */
+  initialName: string;
+  /** Every track on the playlist, not just the rendered few. Drives "and N more". */
+  totalOnPlaylist: number;
   /** False when the write token or the database is missing. Search still works. */
   canAdd: boolean;
   /** Where "and N more" points. Null when the playlist could not be read. */
@@ -62,7 +66,13 @@ const optimistic = (args: { track: SearchResult; signedAs: string }): Row => ({
   state: RowState.Adding,
 });
 
-export const SuggestBoard = ({ initialQueue, canAdd, playlistUrl }: SuggestBoardProps) => {
+export const SuggestBoard = ({
+  initialQueue,
+  initialName,
+  totalOnPlaylist,
+  canAdd,
+  playlistUrl,
+}: SuggestBoardProps) => {
   const [query, setQuery] = React.useState("");
   const [rows, setRows] = React.useState<Row[]>(() => initialQueue.map(settled));
 
@@ -81,8 +91,25 @@ export const SuggestBoard = ({ initialQueue, canAdd, playlistUrl }: SuggestBoard
 
   /** Which result has its name slab open, or null once the name is known. */
   const [asking, setAsking] = React.useState<string | null>(null);
-  const [name, setName] = React.useState("");
+  const [name, setName] = React.useState(initialName);
   const [nameError, setNameError] = React.useState<string | null>(null);
+
+  /*
+   * The tracks with a POST in flight. Without it the add control stayed live while its
+   * own request was running, so a double-click sent two: both read the playlist before
+   * either add landed, both passed the duplicate check, and the track went on twice
+   * while spending two of the visitor's three adds.
+   *
+   * This closes the double-click, which is the case that actually happens. It does not
+   * make the duplicate check atomic - two different people adding the same track in the
+   * same second still race, because the check reads Spotify and the write is a separate
+   * call. That residual is accepted: the outcome is one duplicate on a playlist, and
+   * the owner can remove it.
+   */
+  const [pending, setPending] = React.useState<Set<string>>(() => new Set());
+
+  /* Grows with each confirmed add, so "and N more" stays right without a refetch. */
+  const [total, setTotal] = React.useState(totalOnPlaylist);
 
   const known = normalizeDisplayName(name);
   const hasName = !checkDisplayName(known);
@@ -124,19 +151,30 @@ export const SuggestBoard = ({ initialQueue, canAdd, playlistUrl }: SuggestBoard
   const submit = async (args: { track: SearchResult; signedAs: string }) => {
     const { track, signedAs } = args;
 
-    const pending = optimistic({ track, signedAs });
+    if (pending.has(track.uri)) return;
 
-    setRows((current) => [pending, ...current]);
+    const row = optimistic({ track, signedAs });
+
+    setPending((current) => new Set(current).add(track.uri));
+    setRows((current) => [row, ...current]);
     setAsking(null);
 
     const response = await suggestApi.add({ request: { track_uri: track.uri, name: signedAs } });
 
+    setPending((current) => {
+      const next = new Set(current);
+      next.delete(track.uri);
+      return next;
+    });
+
+    if (response.added) setTotal((current) => current + 1);
+
     setRows((current) =>
-      current.map((row) => {
-        if (row.key !== pending.key) return row;
+      current.map((other) => {
+        if (other.key !== row.key) return other;
         return response.added && response.entry
           ? settled(response.entry)
-          : { ...row, state: RowState.Failed, error: response.error };
+          : { ...other, state: RowState.Failed, error: response.error };
       })
     );
   };
@@ -153,11 +191,11 @@ export const SuggestBoard = ({ initialQueue, canAdd, playlistUrl }: SuggestBoard
   const confirmName = (args: { track: SearchResult }) => {
     const failure = checkDisplayName(normalizeDisplayName(name));
     if (failure) {
-      setNameError(
-        failure === SuggestFailure.NameTooShort
-          ? `At least ${NAME_LIMITS.min} characters.`
-          : `${NAME_LIMITS.max} characters at most.`
-      );
+      /* SUGGEST_MESSAGE, not a ternary. checkDisplayName has three outcomes and the
+         two-way version answered NameRequired with "10 characters at most", which is
+         the opposite of the problem. The table already covers every case, and it is
+         the same sentence the route would send for the same failure. */
+      setNameError(SUGGEST_MESSAGE[failure]);
       return;
     }
 
@@ -170,7 +208,7 @@ export const SuggestBoard = ({ initialQueue, canAdd, playlistUrl }: SuggestBoard
    * OLDEST two dozen, which is the wrong end of the list to show.
    */
   const shown = rows.slice(0, QUEUE_SHOWN);
-  const hidden = rows.length - shown.length;
+  const hidden = Math.max(0, total - shown.length);
 
   const retry = (row: Row) => {
     setRows((current) => current.filter((other) => other.key !== row.key));
@@ -234,12 +272,15 @@ export const SuggestBoard = ({ initialQueue, canAdd, playlistUrl }: SuggestBoard
                 <SearchRow
                   key={track.uri}
                   track={track}
-                  disabled={!canAdd}
+                  disabled={!canAdd || pending.has(track.uri)}
                   asking={asking === track.uri}
                   name={name}
                   error={nameError}
                   onAdd={() => add({ track })}
-                  onNameChange={setName}
+                  onNameChange={(value) => {
+                setName(value);
+                setNameError(null);
+              }}
                   onConfirm={() => confirmName({ track })}
                   onCancel={() => setAsking(null)}
                 />
