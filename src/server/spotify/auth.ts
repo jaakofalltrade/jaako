@@ -131,6 +131,24 @@ const exchange = async (args: {
   return token.access_token;
 };
 
+/**
+ * Throws away the cached access token so the next call mints a fresh one.
+ *
+ * WHY A CACHE NEEDS AN EJECT BUTTON AT ALL. An access token lives an hour and this
+ * holds it for slightly less, which is sound arithmetic and not the only way one dies.
+ * Spotify invalidates previously issued access tokens when the account re-authorises
+ * the application, so the moment a new token is minted anywhere, every cached one
+ * elsewhere is dead while its clock says otherwise.
+ *
+ * That happened: approving the write scope revoked the access token a warm server was
+ * still holding, and because nothing here cleared the cache on a rejection, the site
+ * answered 401 for every read until the process restarted. See spotifyFetch in
+ * request.ts, which is the only caller.
+ */
+export const invalidateAccessToken = (args: { write: boolean }): void => {
+  (args.write ? writeTokenCache : readTokenCache).clear();
+};
+
 /** The read credential: now-playing, recently-played, top items, and search. */
 export const getAccessToken = async (): Promise<string> =>
   exchange({

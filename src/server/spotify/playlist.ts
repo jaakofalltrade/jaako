@@ -9,7 +9,8 @@ import { Spotify } from "@/models";
 import type { PlaylistSnapshot, SearchResult } from "@/models";
 import { serverConfig } from "@/server/serverConfig";
 import { spotifyEndpoints } from "@/server/endpoints";
-import { getAccessToken, getWriteAccessToken, hasCredentials, hasWriteCredentials } from "./auth";
+import { hasCredentials, hasWriteCredentials } from "./auth";
+import { spotifyFetch } from "./request";
 import { toPlaylistSummary, toQueueEntry, toSearchResult, trackIdFromUri } from "./mappers";
 
 /**
@@ -31,16 +32,13 @@ import { toPlaylistSummary, toQueueEntry, toSearchResult, trackIdFromUri } from 
  * uris-only read, which is under a hundred bytes.
  */
 
-const get = async <T>(args: { path: string; token: string }): Promise<T | null> => {
-  const { path, token } = args;
+/* Every call goes through spotifyFetch, which retries once on a 401 with a freshly
+   minted token. A cached access token can be revoked before its clock runs out; see
+   the header of request.ts for how that was found. */
+const get = async <T>(args: { path: string }): Promise<T | null> => {
+  const { path } = args;
 
-  const response = await fetch(`${serverConfig.spotify_api_url}${path}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    // The caches in this file have their own TTLs. Letting fetch keep a second one
-    // underneath them would make staleness two numbers instead of one.
-    cache: "no-store",
-  });
-
+  const response = await spotifyFetch({ path });
   if (!response.ok) throw new Error(`GET ${path} failed: ${response.status}`);
 
   const text = await response.text();
@@ -59,16 +57,14 @@ const toPath = (next: string | null | undefined): string | null =>
  */
 const restOfPages = async <T>(args: {
   first: Spotify.PlaylistItemsResponse | null | undefined;
-  token: string;
-  path: (next: string) => string;
   collect: (page: Spotify.PlaylistItemsResponse) => T[];
 }): Promise<T[]> => {
-  const { first, token, collect } = args;
+  const { first, collect } = args;
   const found: T[] = [];
 
   let path = toPath(first?.next);
   for (let page = 0; page < PLAYLIST_MAX_PAGES && path; page += 1) {
-    const body: Spotify.PlaylistItemsResponse | null = await get({ path, token });
+    const body: Spotify.PlaylistItemsResponse | null = await get({ path });
     if (!body) break;
     found.push(...collect(body));
     path = toPath(body.next);
@@ -120,11 +116,9 @@ const snapshot = async (): Promise<PlaylistSnapshot | null> => {
     if (cached) return cached;
 
     const id = serverConfig.spotify_playlist_id;
-    const token = await getAccessToken();
 
     const playlist = await get<Spotify.PlaylistResponse>({
       path: spotifyEndpoints.playlist({ id, limit: QUEUE_READ_LIMIT }),
-      token,
     });
 
     if (!playlist?.name) return null;
@@ -133,8 +127,6 @@ const snapshot = async (): Promise<PlaylistSnapshot | null> => {
       ...(playlist.items?.items ?? []),
       ...(await restOfPages({
         first: playlist.items,
-        token,
-        path: (next) => next,
         collect: (page) => page.items ?? [],
       })),
     ];
@@ -170,11 +162,9 @@ const snapshot = async (): Promise<PlaylistSnapshot | null> => {
  */
 const trackUris = async (): Promise<Set<string>> => {
   const id = serverConfig.spotify_playlist_id;
-  const token = await getAccessToken();
 
   const first = await get<Spotify.PlaylistItemsResponse>({
     path: spotifyEndpoints.playlistTrackUris({ id, limit: QUEUE_READ_LIMIT }),
-    token,
   });
 
   const uris = (page: Spotify.PlaylistItemsResponse) =>
@@ -182,7 +172,7 @@ const trackUris = async (): Promise<Set<string>> => {
 
   return new Set([
     ...uris(first ?? {}),
-    ...(await restOfPages({ first, token, path: (next) => next, collect: uris })),
+    ...(await restOfPages({ first, collect: uris })),
   ]);
 };
 
@@ -191,10 +181,8 @@ const getTrack = async (args: { uri: string }): Promise<SearchResult | null> => 
   const id = trackIdFromUri(args.uri);
   if (!id) return null;
 
-  const token = await getAccessToken();
   const track = await get<Spotify.TrackResponse>({
     path: spotifyEndpoints.track({ id }),
-    token,
   });
 
   return track?.name ? toSearchResult({ track, uri: args.uri }) : null;
@@ -202,11 +190,8 @@ const getTrack = async (args: { uri: string }): Promise<SearchResult | null> => 
 
 /** Track search, for the proxy route. Throws; the route decides what a failure means. */
 const search = async (args: { q: string }): Promise<SearchResult[]> => {
-  const token = await getAccessToken();
-
   const found = await get<Spotify.SearchTracksResponse>({
     path: spotifyEndpoints.search({ q: args.q, limit: SEARCH_LIMIT }),
-    token,
   });
 
   return (found?.tracks?.items ?? [])
@@ -229,20 +214,16 @@ const search = async (args: { q: string }): Promise<SearchResult[]> => {
  */
 const addTrack = async (args: { uri: string }): Promise<void> => {
   const id = serverConfig.spotify_playlist_id;
-  const token = await getWriteAccessToken();
 
-  const response = await fetch(
-    `${serverConfig.spotify_api_url}${spotifyEndpoints.playlistAdd({ id })}`,
-    {
+  const response = await spotifyFetch({
+    path: spotifyEndpoints.playlistAdd({ id }),
+    write: true,
+    init: {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ uris: [args.uri], position: 0 }),
-      cache: "no-store",
-    }
-  );
+    },
+  });
 
   if (!response.ok) throw new Error(`add failed: ${response.status}`);
 
