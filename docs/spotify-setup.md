@@ -47,6 +47,17 @@ SPOTIFY_REFRESH_TOKEN=AQD...
 The scopes requested are `user-read-currently-playing`, `user-read-recently-played`
 and `user-top-read` — all read-only, no playback control.
 
+### If the token comes back with the wrong scopes
+
+The script refuses to print it, and says so. The cause is nearly always the browser
+opening a **cached authorize URL from an earlier run** instead of the one just printed:
+the address bar autocompletes, the old page asks for the old scopes, and what you get
+back is a perfectly valid token for the wrong job.
+
+Copy the URL rather than typing into the address bar, close any Spotify authorization
+tabs left open, and check that the consent screen names the scope the terminal asked
+for. `pnpm token:check` confirms both stored tokens afterwards.
+
 ### The second token
 
 The site holds **two** refresh tokens for the same account, and `/lab/suggest` is why.
