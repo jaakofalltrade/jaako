@@ -8,6 +8,7 @@ import { Annotation } from "@/design-system/core/Annotation";
 import { Badge } from "@/design-system/core/Badge";
 import { SectionHead } from "@/design-system/core/SectionHead";
 import { BackLink } from "@/design-system/portfolio/BackLink";
+import { MastheadBar } from "@/design-system/portfolio/MastheadBar";
 import styles from "./lab.module.scss";
 
 export const metadata: Metadata = {
@@ -27,12 +28,19 @@ export const metadata: Metadata = {
  * promise: this is a catalogue, and it is complete. Adding a fourth app means adding
  * a row to src/data/lab.ts, and this page needs no edit at all.
  *
- * Each row names its own art direction under the title. That is the one piece of
- * information a visitor cannot get from anywhere else on this page, and it is what
- * turns three links into an invitation to open all three.
+ * Each row used to name its own art direction under the blurb - "looks like: arcade
+ * CRT". It was a caption on a link that is not a picture, and three of them stacked
+ * down the page turned a list into a specification sheet. The lead says the same thing
+ * once, in a sentence, which is where it belongs.
+ *
+ * The rows read exactly like the ones on /work, down to the hover: this is a numbered
+ * catalogue of things you can open, and so is that. Two list treatments for one idea
+ * was the sloppiness.
  */
 const LabIndexPage = () => (
   <section className="jk-section">
+    <MastheadBar />
+
     <BackLink href={routes.home}>back to the portfolio</BackLink>
 
     <SectionHead index={LAB_INTRO.index} note={LAB_INTRO.note}>
@@ -60,10 +68,6 @@ const LabIndexPage = () => (
               </span>
 
               <span className={styles.blurb}>{app.blurb}</span>
-
-              {/* Not an Annotation: that component is for the page's own texture, and
-                  this line is part of the link's accessible name. */}
-              <span className={styles.look}>looks like: {app.look}</span>
             </Link>
           </li>
         );

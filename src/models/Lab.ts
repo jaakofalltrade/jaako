@@ -55,8 +55,13 @@ export type LabApp = {
   shell: LabShell;
   href: string;
   /**
-   * The art direction, in three or four words. Rendered on the index so the list
-   * says up front that these do not look alike, which is the point of a lab.
+   * The art direction, in three or four words.
+   *
+   * It used to be printed under every row on the index - "looks like: arcade CRT" -
+   * and it is not any more: three captions stacked down a list of four-word links
+   * turned a catalogue into a spec sheet, and LAB_INTRO.aside already says the one
+   * thing they were collectively for. The field stays because an app page can still
+   * use its own: /lab/slots prints it beside the index in the cabinet chrome.
    */
   look: string;
 };

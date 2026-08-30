@@ -1,0 +1,68 @@
+@use "../base/mixins" as *;
+
+/* MastheadBar — the identity strip at the top of every page.
+
+   These rules were .jk-hero__top in widgets/_hero.scss and applied to the homepage
+   alone. They moved here when the row became a component, because the row is now the
+   one constant across /, /work, /experience, /lab and the pages under them, and a
+   rule that styles every page's first element does not belong in the masthead's
+   partial. _hero.scss keeps only what is specific to sitting inside the masthead. */
+
+.jk-bar__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+/* The two annotations get a surface. On the homepage they are the only text with
+   NOTHING under them but the raw photograph at its most extreme: the row sits across
+   the top of the masthead, where the picture runs from the near-black ceiling on the
+   left to open window on the right. Measured against the ground actually beneath them,
+   the kicker was at 1.87:1 and the coordinates at 2.22:1 — not dim, unreadable, and no
+   text colour fixes it because the range spans both ends of the ramp at once.
+
+   The chips stay on the sub-pages, where the frosted pane already makes them legible
+   and they are not needed. That is deliberate: the bar has one appearance, and a strip
+   that quietly lost its chips off the homepage would stop being the same object.
+
+   .65 IS THE FLOOR, NOT A PREFERENCE. Measured against the actual pixels beneath each
+   chip, .65 leaves the kicker at 6.59:1 and the coordinates at 5.93:1. One step down is
+   where it breaks: at .55 the coordinates land on 4.40:1, under the 4.5:1 this size
+   needs, and at .45 both fail outright and the original complaint comes back over the
+   dark ceiling. So .65 is the most transparent these can be while both still clear AA.
+
+   Chips rather than a band across the row, because the rule between them is the
+   dimension line of a technical drawing and boxing the whole row would lose that. No
+   backdrop-filter: at this alpha the blur would buy nothing, and it is the one effect
+   on this page with a documented way to fail silently. */
+.jk-bar .jk-anno {
+  padding: var(--space-2) var(--space-3);
+  background: rgba(242, 239, 231, 0.65);
+  color: var(--text-strong);
+}
+
+/* The hairline under the row.
+
+   Its bottom margin is the air before whatever the page opens with — the name in the
+   masthead, the back link everywhere else. It is stated here rather than per page so
+   the strip occupies the same height wherever it lands. */
+.jk-bar__crossline {
+  display: block;
+  height: var(--border-1);
+  background: var(--hair-lit);
+  margin-top: var(--space-5);
+  margin-bottom: var(--space-8);
+}
+
+@include down($bp-sm) {
+  /* The kicker and the coordinates stop competing for one line. They used to be
+     resolved by hiding the coordinates outright, which is the wrong half to drop —
+     it is the only place on the page that says where the work is done from. */
+  .jk-bar__row {
+    flex-wrap: wrap;
+    row-gap: var(--space-3);
+  }
+
+  /* The tick rule between them has nothing to separate once the row wraps. */
+  .jk-bar__row .jk-rule-wrap { display: none; }
+}

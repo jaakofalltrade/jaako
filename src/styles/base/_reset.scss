@@ -18,6 +18,24 @@ html {
   /* Light now. Without it the native select, checkbox and scrollbar chrome comes
      back dark against a cream page. */
   color-scheme: light;
+  /* THE PAGE MUST NOT CHANGE WIDTH WHEN THE SCROLLBAR DOES.
+
+     Every section on this site is max-width plus margin-inline:auto, so the content is
+     centred in whatever width the scrollport happens to have — and that width is about
+     15px narrower on a page long enough to scroll than on one that is not. The long
+     pages (/, /work, /experience) always scroll; the short ones (/lab, and /lab/suggest
+     on a tall window) sometimes do not, so navigating between them shifted the whole
+     column sideways by half a scrollbar and then shifted it back. It read as the page
+     jittering on arrival, which is exactly what it was.
+
+     scrollbar-gutter reserves the track whether or not there is anything to scroll, so
+     the measure is the same on every route. On the root element, because it is the
+     scrollport property and it propagates from here to the viewport - putting it on
+     body does nothing while body overflow is the one propagating up.
+
+     `stable`, not `stable both-edges`: the site has one scrollbar, on the right, and
+     mirroring a dead gutter onto the left would cost 15px of measure to fix nothing. */
+  scrollbar-gutter: stable;
   /* The base sits here rather than on <body> on purpose. Body's own background paints
      *above* a negative-z-index child, so the two ground layers below would be hidden
      by it; putting the fallback colour on the root leaves body transparent and lets

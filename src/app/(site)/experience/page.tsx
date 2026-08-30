@@ -4,6 +4,7 @@ import { EXPERIENCE, RESEARCH } from "@/data/experience";
 import { SECTIONS } from "@/data/site";
 import { SectionHead } from "@/design-system/core/SectionHead";
 import { BackLink } from "@/design-system/portfolio/BackLink";
+import { MastheadBar } from "@/design-system/portfolio/MastheadBar";
 import { ExperienceRecord } from "@/design-system/portfolio/ExperienceRecord";
 
 const ROLE_COUNT = EXPERIENCE.reduce((total, item) => total + item.roles.length, 0);
@@ -30,6 +31,8 @@ export const metadata: Metadata = {
  */
 const ExperienceIndexPage = () => (
   <section className="jk-section jk-experience-index">
+    <MastheadBar />
+
     <BackLink href={routes.section({ id: "experience" })}>back to the page</BackLink>
 
     <SectionHead index={SECTIONS.experience.index} note={`${String(ROLE_COUNT).padStart(2, "0")} roles · 2018–2026`}>

@@ -18,10 +18,20 @@ export const LAB_INTRO = {
   index: "05",
   title: "lab",
   note: "nothing here is finished",
-  lead: "Things that are not a portfolio. A slot machine, a playlist you can put a song on, and an agent with opinions about your listening history.",
+  /**
+   * What a lab is, not what is currently in it.
+   *
+   * It used to be a one-line trailer for the three apps below - "a slot machine, a
+   * playlist you can put a song on, and an agent with opinions" - which read as a
+   * summary of a list the reader was already looking at, and would have been wrong the
+   * day a fourth app arrived. This describes the room instead, so it stays true however
+   * the register underneath it changes.
+   */
+  lead: "The lab is the room off the side of the portfolio. Apps I built because I wanted them to exist, experiments I am using to learn something, and ideas too odd for the front page. They go up as they are made, finished or not.",
   /**
    * The line under the list. It exists to say the quiet part: these look nothing
-   * alike on purpose, so a visitor who opens two of them is not seeing a bug.
+   * alike on purpose, so a visitor who opens two of them is not seeing a bug. It is
+   * the only place that says so now - the per-row "looks like:" caption is gone.
    */
   aside: "Each one gets its own design. That is most of the fun.",
 } as const;

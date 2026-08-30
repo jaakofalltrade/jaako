@@ -4,6 +4,7 @@ import { PROJECTS } from "@/data/projects";
 import { SECTIONS } from "@/data/site";
 import { SectionHead } from "@/design-system/core/SectionHead";
 import { BackLink } from "@/design-system/portfolio/BackLink";
+import { MastheadBar } from "@/design-system/portfolio/MastheadBar";
 import { Tracklist } from "@/design-system/portfolio/Tracklist";
 
 export const metadata: Metadata = {
@@ -20,6 +21,8 @@ export const metadata: Metadata = {
  */
 const WorkIndexPage = () => (
   <section className="jk-section jk-work-index">
+    <MastheadBar />
+
     <BackLink href={routes.section({ id: "work" })}>back to the page</BackLink>
 
     <SectionHead
