@@ -75,6 +75,7 @@
 
 // --- widgets -----------------------------------------------------------------
 @use "widgets/plate"; // Plate
+@use "widgets/masthead-bar"; // MastheadBar — the identity strip on every page
 @use "widgets/hero"; // Hero
 @use "widgets/tracklist"; // Tracklist, TracklistRow
 @use "widgets/spec-block"; // SpecBlock

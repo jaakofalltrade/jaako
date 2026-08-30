@@ -9,7 +9,7 @@
    flex stack: annotation row, rule, name, status slab, body.
 
    justify-content is flex-end and .jk-hero__top keeps its auto bottom margin. Between
-   them the annotation row stays pinned to the top of the masthead and everything else
+   them the identity strip stays pinned to the top of the masthead and everything else
    settles against the bottom of it, which is the shape the grid used to give. */
 
 .jk-hero {
@@ -193,55 +193,25 @@
   }
 }
 
-/* The mark under the annotation row. It used to meet the vertical name's axis at a
-   right angle, which is where the name came from; with the name upright it is a plain
-   hairline separating the row above from the masthead below. */
-.jk-hero__crossline {
-  height: var(--border-1);
-  background: var(--hair-lit);
-  /* Both margins are the requested air between the annotation row and the name. The
-     rule sits nearer the row it belongs to than the name it introduces, which is what
-     keeps it reading as the row's underline rather than as a divider stranded in the
-     middle of the gap. */
-  margin-top: var(--space-5);
-  margin-bottom: var(--space-8);
-}
-
 /* --- everything under it ----------------------------------------------------------- */
 
+/* The identity strip, pinned to the top of the masthead.
+
+   The annotation row and the hairline under it used to be written out in this file and
+   belonged to the masthead alone. Everything that draws them - the flex row, the cream
+   chips, the stroke - is MastheadBar now, in widgets/_masthead-bar.scss, because it is
+   on every page.
+
+   What is left here is the one thing that is true only inside the masthead:
+   justify-content is flex-end on .jk-hero, so an auto bottom margin on the first child
+   parks the strip at the top and settles the name and the slab against the bottom. The
+   air under the strip is the crossline own bottom margin and arrives with it.
+
+   MOST OF THE TIME THIS RESOLVES TO ZERO. The masthead min-height tops out at 30rem
+   and its content clears that at every width, so the auto margin is a correction for
+   the short-content case rather than the usual layout. */
 .jk-hero__top {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
   margin-bottom: auto;
-}
-
-/* The two annotations get a surface. They are the only text on the page with NOTHING
-   under them but the raw photograph at its most extreme: this row sits across the top
-   of the masthead, where the picture runs from the near-black ceiling on the left to
-   open window on the right. Measured against the ground actually beneath them, the
-   kicker was at 1.87:1 and the coordinates at 2.22:1 — not dim, unreadable, and no
-   text colour fixes it because the range spans both ends of the ramp at once.
-
-   So this is the fourth surface, and it is the case base/_mixins.scss says to ask
-   about: it is genuinely overlaying something. A flat cream chip puts a known ground
-   under the caps regardless of what the photograph is doing.
-
-   .65 IS THE FLOOR, NOT A PREFERENCE. Measured against the actual pixels beneath each
-   chip, .65 leaves the kicker at 6.59:1 and the coordinates at 5.93:1. One step down is
-   where it breaks: at .55 the coordinates land on 4.40:1, under the 4.5:1 this size
-   needs, and at .45 both fail outright and the original complaint comes back over the
-   dark ceiling. So .65 is the most transparent these can be while both still clear AA,
-   which is what was asked for and happens to be the same number.
-
-   Chips rather than a band across the row, because the rule between them is the
-   dimension line of a technical drawing and boxing the whole row would lose that. No
-   backdrop-filter: at this alpha the blur would buy nothing, and it is the one effect
-   on this page with a documented way to fail silently. */
-.jk-hero__top .jk-anno {
-  padding: var(--space-2) var(--space-3);
-  background: rgba(242, 239, 231, 0.65);
-  color: var(--text-strong);
 }
 
 .jk-hero__row {
@@ -304,17 +274,6 @@
   /* Down one step. The name is a single unbreakable word set across the viewport, so
      the masthead is the first thing to run out of width. */
   .jk-hero__title { font-size: var(--text-4xl); }
-
-  /* The kicker and the coordinates stop competing for one line. They used to be
-     resolved by hiding the coordinates outright, which is the wrong half to drop —
-     it is the only place on the page that says where the work is done from. */
-  .jk-hero__top {
-    flex-wrap: wrap;
-    row-gap: var(--space-3);
-  }
-
-  /* The tick rule between them has nothing to separate once the row wraps. */
-  .jk-hero__top .jk-rule-wrap { display: none; }
 
   /* The metadata list and the blurb stop competing for one line and stack. */
   .jk-hero__row {

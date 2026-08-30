@@ -10,6 +10,7 @@ import { Button } from "@/design-system/core/Button";
 import { DefinitionList } from "@/design-system/core/DefinitionList";
 import { Rule } from "@/design-system/core/Rule";
 import { BackLink } from "@/design-system/portfolio/BackLink";
+import { MastheadBar } from "@/design-system/portfolio/MastheadBar";
 import { Plate } from "@/design-system/portfolio/Plate";
 import { Icon } from "@/design-system/Icon";
 
@@ -45,6 +46,8 @@ const ProjectDetailPage = async ({ params }: { params: Promise<{ slug: string }>
 
   return (
     <article className="jk-section jk-detail">
+      <MastheadBar />
+
       <BackLink href={routes.work}>full index</BackLink>
 
       <Plate

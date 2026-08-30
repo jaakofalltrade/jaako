@@ -1,12 +1,11 @@
-import { AnnotationTone, DecryptAlphabet, DecryptMode } from "@/models";
+import { DecryptMode } from "@/models";
 import { HERO } from "@/data/site";
 import { dropSuffix } from "@/utils/text";
-import { Annotation } from "../core/Annotation";
 import { DecryptedText } from "../core/DecryptedText";
 import { DefinitionList } from "../core/DefinitionList";
-import { Rule } from "../core/Rule";
 import { Struck } from "../core/Struck";
 import { HeroActions } from "./HeroActions";
+import { MastheadBar } from "./MastheadBar";
 
 /**
  * The masthead: one column, read top to bottom.
@@ -43,57 +42,11 @@ const titleLead = dropSuffix({ text: HERO.title, suffix: HERO.title_accent });
 
 export const Hero = () => (
   <header className="jk-hero">
-    {/* Info, not Decorative, and that is a colour decision with an accessibility
-        consequence attached rather than the other way round. Decorative is
-        --text-faint (3.97:1) and the component hides it from screen readers precisely
-        because it fails AA; darkening it to --text-dim (4.87:1) removes the reason it
-        was hidden, so the tone changes with the colour and the two annotations join
-        the accessibility tree. The coordinates are the only place on the page that
-        says where the work is done from, so that is the right outcome anyway. */}
-    {/* Both settle, and this row is the best case for it in the whole page: mono, so
-        every substituted glyph has the same advance and the chips cannot change width
-        while they run. The kicker runs slightly shorter than the coordinates because it
-        is the one string here a reader is likely to try to read on arrival, and holding
-        it illegible is a different cost from holding a set of coordinates illegible. */}
-    <div className="jk-hero__top">
-      <Annotation tone={AnnotationTone.Info}>
-        <DecryptedText text={HERO.kicker} alphabet={DecryptAlphabet.Upper} duration={1620} />
-      </Annotation>
-      <Rule tick />
-      <Annotation tone={AnnotationTone.Info}>
-        <DecryptedText text={HERO.coords} alphabet={DecryptAlphabet.Upper} />
-      </Annotation>
-    </div>
+    {/* The identity strip, shared with every other page on the site. It carries its
+        own crossline, so the masthead has nothing left to do here but pin the strip to
+        the top of the header box - see .jk-hero__top in widgets/_hero.scss. */}
+    <MastheadBar className="jk-hero__top" />
 
-    {/* The thin rule between the annotation row and the name. Decorative: it is a
-        mark, and there is nothing in it for a screen reader to announce. */}
-    <span aria-hidden="true" className="jk-hero__crossline" />
-
-    {/* TWO INSTANCES RATHER THAN ONE, BECAUSE THE ACCENT IS NOT A COLOUR HERE.
-        DecryptedText takes a string, so it cannot carry the <span> the warm half needs
-        — and that span is not decoration it could be handed later: .jk-hero__accent
-        re-runs the whole background-clip recipe with the ember sheet, because a child
-        that only set `color` would paint opaque over the parent's grain. So each half
-        settles inside the element that owns its own clip.
-
-        They stay in step for free, and they keep doing so whatever the copy becomes.
-        Run time is elapsed-time-driven rather than per-character, so two halves given
-        the same duration finish together even if HERO.title is ever re-split unevenly.
-
-        Much shorter than the rest: the name is the one thing here nobody needs to read,
-        because a returning visitor already knows it and a new one is about to have it
-        told to them four more ways down the page. Holding the masthead illegible for
-        the 1.7s the coordinates get would be showing off.
-
-        THE NAME IS THE ONLY THING ON THE PAGE THAT RUNS MORE THAN ONCE. Once a minute,
-        at an unpredictable moment inside that minute, it settles again — the masthead
-        as the one live instrument rather than a thing that happened during loading.
-        Both halves take the same replayEvery and DecryptedText derives the moment from
-        the wall clock instead of drawing it, so they fire on the same tick without
-        knowing about each other; see nextReplayAt for why that had to be deterministic.
-
-        Everything else stays once-only. A page where several things restart on their
-        own timers stops reading as an instrument and starts reading as a screensaver. */}
     <h1 className="jk-hero__title" data-reveal>
       <DecryptedText text={titleLead} duration={920} replayEvery={60_000} />
       <span className="jk-hero__accent">
