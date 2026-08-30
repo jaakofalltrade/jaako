@@ -1,0 +1,127 @@
+/**
+ * The song suggestion app, on both sides of the boundary.
+ *
+ * Reached through the barrel — `import { SuggestFailure } from "@/models"` — like
+ * everything else in this folder, and holding nothing that runs.
+ *
+ * The types our own routes return take the plain names. Spotify's upstream search and
+ * playlist shapes belong in Spotify.ts beside the ones already there, so it is never
+ * ambiguous which side of the wire you are holding.
+ *
+ * The plan every one of these came out of is in docs/lab.md.
+ */
+
+/**
+ * Every way a suggestion can be refused.
+ *
+ * The sentence a visitor reads for each is in SUGGEST_MESSAGE in
+ * src/constants/suggest.ts — these are identifiers, not copy, exactly as
+ * ValidationFailure is for the contact form.
+ */
+export enum SuggestFailure {
+  Malformed = "MALFORMED",
+  NameRequired = "NAME_REQUIRED",
+  NameTooShort = "NAME_TOO_SHORT",
+  NameTooLong = "NAME_TOO_LONG",
+  /** The name contains a term on the blocklist. See server/suggest/blocklist.ts. */
+  NameBlocked = "NAME_BLOCKED",
+  TrackInvalid = "TRACK_INVALID",
+  /** Longer than MAX_TRACK_MS. Nobody is parking a 40-minute DJ set on the playlist. */
+  TrackTooLong = "TRACK_TOO_LONG",
+  Duplicate = "DUPLICATE",
+  CapReached = "CAP_REACHED",
+  /** No refresh token, no playlist id, or no database. The route answers 503. */
+  NotConfigured = "NOT_CONFIGURED",
+  SpotifyFailed = "SPOTIFY_FAILED",
+}
+
+/**
+ * What one row of the rendered list is doing, client-side only.
+ *
+ * The list is updated optimistically: an add prepends its row immediately and the
+ * server's answer either confirms it or does not. Adding is therefore a claim, and
+ * Failed is what stops that claim from ever quietly becoming a lie.
+ */
+export enum RowState {
+  /** Came from the server. It is really on the playlist. */
+  Settled = "SETTLED",
+  /** Prepended optimistically, not yet confirmed. */
+  Adding = "ADDING",
+  /** The add came back an error. Carries the reason and a retry. */
+  Failed = "FAILED",
+}
+
+/* ---------------- what our own routes return ---------------- */
+
+export type SearchResult = {
+  /** `spotify:track:<22 chars>`. The uri, not the id: it is what the add call takes. */
+  uri: string;
+  title: string;
+  artist: string;
+  /** Cover on Spotify's CDN, or null for a track with no artwork. */
+  album_art: string | null;
+  url: string;
+  duration_ms: number;
+};
+
+/**
+ * One row of the playlist as the page renders it.
+ *
+ * Everything except `added_by` comes from Spotify. That one field is ours, joined on
+ * by track uri, and it is null for anything added before this app existed or added by
+ * the owner directly in Spotify.
+ */
+export type QueueEntry = {
+  uri: string;
+  title: string;
+  artist: string;
+  album_art: string | null;
+  url: string;
+  duration_ms: number;
+  added_at: string;
+  added_by: string | null;
+};
+
+export type SearchResponse = {
+  results: SearchResult[];
+};
+
+export type AddRequest = {
+  track_uri: string;
+  name: string;
+};
+
+/**
+ * What POST /api/lab/suggest/add answers with.
+ *
+ * `entry` is the server's own version of the row, which the page swaps in over its
+ * optimistic one. That is what makes a refetch of the whole list unnecessary.
+ */
+export type AddResponse = {
+  added: boolean;
+  entry?: QueueEntry;
+  /** A sentence written for the visitor to read. Present only when `added` is false. */
+  error?: string;
+};
+
+/**
+ * The verdict on one raw request body.
+ *
+ * Same discriminated union as ValidationResult in Contact.ts, and for the same
+ * reason: narrowing on `valid` hands back the half that actually exists, and neither
+ * half is reachable without checking first.
+ */
+export type SuggestValidation =
+  | { valid: true; request: AddRequest }
+  | { valid: false; failure: SuggestFailure };
+
+/* ---------------- what the database holds ---------------- */
+
+/** One row of `suggestion`, named for its columns. */
+export type SuggestionRow = {
+  id: number;
+  track_uri: string;
+  name: string;
+  visitor_id: string;
+  added_at: string;
+};

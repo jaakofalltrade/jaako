@@ -43,3 +43,7 @@ next-env.d.ts
 
 # claude code
 /.claude/
+
+# blocklist for /lab/suggest display names, one term per line.
+# Plaintext, never committed. Run "pnpm build-blocklist" after editing.
+blocklist.txt

@@ -18,4 +18,5 @@ export * from "./contact";
 export * from "./lab";
 export * from "./site";
 export * from "./spotify";
+export * from "./suggest";
 export * from "./ui";
