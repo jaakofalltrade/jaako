@@ -27,26 +27,54 @@ It goes in `.env.local` and on the host. It is not a secret, but it does vary by
 deployment, which is why it is a variable rather than a constant: staging pointing at
 the real playlist would mean test adds on the playlist you actually listen to.
 
-## 2. Re-authorise the Spotify token
+## 2. Mint the write token
 
-The stored refresh token is read-only today. Adding a track needs
-`playlist-modify-public`, which is a re-authorisation of your account rather than a
-code change.
+Adding a track needs `playlist-modify-public`. That is a **second** refresh token
+rather than a wider version of the existing one:
 
-1. Add `playlist-modify-public` to the scope list in `scripts/spotify-token.mjs`.
-2. Run it as `docs/spotify-setup.md` describes:
-   ```sh
-   node scripts/spotify-token.mjs <client_id> <client_secret>
-   ```
-3. Replace `SPOTIFY_REFRESH_TOKEN` in `.env.local` **and on the host**.
+```sh
+node scripts/spotify-token.mjs <client_id> <client_secret> write
+```
 
-**Read this before you run it.** Spotify's scopes are account-wide, not
-playlist-scoped. After this the site's token can write to every playlist you own, not
-only the lab one. That is the accepted cost of using your own account instead of a
-second one; the new playlist limits what a bug reaches in practice, not in principle.
+Put the printed value in `.env.local` as `SPOTIFY_WRITE_REFRESH_TOKEN`, and on the
+host. **Leave `SPOTIFY_REFRESH_TOKEN` alone.**
 
-Nothing breaks in the meantime. A token without the scope reads fine and answers 403
-on the add, which the route surfaces as "couldn't add that one".
+### What this does and does not protect
+
+Two different problems, and it is worth keeping them apart.
+
+**A visitor can never write to another playlist**, and that has nothing to do with
+scopes. The add route takes `{ track_uri, name }` and no playlist id; the destination
+comes from `SPOTIFY_PLAYLIST_ID` server-side. There is no request anybody can
+construct that names a different playlist. If a playlist id ever appears in the request
+body, that is the bug, and `src/models/ServerConfig.ts` says so where the field is
+declared.
+
+**The scope split is about a leaked credential, or our own bug.** Everything the site
+reads, including the public unauthenticated search proxy, runs on a token that cannot
+write at all. The write token is reached by one route.
+
+What is left, stated plainly so it is a decision rather than a surprise: **if the write
+token leaks, it can reorder or delete tracks in the public playlists on this account.**
+Not private ones, since `playlist-modify-private` is never requested. Not anyone
+else's. Not the account itself. Revoking the app at
+<https://www.spotify.com/account/apps/> stops it in one click.
+
+If that residual ever stops being acceptable, the fix is a second Spotify account whose
+only public playlist is this one, then following that playlist from your main account so
+it still shows up in your library and your listening history. The cost is one more email
+and the playlist showing a different owner name.
+
+### Before you rely on it
+
+**Mint the write token first, then reload the homepage and check the now-playing panel
+still works.** Two refresh tokens for one app and one account are expected to coexist,
+and Spotify does not document it as a guarantee. The script prints the granted scopes
+next to the token; read that line rather than assuming, because it is how you catch a
+token that came back with more than was asked for.
+
+Without the write token the site is unaffected and adding refuses with a 503. That is
+the intended half-off state, not a broken one.
 
 ## 3. Turn on the name filter
 
@@ -116,7 +144,7 @@ Once the code is built:
 | Variable | Where | Without it |
 | --- | --- | --- |
 | `SPOTIFY_PLAYLIST_ID` | `.env.local` and the host | The page says the playlist is not open yet. |
-| `SPOTIFY_REFRESH_TOKEN` | already set, needs replacing | Reads work, adds answer 502. |
+| `SPOTIFY_WRITE_REFRESH_TOKEN` | `.env.local` and the host | Reads work, adds refuse with a 503. |
 | `DATABASE_URL` | `.env.local` and the host | List renders without names, adds refuse. See `docs/neon-setup.md`. |
 
 ## The numbers

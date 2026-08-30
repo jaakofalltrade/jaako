@@ -41,7 +41,41 @@ SPOTIFY_REFRESH_TOKEN=AQD...
 The scopes requested are `user-read-currently-playing`, `user-read-recently-played`
 and `user-top-read` — all read-only, no playback control.
 
-> **Rotating an existing token.** `user-top-read` was added for the listening
+### The second token
+
+The site holds **two** refresh tokens for the same account, and `/lab/suggest` is why.
+Spotify's scopes are verbs rather than resources, so no token can be restricted to a
+single playlist. The next best thing is a token per job:
+
+| | Scopes | Used by |
+| --- | --- | --- |
+| `SPOTIFY_REFRESH_TOKEN` | the three read scopes above | the panel, the statistics, and the lab's search proxy |
+| `SPOTIFY_WRITE_REFRESH_TOKEN` | `playlist-modify-public` only | the one route that adds a track |
+
+The read token **cannot write to anything**, which matters most for the search proxy:
+that route is public and unauthenticated, and this is the credential it spends. The
+write token cannot touch a private playlist, because `playlist-modify-private` is a
+separate scope and is never requested.
+
+Mint the second one by naming the set:
+
+```sh
+node scripts/spotify-token.mjs <client_id> <client_secret> write
+```
+
+**Do this one first, then reload the homepage and check the panel still works.** Two
+refresh tokens for one app and one account are expected to coexist, and Spotify does
+not document that as a guarantee. The script prints the scopes that were actually
+granted alongside the token; read that line rather than assuming, because it is how you
+catch a token that came back carrying more than was asked for.
+
+Only `/lab/suggest` needs the write token. Without it the rest of the site is
+unaffected and adding a track refuses with a 503.
+
+> **Rotating an existing token.** Whichever set you are re-minting, the script defaults
+> to `read`, so the command above without a set argument still does exactly what it
+> always did.
+> `user-top-read` was added for the listening
 > statistics cell in the instrument strip. A refresh token minted before that scope
 > existed will keep working for now-playing but Spotify will answer `403` for
 > `/me/top/*`, and the statistics cell renders its unavailable state instead. Re-run
