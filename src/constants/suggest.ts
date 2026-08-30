@@ -117,6 +117,17 @@ export const SEARCH_CACHE_TTL_MS = 5 * 60 * 1000;
  */
 export const SEARCH_CACHE_MAX = 200;
 
+/**
+ * The throttle on the search proxy.
+ *
+ * Generous, because the cache is what actually protects the quota and this only has to
+ * stop a naive loop. A person typing "radiohead" with a 300ms debounce fires perhaps
+ * four times, so thirty a minute is roughly seven real searches and nowhere near what a
+ * human does. Keyed on IP, because the visitor cookie does not exist until somebody's
+ * first successful add.
+ */
+export const SEARCH_RATE = { max: 30, window_ms: 60_000 } as const;
+
 /** How many playlist rows the page reads. One request; see the note on insert position. */
 export const QUEUE_READ_LIMIT = 100;
 

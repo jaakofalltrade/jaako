@@ -2,18 +2,17 @@ import type { Metadata } from "next";
 import { routes } from "@/client/endpoints";
 import { LAB_STATUS_BADGE } from "@/constants";
 import { LAB_APP, SUGGEST_TEASER } from "@/data/lab";
-import { AnnotationTone, ButtonVariant, LabAppId } from "@/models";
+import { AnnotationTone, LabAppId } from "@/models";
 import { Annotation } from "@/design-system/core/Annotation";
 import { Badge } from "@/design-system/core/Badge";
-import { Button } from "@/design-system/core/Button";
 import { DefinitionList } from "@/design-system/core/DefinitionList";
 import { SectionHead } from "@/design-system/core/SectionHead";
-import { Field } from "@/design-system/forms/Field";
-import { Input } from "@/design-system/forms/Input";
 import { BackLink } from "@/design-system/portfolio/BackLink";
 import { MastheadBar } from "@/design-system/portfolio/MastheadBar";
 import { playlistService } from "@/server/spotify";
+import { suggestService } from "@/server/suggest";
 import { PlaylistCard } from "./PlaylistCard";
+import { SuggestBoard } from "./SuggestBoard";
 import styles from "./suggest.module.scss";
 
 const app = LAB_APP[LabAppId.Suggest];
@@ -50,7 +49,27 @@ export const metadata: Metadata = {
  * Spotify token on this side of the boundary. The browser is handed six strings.
  */
 const SuggestTeaserPage = async () => {
-  const playlist = await playlistService.summary();
+  const snapshot = await playlistService.snapshot();
+
+  /*
+   * The join that turns Spotify's rows into ours. One query for the whole page, and it
+   * degrades on its own: a database that cannot be reached leaves every name null and
+   * the list still renders, because the playlist is the source of truth and our rows
+   * only annotate it.
+   */
+  const names = snapshot
+    ? await suggestService
+        .namesByUri({ uris: snapshot.queue.map((entry) => entry.uri) })
+        .catch((error) => {
+          console.error("[suggest] names failed:", error);
+          return {} as Record<string, string>;
+        })
+    : {};
+
+  const queue = (snapshot?.queue ?? []).map((entry) => ({
+    ...entry,
+    added_by: names[entry.uri] ?? null,
+  }));
 
   return (
     <section className="jk-section">
@@ -66,41 +85,17 @@ const SuggestTeaserPage = async () => {
         <Badge tone={badge.tone}>{badge.label}</Badge>
       </div>
 
-      <PlaylistCard playlist={playlist} />
+      <PlaylistCard playlist={snapshot?.summary ?? null} />
 
       <p className={styles.lead} data-reveal>
         {SUGGEST_TEASER.lead}
       </p>
 
-      <div className={styles.grid}>
-        {/* Not a <form>. There is nothing to submit to, and a form element here would
-            be one Enter keypress away from a page reload that looks like a bug. */}
-        <div className={styles.form}>
-          <Field label={SUGGEST_TEASER.search_label} hint={SUGGEST_TEASER.search_hint}>
-            <Input placeholder={SUGGEST_TEASER.search_placeholder} disabled />
-          </Field>
-
-          <Button variant={ButtonVariant.Primary} disabled>
-            {SUGGEST_TEASER.submit_label}
-          </Button>
-        </div>
-
-        <DefinitionList items={SUGGEST_TEASER.spec} ruled className={styles.spec} />
-      </div>
-
-      <div className={styles.queue}>
-        <h3 className={styles.queueTitle}>{SUGGEST_TEASER.queue_label}</h3>
-        <p className={styles.queueNote}>{SUGGEST_TEASER.queue_note}</p>
-
-        {/* Three blank rows rather than three invented songs. A placeholder that looks
-            like real data is a promise about what will be there, and this one would be
-            a claim that people have already added something. */}
-        <ul className={styles.rows} aria-hidden="true">
-          <li className={styles.row} />
-          <li className={styles.row} />
-          <li className={styles.row} />
-        </ul>
-      </div>
+      <SuggestBoard
+        initialQueue={queue}
+        canAdd={suggestService.isConfigured()}
+        spec={<DefinitionList items={SUGGEST_TEASER.spec} ruled className={styles.spec} />}
+      />
 
       <Annotation tone={AnnotationTone.Info} className={styles.footnote}>
         {SUGGEST_TEASER.footnote}

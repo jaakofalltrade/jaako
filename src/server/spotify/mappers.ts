@@ -8,7 +8,7 @@ import {
   SPOTIFY_WEB_URL,
 } from "@/constants";
 import { Spotify } from "@/models";
-import type { PlaylistSummary } from "@/models";
+import type { PlaylistSummary, QueueEntry, SearchResult } from "@/models";
 import { mostCommon } from "@/utils/collection";
 import { fromHost, fromHostList } from "@/utils/url";
 
@@ -146,9 +146,10 @@ export const modalGenre = (artists: Spotify.TopArtistResponse[]): string | null 
  */
 export const toPlaylistSummary = (args: {
   playlist: Spotify.PlaylistResponse;
+  track_count: number;
   runtime_ms: number;
 }): PlaylistSummary => {
-  const { playlist, runtime_ms } = args;
+  const { playlist, track_count, runtime_ms } = args;
 
   return {
     name: playlist.name ?? "the playlist",
@@ -160,8 +161,62 @@ export const toPlaylistSummary = (args: {
       fallback: null,
     }),
     url: toSpotifyUrl(playlist.external_urls?.spotify),
-    track_count: playlist.items?.total ?? 0,
+    track_count,
     runtime_ms,
     owner: playlist.owner?.display_name ?? "",
+  };
+};
+
+/**
+ * The id inside a track uri, or null.
+ *
+ * Strict rather than a split on colons, because this reaches a URL path: the shape is
+ * exactly `spotify:track:` and twenty-two base-62 characters, and anything else is a
+ * caller sending something we did not give them.
+ */
+const TRACK_URI = /^spotify:track:([A-Za-z0-9]{22})$/;
+
+export const trackIdFromUri = (uri: string): string | null =>
+  TRACK_URI.exec(uri)?.[1] ?? null;
+
+/**
+ * A search result, or one track fetched by id.
+ *
+ * The uri is passed in rather than read off the track, because the two callers know it
+ * from different places: search has it on the payload, and the add route has it from
+ * the request it is validating.
+ */
+export const toSearchResult = (args: {
+  track: Spotify.TrackResponse;
+  uri: string;
+}): SearchResult => {
+  const { track, uri } = args;
+
+  return {
+    uri,
+    title: track.name ?? "unknown",
+    artist: artistNames(track.artists),
+    album_art: pickArt(track.album?.images),
+    url: toSpotifyUrl(track.external_urls?.spotify),
+    duration_ms: track.duration_ms ?? 0,
+  };
+};
+
+/**
+ * One row of the playlist.
+ *
+ * `added_by` is left null here and filled in by the join against our own rows. This
+ * mapper only knows what Spotify said, which is deliberate: everything in this file is
+ * Spotify's shapes in and ours out, and the name is not Spotify's to give. It would
+ * report every track as added by the account that owns the token.
+ */
+export const toQueueEntry = (args: { entry: Spotify.PlaylistItemResponse }): QueueEntry => {
+  const { entry } = args;
+  const track = entry.item ?? {};
+
+  return {
+    ...toSearchResult({ track, uri: track.uri ?? "" }),
+    added_at: entry.added_at ?? "",
+    added_by: null,
   };
 };

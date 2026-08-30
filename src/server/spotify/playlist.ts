@@ -1,31 +1,43 @@
 import "server-only";
-import { PLAYLIST_MAX_PAGES, PLAYLIST_SUMMARY_TTL_MS, QUEUE_READ_LIMIT } from "@/constants";
+import {
+  PLAYLIST_MAX_PAGES,
+  PLAYLIST_SUMMARY_TTL_MS,
+  QUEUE_READ_LIMIT,
+  SEARCH_LIMIT,
+} from "@/constants";
 import { Spotify } from "@/models";
-import type { PlaylistSummary } from "@/models";
+import type { PlaylistSnapshot, SearchResult } from "@/models";
 import { serverConfig } from "@/server/serverConfig";
 import { spotifyEndpoints } from "@/server/endpoints";
-import { getAccessToken, hasCredentials } from "./auth";
-import { toPlaylistSummary } from "./mappers";
+import { getAccessToken, getWriteAccessToken, hasCredentials, hasWriteCredentials } from "./auth";
+import { toPlaylistSummary, toQueueEntry, toSearchResult, trackIdFromUri } from "./mappers";
 
 /**
- * The lab playlist, read.
+ * The lab playlist: reading it, searching for something to put on it, and putting it
+ * there.
  *
  * Separate from spotifyService because the two answer to different pages and fail
- * differently: the now-playing panel is decoration on the homepage, and this is the
- * subject of /lab/suggest. Both degrade rather than throw, but only one of them has a
- * page that is about it.
+ * differently. The now-playing panel is decoration on the homepage; this is the subject
+ * of /lab/suggest.
  *
- * READS ONLY. Adding a track goes through the write credential (getWriteAccessToken)
- * and belongs in the route that does it, not here.
+ * ONE REQUEST SERVES THE WHOLE PAGE, which is the shape everything here is arranged
+ * around. Spotify embeds a playlist's first page of items inside the playlist record,
+ * so a single projection returns the name, the cover, the count, every track and their
+ * durations. The header, the list and the runtime sum used to be three traversals.
+ *
+ * READS ARE CACHED AND THE WRITE PATH IS NOT, deliberately. The page can be served a
+ * snapshot up to a minute old and nobody can tell. The duplicate check cannot: a track
+ * added a minute ago would slip past as new, so the add path pays for a fresh
+ * uris-only read, which is under a hundred bytes.
  */
 
 const get = async <T>(args: { path: string; token: string }): Promise<T | null> => {
   const { path, token } = args;
 
-  const response = await fetch(`${serverConfig.spotify_api_url}${args.path}`, {
+  const response = await fetch(`${serverConfig.spotify_api_url}${path}`, {
     headers: { Authorization: `Bearer ${token}` },
-    // The summary has its own cache below, with a TTL this file controls. Letting
-    // fetch keep a second one underneath it would make staleness two numbers.
+    // The caches in this file have their own TTLs. Letting fetch keep a second one
+    // underneath them would make staleness two numbers instead of one.
     cache: "no-store",
   });
 
@@ -35,106 +47,219 @@ const get = async <T>(args: { path: string; token: string }): Promise<T | null> 
   return text ? (JSON.parse(text) as T) : null;
 };
 
+/** `next` arrives absolute; everything in this folder speaks paths. */
+const toPath = (next: string | null | undefined): string | null =>
+  next ? next.replace(serverConfig.spotify_api_url, "") : null;
+
 /**
- * The total runtime, summed across every page.
+ * Walks the pages after the first one.
  *
- * SPOTIFY DOES NOT REPORT A PLAYLIST'S DURATION ANYWHERE. It reports a count, and the
- * only route to a total is to add up the tracks, which means walking the pages. The
- * projection asks for durations and nothing else, so a hundred items come back as a
- * hundred integers rather than a hundred track objects.
- *
- * `next` arrives as an absolute URL and everything in this folder speaks in paths
- * relative to spotify_api_url, so it is trimmed back before being followed.
- *
- * The page cap is a guard against a paging bug becoming an unbounded loop, not a limit
+ * The cap is a guard against a paging bug becoming an unbounded loop, not a limit
  * anybody expects to reach: twenty pages is two thousand tracks.
  */
-const totalRuntimeMs = async (args: { token: string; id: string }): Promise<number> => {
-  const { token, id } = args;
+const restOfPages = async <T>(args: {
+  first: Spotify.PlaylistItemsResponse | null | undefined;
+  token: string;
+  path: (next: string) => string;
+  collect: (page: Spotify.PlaylistItemsResponse) => T[];
+}): Promise<T[]> => {
+  const { first, token, collect } = args;
+  const found: T[] = [];
 
-  let path: string | null = spotifyEndpoints.playlistDurations({
-    id,
-    limit: QUEUE_READ_LIMIT,
-  });
-  let total = 0;
-
+  let path = toPath(first?.next);
   for (let page = 0; page < PLAYLIST_MAX_PAGES && path; page += 1) {
     const body: Spotify.PlaylistItemsResponse | null = await get({ path, token });
     if (!body) break;
-
-    for (const entry of body.items ?? []) {
-      total += entry.item?.duration_ms ?? 0;
-    }
-
-    path = body.next ? body.next.replace(serverConfig.spotify_api_url, "") : null;
+    found.push(...collect(body));
+    path = toPath(body.next);
   }
 
-  return total;
+  return found;
 };
 
 /**
- * One summary held in module scope, the same shape as the token cache in auth.ts.
+ * One snapshot in module scope, holding everything the page needs.
  *
- * Rebuilding it costs one request for the record plus one per page of durations, and
- * the answer changes only when somebody adds a track. Five minutes of staleness on a
- * track count is invisible; paying for that sum on every page load would not be.
- *
- * Per-instance, which is correct here for the reason it is correct for the search
+ * Per-instance, which is correct here for the same reason it is correct for the search
  * cache and wrong for the daily counter: a cold cache costs a request, and a cold
  * counter would cost the cap.
+ *
+ * INVALIDATED ON A SUCCESSFUL ADD rather than left to expire. The one moment the
+ * playlist is known to have changed is the moment this process changed it, so waiting
+ * out a TTL then would be choosing to serve something known to be wrong.
  */
-const createSummaryCache = () => {
-  let cached: { value: PlaylistSummary; expires_at: number } | null = null;
+const createSnapshotCache = () => {
+  let cached: { value: PlaylistSnapshot; expires_at: number } | null = null;
 
   return {
-    read: (): PlaylistSummary | null =>
+    read: (): PlaylistSnapshot | null =>
       cached && cached.expires_at > Date.now() ? cached.value : null,
-    write: (value: PlaylistSummary) => {
+    write: (value: PlaylistSnapshot) => {
       cached = { value, expires_at: Date.now() + PLAYLIST_SUMMARY_TTL_MS };
+    },
+    clear: () => {
+      cached = null;
     },
   };
 };
 
-const summaryCache = createSummaryCache();
+const snapshotCache = createSnapshotCache();
 
 /**
- * The playlist's name, cover, count and runtime, or null.
+ * The playlist as the page renders it: header, rows, and the numbers.
  *
- * Null rather than a throw, and null rather than an "unavailable" shape: the page's
- * header simply does not render, which is the read-degrades half of the rule. The one
- * thing this must never do is take down a page that is otherwise perfectly able to
- * explain itself.
+ * Null rather than a throw, and null rather than an "unavailable" shape: the header
+ * simply does not render, which is the reads-degrade half of the rule. The one thing
+ * this must never do is take down a page that is otherwise able to explain itself.
  */
-const summary = async (): Promise<PlaylistSummary | null> => {
+const snapshot = async (): Promise<PlaylistSnapshot | null> => {
   try {
     if (!hasCredentials() || !serverConfig.spotify_playlist_id) return null;
 
-    const cached = summaryCache.read();
+    const cached = snapshotCache.read();
     if (cached) return cached;
 
     const id = serverConfig.spotify_playlist_id;
     const token = await getAccessToken();
 
     const playlist = await get<Spotify.PlaylistResponse>({
-      path: spotifyEndpoints.playlist({ id }),
+      path: spotifyEndpoints.playlist({ id, limit: QUEUE_READ_LIMIT }),
       token,
     });
 
     if (!playlist?.name) return null;
 
-    const value = toPlaylistSummary({
-      playlist,
-      runtime_ms: await totalRuntimeMs({ token, id }),
-    });
+    const entries = [
+      ...(playlist.items?.items ?? []),
+      ...(await restOfPages({
+        first: playlist.items,
+        token,
+        path: (next) => next,
+        collect: (page) => page.items ?? [],
+      })),
+    ];
 
-    summaryCache.write(value);
+    const queue = entries
+      .filter((entry) => entry.item?.uri)
+      .map((entry) => toQueueEntry({ entry }));
+
+    const value: PlaylistSnapshot = {
+      summary: toPlaylistSummary({
+        playlist,
+        track_count: playlist.items?.total ?? queue.length,
+        runtime_ms: queue.reduce((total, row) => total + row.duration_ms, 0),
+      }),
+      queue,
+    };
+
+    snapshotCache.write(value);
     return value;
   } catch (error) {
-    console.error("[suggest] playlist summary failed:", error);
+    console.error("[suggest] playlist snapshot failed:", error);
     return null;
   }
 };
 
+/**
+ * Every uri on the playlist, read fresh.
+ *
+ * Uncached on purpose, and the one read in this file that is. It answers the duplicate
+ * question at the moment of the add, where a cached answer a minute old is how the same
+ * track gets on twice. The projection is uris and nothing else, so it costs almost
+ * nothing to be right.
+ */
+const trackUris = async (): Promise<Set<string>> => {
+  const id = serverConfig.spotify_playlist_id;
+  const token = await getAccessToken();
+
+  const first = await get<Spotify.PlaylistItemsResponse>({
+    path: spotifyEndpoints.playlistTrackUris({ id, limit: QUEUE_READ_LIMIT }),
+    token,
+  });
+
+  const uris = (page: Spotify.PlaylistItemsResponse) =>
+    (page.items ?? []).map((entry) => entry.item?.uri).filter((uri): uri is string => Boolean(uri));
+
+  return new Set([
+    ...uris(first ?? {}),
+    ...(await restOfPages({ first, token, path: (next) => next, collect: uris })),
+  ]);
+};
+
+/** One track, read from Spotify rather than trusted from the browser. */
+const getTrack = async (args: { uri: string }): Promise<SearchResult | null> => {
+  const id = trackIdFromUri(args.uri);
+  if (!id) return null;
+
+  const token = await getAccessToken();
+  const track = await get<Spotify.TrackResponse>({
+    path: spotifyEndpoints.track({ id }),
+    token,
+  });
+
+  return track?.name ? toSearchResult({ track, uri: args.uri }) : null;
+};
+
+/** Track search, for the proxy route. Throws; the route decides what a failure means. */
+const search = async (args: { q: string }): Promise<SearchResult[]> => {
+  const token = await getAccessToken();
+
+  const found = await get<Spotify.SearchTracksResponse>({
+    path: spotifyEndpoints.search({ q: args.q, limit: SEARCH_LIMIT }),
+    token,
+  });
+
+  return (found?.tracks?.items ?? [])
+    .filter((track) => track.uri && track.name)
+    .map((track) => toSearchResult({ track, uri: track.uri! }));
+};
+
+/**
+ * Puts a track on the playlist, at the top.
+ *
+ * POSITION 0, WHICH IS WHAT KEEPS THE PAGE FREE OF PAGINATION. Inserting at the top
+ * means the playlist is natively newest-first, so one hundred-item read is always the
+ * newest hundred however large it grows.
+ *
+ * Verified against the live API: this path answers 201 and the `/tracks` equivalent
+ * answers 403. See docs/suggest-setup.md.
+ *
+ * Throws on failure, and the caller is expected to release the visitor's reserved
+ * allowance when it does.
+ */
+const addTrack = async (args: { uri: string }): Promise<void> => {
+  const id = serverConfig.spotify_playlist_id;
+  const token = await getWriteAccessToken();
+
+  const response = await fetch(
+    `${serverConfig.spotify_api_url}${spotifyEndpoints.playlistAdd({ id })}`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ uris: [args.uri], position: 0 }),
+      cache: "no-store",
+    }
+  );
+
+  if (!response.ok) throw new Error(`add failed: ${response.status}`);
+
+  // The playlist has changed and this process is the reason, so the next reader should
+  // not be handed the snapshot taken before it.
+  snapshotCache.clear();
+};
+
+/** Whether an add can even be attempted. Reads and writes are configured separately. */
+const canWrite = (): boolean =>
+  hasWriteCredentials() && Boolean(serverConfig.spotify_playlist_id);
+
 export const playlistService = {
-  summary,
+  snapshot,
+  trackUris,
+  getTrack,
+  search,
+  addTrack,
+  canWrite,
 };

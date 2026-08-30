@@ -68,4 +68,15 @@ export const endpoints = {
     now_playing: "/api/spotify/now-playing",
     top_items: "/api/spotify/top-items",
   },
+
+  /**
+   * The lab's own routes. Nested to match the folders under src/app/api, so this table
+   * reads against the file layout without translating.
+   */
+  lab: {
+    suggest: {
+      search: "/api/lab/suggest/search",
+      add: "/api/lab/suggest/add",
+    },
+  },
 } as const;

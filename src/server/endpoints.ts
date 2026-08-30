@@ -60,47 +60,76 @@ export const topItems = (args: {
 }) => `/me/top/${args.type}?time_range=${args.time_range}&limit=${args.limit}`;
 
 /**
- * One playlist's own record: name, description, cover, owner, and the item count.
+ * The whole playlist in one request: the record AND the first page of what is on it.
  *
- * `fields` IS NOT AN OPTIMISATION HERE, IT IS THE INTERFACE. Without it this returns
- * the first hundred items inline, which is a large payload for a header that needs six
- * strings. With it, ask for the wrong key and the response is a 200 carrying an empty
- * object — so the projection below is part of the contract and not a tuning knob.
+ * ONE CALL, NOT TWO, AND THAT IS THE OPTIMISATION WORTH KNOWING ABOUT. The playlist
+ * object embeds its own items as a paging object, so asking for both in one projection
+ * serves the header, the track count, the total runtime and the duplicate set together.
+ * A playlist of a hundred tracks or fewer is a single request for the entire page.
+ * Measured against the real one rather than assumed.
  *
- * THE COUNT IS UNDER `items`, NOT `tracks`. That is measured against the live API,
- * not read from documentation: `fields=tracks(total)` answers 200 with the field
- * simply absent, which is the quietest way this call can be wrong.
+ * `fields` IS THE INTERFACE, NOT A TUNING KNOB. Without it this returns every field of
+ * every track. With it, ask for the wrong key and the response is a 200 carrying an
+ * empty object, which is the quietest way this call can be wrong. Two keys are not what
+ * the older documentation says: the paging field is `items` rather than `tracks`, and
+ * inside it each entry holds the track under `item` rather than `track`.
+ *
+ * `limit` applies to the embedded page. Spotify allows 1-100.
  */
-export const playlist = (args: { id: string }) =>
-  `/playlists/${args.id}?fields=` +
-  "name,description,external_urls,images,owner(display_name),followers(total),items(total)";
+export const playlist = (args: { id: string; limit: number }) =>
+  `/playlists/${args.id}?limit=${args.limit}&fields=` +
+  "name,description,external_urls,images,owner(display_name)," +
+  "items(total,next,items(added_at,item(uri,name,duration_ms,artists(name),album(name,images),external_urls)))";
 
 /**
- * One page of what is on it.
+ * One further page, for a playlist longer than the embedded first one.
  *
- * `/items`, NOT `/tracks`. The tracks sub-path answers 403 Forbidden even to the
- * owner of a public playlist, which reads as a permissions problem and is not one.
- *
- * The track hangs off `item` inside each entry, so the projection says item(...) and
- * a projection saying track(...) comes back empty without complaining.
- *
- * `limit`: Spotify allows 1–100. The response carries `next` as an absolute URL, so
- * a caller paging through strips the API base before passing it back here.
+ * `/items`, NOT `/tracks`: the tracks sub-path answers 403 Forbidden even to the owner
+ * of a public playlist. The `next` field arrives as an absolute URL, so a caller
+ * following it strips the API base first.
  */
 export const playlistItems = (args: { id: string; limit: number }) =>
   `/playlists/${args.id}/items?limit=${args.limit}&fields=` +
   "total,next,items(added_at,item(uri,name,duration_ms,artists(name),album(name,images),external_urls))";
 
 /**
- * The same page, asking for durations and nothing else.
+ * Just the uris, for the duplicate check on the add path.
  *
- * A playlist's total runtime is not a field Spotify has: the only way to it is to sum
- * every track, which means every page. This projection makes that cheap — a hundred
- * items come back as a hundred integers — so the sum costs bandwidth proportional to
- * the count rather than to the catalogue.
+ * A separate projection because it is asked for at a different moment and with a
+ * different requirement: the page can be served a cached snapshot, and an add cannot,
+ * or a track added a minute ago slips past as new. This answers in under a hundred
+ * bytes for a short playlist, so paying for it uncached on every add is nothing.
  */
-export const playlistDurations = (args: { id: string; limit: number }) =>
-  `/playlists/${args.id}/items?limit=${args.limit}&fields=total,next,items(item(duration_ms))`;
+export const playlistTrackUris = (args: { id: string; limit: number }) =>
+  `/playlists/${args.id}/items?limit=${args.limit}&fields=total,next,items(item(uri))`;
+
+/**
+ * Adding a track. POST, with the uris and the position in the body.
+ *
+ * Verified against the live API: this answers 201 with a snapshot_id, and `position: 0`
+ * puts the track at the top, which is what keeps the playlist newest-first and the page
+ * free of pagination. The `/tracks` equivalent answers 403.
+ */
+export const playlistAdd = (args: { id: string }) => `/playlists/${args.id}/items`;
+
+/**
+ * Track search.
+ *
+ * `type` is required by the API, so restricting it to tracks is not an extra guard,
+ * it is the only sensible value: episodes and shows have no place on a playlist of
+ * songs. `limit`: 1-50.
+ */
+export const search = (args: { q: string; limit: number }) =>
+  `/search?q=${encodeURIComponent(args.q)}&type=track&limit=${args.limit}`;
+
+/**
+ * One track, by id rather than uri.
+ *
+ * The add route reads this instead of trusting what the browser sent: a duration
+ * arriving from the client is a number the client chose, and the ten-minute rule has to
+ * hold against a caller that is not our own page.
+ */
+export const track = (args: { id: string }) => `/tracks/${args.id}`;
 
 export const spotifyEndpoints = {
   currentlyPlaying,
@@ -108,5 +137,8 @@ export const spotifyEndpoints = {
   topItems,
   playlist,
   playlistItems,
-  playlistDurations,
+  playlistTrackUris,
+  playlistAdd,
+  search,
+  track,
 };

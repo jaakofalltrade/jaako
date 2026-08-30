@@ -57,6 +57,8 @@ export type ImageResponse = {
 
 /** Only the fields we actually read off Spotify's track object. */
 export type TrackResponse = {
+  /** `spotify:track:<22 chars>`. Present on search results and playlist items. */
+  uri?: string;
   name?: string;
   duration_ms?: number;
   artists?: { name?: string }[];
@@ -137,17 +139,6 @@ export type TopTracksResponse = {
    Get any of those wrong and the call succeeds with an empty projection, which is the
    worst failure shape available: no error, no data, and nothing to grep for. */
 
-export type PlaylistResponse = {
-  name?: string;
-  description?: string;
-  external_urls?: { spotify?: string };
-  images?: ImageResponse[];
-  owner?: { display_name?: string };
-  followers?: { total?: number };
-  /** The count lives here. Not `tracks` — see the note above. */
-  items?: { total?: number };
-};
-
 export type PlaylistItemResponse = {
   added_at?: string;
   /** The track. Not `track` — see the note above. */
@@ -159,4 +150,33 @@ export type PlaylistItemsResponse = {
   /** An absolute URL to the next page, or null on the last one. */
   next?: string | null;
   items?: PlaylistItemResponse[];
+};
+
+/**
+ * The playlist record, with its first page of items embedded.
+ *
+ * That embedding is the whole reason one request serves the page: `items` is a full
+ * paging object, not just a count, so the header and the list arrive together.
+ */
+export type PlaylistResponse = {
+  name?: string;
+  description?: string;
+  external_urls?: { spotify?: string };
+  images?: ImageResponse[];
+  owner?: { display_name?: string };
+  followers?: { total?: number };
+  /** Not `tracks` — see the note above. */
+  items?: PlaylistItemsResponse;
+};
+
+/** What /search?type=track answers with. */
+export type SearchTracksResponse = {
+  tracks?: {
+    items?: TrackResponse[];
+  };
+};
+
+/** What POST /playlists/{id}/items answers with. 201, and this is the whole body. */
+export type PlaylistAddResponse = {
+  snapshot_id?: string;
 };

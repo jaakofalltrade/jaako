@@ -49,9 +49,19 @@ export const hasDatabase = (): boolean => Boolean(serverConfig.database_url);
  */
 let client: ReturnType<typeof neon> | null = null;
 
-export const sql = (
-  ...args: Parameters<ReturnType<typeof neon>>
-): ReturnType<ReturnType<typeof neon>> => {
+/**
+ * Typed as rows rather than as the driver's full union.
+ *
+ * neon() can return arrays, objects or a full result envelope depending on options
+ * this file does not set, so its own return type is all three at once and a caller
+ * cannot even ask a result for its length. With the defaults it is always an array of
+ * rows, and saying so here is what keeps the cast in one place instead of at every
+ * query. The generic lets a caller name the shape it selected.
+ */
+export const sql = <T = Record<string, unknown>>(
+  strings: TemplateStringsArray,
+  ...values: unknown[]
+): Promise<T[]> => {
   if (!client) client = neon(serverConfig.database_url);
-  return client(...args);
+  return client(strings, ...values) as Promise<T[]>;
 };

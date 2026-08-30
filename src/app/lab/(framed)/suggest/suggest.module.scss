@@ -216,3 +216,211 @@
     transition: none;
   }
 }
+
+/* --- search --------------------------------------------------------------------- */
+
+.search {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* "adding as mona · change". Mono and small, so it reads as a readout rather than a
+   control, which is what the rest of the site does with anything this quiet. */
+.signedAs {
+  font-family: var(--font-mono);
+  font-size: var(--text-3xs);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* A button that has to look like a link, because it is one in everything but element:
+   it changes what happens next rather than navigating. Sharing .jk-back__link would
+   have meant a global class inside a module, which docs/lab.md rules out. */
+.change {
+  margin-left: var(--space-3);
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: var(--text-link);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+
+  &:hover { color: var(--text-link-hover); }
+}
+
+.searchNote {
+  font-family: var(--font-mono);
+  font-size: var(--text-3xs);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+.result {
+  border-top: var(--border-1) solid var(--hair);
+
+  &:last-child { border-bottom: var(--border-1) solid var(--hair); }
+}
+
+.resultRow {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--space-4);
+  padding-block: var(--space-3);
+}
+
+.resultArt,
+.resultArtEmpty {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-none);
+  object-fit: cover;
+}
+
+.resultArtEmpty {
+  display: block;
+  background: var(--surface-well);
+  border: var(--border-1) solid var(--hair);
+}
+
+.resultBody { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+
+.resultTitle {
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resultArtist {
+  font-size: var(--text-3xs);
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resultTime {
+  font-family: var(--font-mono);
+  font-size: var(--text-3xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+}
+
+/* The name slab: opened by the first add, under the row it belongs to. Inset so it
+   reads as belonging to that row rather than as a new section. */
+.slab {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-left: 3.5rem;
+  margin-bottom: var(--space-4);
+  padding: var(--space-4);
+  background: var(--surface-well);
+  border-left: var(--border-2) solid var(--p-mid);
+}
+
+.slabActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+/* --- the list ------------------------------------------------------------------- */
+
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: var(--space-4);
+  padding-block: var(--space-4);
+  border-top: var(--border-1) solid var(--hair);
+
+  &:last-child { border-bottom: var(--border-1) solid var(--hair); }
+
+  /* An unconfirmed row, and it should look like one. Dimmed rather than animated: a
+     spinner on a row that lands in 300ms is noise, and the state has to be legible in
+     a screenshot as well as in motion. */
+  &[data-state="adding"] { opacity: .55; }
+
+  /* Failed keeps its full weight. It is the one state a reader has to act on, and
+     fading it would say the opposite. */
+  &[data-state="failed"] .rowTitle { color: var(--text-dim); }
+}
+
+.rowIndex {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+}
+
+.rowBody { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+
+.rowTitle {
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+}
+
+.rowArtist {
+  font-size: var(--text-3xs);
+  color: var(--text-dim);
+}
+
+.rowMeta {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-4);
+  font-family: var(--font-mono);
+  font-size: var(--text-3xs);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.rowBy { color: var(--text-dim); }
+
+.rowTime {
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The one place on this page that uses the alert colour, because it is the one thing
+   a visitor has to do something about. */
+.rowError {
+  color: var(--p-ember);
+  text-transform: none;
+  letter-spacing: normal;
+  white-space: normal;
+}
+
+@media (max-width: 47.9375rem) {
+  .resultRow { grid-template-columns: 2.5rem minmax(0, 1fr) auto; }
+  .resultTime { display: none; }
+  .slab { margin-left: 0; }
+
+  .row { grid-template-columns: 1.75rem minmax(0, 1fr); }
+  .rowMeta { grid-column: 2; margin-top: var(--space-2); flex-wrap: wrap; }
+}

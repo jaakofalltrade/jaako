@@ -191,8 +191,23 @@ export const SUGGEST_TEASER = {
   search_hint: "Search is not connected yet.",
   submit_label: "add to playlist",
   spec: suggestSpec,
-  /** Placeholder rows where the playlist will be. Deliberately not fake track names. */
   queue_label: "what is on it",
-  queue_note: "The playlist will be listed here, newest first.",
+  /** Only when the playlist is genuinely empty, or Spotify could not be reached. */
+  queue_empty: "Nothing on it yet. Be the first.",
+
+  /** The name slab, opened by the first add and skipped by every one after it. */
+  name_label: "sign it",
+  name_placeholder: "a name",
+  name_hint: "3 to 10 characters. It shows next to the track.",
+
+  /** While a search is in flight and there is nothing to show yet. */
+  searching: "looking...",
+
+  /** On an optimistic row, and on one whose add came back an error with no sentence. */
+  adding: "adding",
+  add_failed: "That did not go through.",
+
+  /** Under the search field when adding is switched off but reading still works. */
+  closed_hint: "Not taking suggestions right now.",
   footnote: "The one app in the lab that keeps this design, because it is about the music this site already talks about.",
 } as const;

@@ -101,6 +101,19 @@ export type PlaylistSummary = {
   owner: string;
 };
 
+/**
+ * The playlist and everything on it, read together.
+ *
+ * One shape because it comes from one request: Spotify embeds a playlist's first page
+ * of items inside the record, so the header and the rows arrive at the same time and
+ * splitting them would mean asking twice for what already came once.
+ */
+export type PlaylistSnapshot = {
+  summary: PlaylistSummary;
+  /** Newest first, because tracks are inserted at position 0. */
+  queue: QueueEntry[];
+};
+
 export type SearchResponse = {
   results: SearchResult[];
 };

@@ -180,7 +180,7 @@ describe("toPlaylistSummary", () => {
   };
 
   it("maps the playlist as Spotify actually returns it", () => {
-    expect(toPlaylistSummary({ playlist: real, runtime_ms: 236_560 })).toEqual({
+    expect(toPlaylistSummary({ playlist: real, track_count: 1, runtime_ms: 236_560 })).toEqual({
       name: "Portfolio Playlist",
       description: "Song suggestions from my portfolio.",
       cover: "https://image-cdn-fa.spotifycdn.com/image/ab67706c0000da84",
@@ -191,42 +191,41 @@ describe("toPlaylistSummary", () => {
     });
   });
 
-  /* THE FIELD IS `items`, NOT `tracks`. Asking Spotify for tracks(total) returns a 200
-     with the key absent, so this is the assertion that would catch the projection
-     drifting back to the shape the older documentation describes. */
-  it("takes the count from items.total and ignores a tracks key", () => {
-    const wrong = { ...real, items: undefined } as Spotify.PlaylistResponse;
-    expect(toPlaylistSummary({ playlist: wrong, runtime_ms: 0 }).track_count).toBe(0);
+  /* The count is passed in rather than read off the playlist, because the caller has
+     already had to page through the items to sum their durations and knows the real
+     figure. items.total is what it derives that from; see playlistService.snapshot. */
+  it("reports the count it was given", () => {
+    expect(toPlaylistSummary({ playlist: real, track_count: 42, runtime_ms: 0 }).track_count).toBe(42);
   });
 
   /* A cover on a rotating spotifycdn subdomain has to survive; anything else must not. */
   it("keeps a cover on either spotifycdn subdomain", () => {
     const ak = { ...real, images: [{ url: "https://image-cdn-ak.spotifycdn.com/image/x" }] };
-    expect(toPlaylistSummary({ playlist: ak, runtime_ms: 0 }).cover).toBe(
+    expect(toPlaylistSummary({ playlist: ak, track_count: 0, runtime_ms: 0 }).cover).toBe(
       "https://image-cdn-ak.spotifycdn.com/image/x"
     );
   });
 
   it("keeps a cover on i.scdn.co, which is where a mosaic lands", () => {
     const mosaic = { ...real, images: [{ url: "https://i.scdn.co/image/x", width: 640 }] };
-    expect(toPlaylistSummary({ playlist: mosaic, runtime_ms: 0 }).cover).toBe(
+    expect(toPlaylistSummary({ playlist: mosaic, track_count: 0, runtime_ms: 0 }).cover).toBe(
       "https://i.scdn.co/image/x"
     );
   });
 
   it("refuses a cover from anywhere else, so the card renders its placeholder", () => {
     const bad = { ...real, images: [{ url: "https://example.test/cover.jpg" }] };
-    expect(toPlaylistSummary({ playlist: bad, runtime_ms: 0 }).cover).toBeNull();
+    expect(toPlaylistSummary({ playlist: bad, track_count: 0, runtime_ms: 0 }).cover).toBeNull();
   });
 
   it("has no cover when there are no images", () => {
-    expect(toPlaylistSummary({ playlist: { ...real, images: [] }, runtime_ms: 0 }).cover).toBeNull();
+    expect(toPlaylistSummary({ playlist: { ...real, images: [] }, track_count: 0, runtime_ms: 0 }).cover).toBeNull();
   });
 
   /* Every field on Spotify's playlist object is optional in its schema, and the header
      must render something for each one rather than letting undefined reach JSX. */
   it("maps an entirely empty playlist without producing undefined", () => {
-    expect(toPlaylistSummary({ playlist: {}, runtime_ms: 0 })).toEqual({
+    expect(toPlaylistSummary({ playlist: {}, track_count: 0, runtime_ms: 0 })).toEqual({
       name: "the playlist",
       description: "",
       cover: null,
@@ -239,6 +238,6 @@ describe("toPlaylistSummary", () => {
 
   it("falls back to Spotify's home page for a link on another host", () => {
     const bad = { ...real, external_urls: { spotify: "https://example.test/playlist" } };
-    expect(toPlaylistSummary({ playlist: bad, runtime_ms: 0 }).url).toBe("https://open.spotify.com");
+    expect(toPlaylistSummary({ playlist: bad, track_count: 0, runtime_ms: 0 }).url).toBe("https://open.spotify.com");
   });
 });
