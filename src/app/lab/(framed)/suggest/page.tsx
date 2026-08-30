@@ -21,7 +21,10 @@ const badge = LAB_STATUS_BADGE[app.status];
 
 export const metadata: Metadata = {
   title: "song suggestions · lab · jaako andes",
-  description: "Put a track on a public playlist. Not built yet.",
+  // Still says what is missing, because the playlist header is live and the adding is
+  // not, and a search result promising something the page cannot do is worse than one
+  // that is honest about the state.
+  description: "Suggest a song you like and it goes onto a public playlist. Not open for adding yet.",
 };
 
 /**

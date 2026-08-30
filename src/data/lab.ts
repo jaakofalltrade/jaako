@@ -174,7 +174,14 @@ export const SUGGEST_TEASER = {
    * header below it started rendering the live thing.
    */
   note: "you cannot add to it yet",
-  lead: "Search Spotify, pick a track, and it goes straight onto a public playlist. No account, no waiting for me to approve it.",
+  /**
+   * An invitation, not a description of the mechanism.
+   *
+   * It used to open "Search Spotify, pick a track", which is instructions for a
+   * control the reader has not been offered yet and says nothing about why they would
+   * want to. The ask comes first now and the mechanics follow it in one clause.
+   */
+  lead: "Suggest a song you like and it goes straight onto the playlist above. Search Spotify, pick a track, and it is on there: no account, and no waiting for me to approve it.",
   /** The label above the live playlist header. */
   playlist_label: "the playlist",
   /** Stands in for the cover while nothing has been fetched, or when Spotify is quiet. */
