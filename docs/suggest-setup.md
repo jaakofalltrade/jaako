@@ -65,6 +65,17 @@ and the playlist showing a different owner name.
 
 ### Before you rely on it
 
+**Check what you actually minted:**
+
+```sh
+pnpm token:check
+```
+
+It refreshes both stored tokens and prints the scopes each one was granted, so a write
+token that is really a read token is one line of output rather than a 403 from Spotify
+weeks later, at the moment somebody is trying to add a song. The two commands differ by
+one word and the values they print look alike, which is the usual cause.
+
 **Mint the write token first, then reload the homepage and check the now-playing panel
 still works.** Two refresh tokens for one app and one account are expected to coexist,
 and Spotify does not document it as a guarantee. The script prints the granted scopes
@@ -74,55 +85,30 @@ token that came back with more than was asked for.
 Without the write token the site is unaffected and adding refuses with a 503. That is
 the intended half-off state, not a broken one.
 
-## 3. Turn on the name filter
+## 3. The name filter — nothing to do
 
-Display names are three to ten characters and are checked against a blocklist. **The
-blocklist ships empty, so until you do this it passes everything.**
+Display names are three to ten characters and are checked against
+[obscenity](https://www.npmjs.com/package/obscenity), which ships its own maintained
+English dataset. There is no word list in this repository and none for you to write.
 
-The plaintext never enters the repository. `blocklist.txt` is gitignored; what gets
-committed is a list of SHA-256 hashes, so a public portfolio does not carry a page of
-slurs in it for a recruiter to find.
+It replaced a hand-rolled filter that hashed every substring of the name against a
+committed list of SHA-256 hashes. That kept the terms out of a public repo, which was
+the point of it, and it had one flaw it could not fix: substring matching over a
+ten-character field cannot tell a padded slur from an ordinary name that happens to
+contain a short one. Measured before the swap, these all pass now and could not have
+been promised before:
 
-1. Create `blocklist.txt` in the repo root, one term per line. `#` starts a comment.
-   ```
-   # one term per line. gitignored. run pnpm build-blocklist after editing.
-   somebadword
-   anotherone
-   ```
-2. Build it:
-   ```sh
-   pnpm build-blocklist
-   ```
-3. Commit the regenerated `src/server/suggest/blockedTerms.json`. Keep
-   `blocklist.txt` somewhere you will still have it in a year, because the hashes
-   cannot be turned back into words.
+    scunthorpe   assassin   analyst   class   grapes   shitake   cockburn
 
-### How the matching works, and what it will get wrong
+**If a real name is ever refused,** the fix belongs in the dataset rather than at the
+call site: build a copy of `englishDataset` in `src/server/suggest/blocklist.ts`
+with a whitelisted term added. `createBlocklist` takes its matcher as an argument, so
+the change is local and testable.
 
-A name is normalised before anything looks at it: lowercased, de-accented, with common
-leet substitutions applied (`4` becomes `a`, `!` becomes `i`) and everything that is
-not a letter removed. So `b4dw0rd`, `b.a.d.w.o.r.d` and `bàdwörd` all collapse to the
-same string. Then every substring of three characters or more is hashed and looked up.
-
-**Substring matching produces false positives, and there is no setting that avoids
-that.** A display name is one token with no spaces, so a term padded into `xxwordxx`
-is only catchable by looking inside the string, and looking inside the string is also
-how an innocent name catches a short term it happens to contain.
-
-The mitigation is the list, not the code:
-
-- **Keep the entries long.** A three-letter term will misfire on ordinary names. A
-  six-letter one very rarely will.
-- **Keep them unambiguous.** If a term has an innocent meaning in some other language
-  or as part of a longer word, it will find that word eventually.
-- **Test after every change**, because you cannot read the list back:
-  ```sh
-  pnpm build-blocklist && pnpm test
-  ```
-
-This is not a moderation system. It stops the accidental and the lazy. Somebody
-determined to get something through ten characters eventually will, and the real
-backstop is that you delete the track in Spotify and the row goes with it.
+**It is a heuristic, not a judge**, which is the library author's own framing. It stops
+the accidental and the lazy. Somebody determined to get something through ten
+characters eventually will, and the real backstop is that you delete the track in
+Spotify and the row goes with it.
 
 ## 4. Turn the app on
 

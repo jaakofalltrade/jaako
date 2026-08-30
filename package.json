@@ -12,12 +12,13 @@
     "db:migrate": "node scripts/migrate.mjs",
     "token:read": "node scripts/spotify-token.mjs read",
     "token:write": "node scripts/spotify-token.mjs write",
-    "build-icons": "node scripts/build-icons.mjs",
-    "build-blocklist": "tsx scripts/build-blocklist.ts"
+    "token:check": "node scripts/token-scopes.mjs",
+    "build-icons": "node scripts/build-icons.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
     "next": "16.3.1",
+    "obscenity": "^0.4.6",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "resend": "^6.20.0",
@@ -31,7 +32,6 @@
     "eslint": "^9.39.5",
     "eslint-config-next": "16.3.1",
     "sass": "^1.102.0",
-    "tsx": "^4.23.12",
     "typescript": "^6.0.3",
     "vitest": "^4.1.11"
   }

@@ -1,87 +1,58 @@
 import "server-only";
-import { createHash } from "node:crypto";
-import { NAME_LIMITS } from "@/constants";
-import { normalizeTerm } from "./normalizeTerm";
-import BLOCKED_TERM_HASHES from "./blockedTerms.json";
+import { RegExpMatcher, englishDataset, englishRecommendedTransformers } from "obscenity";
 
 /**
- * The slur filter, and the reason there is not a list of slurs in this repository.
+ * The name filter.
  *
- * blockedTerms.json holds SHA-256 hashes, not words. The plaintext list lives in
- * blocklist.txt, which .gitignore excludes, and scripts/build-blocklist.ts turns one
- * into the other. So the filter is reviewable in behaviour and the terms it blocks
- * never appear in a public portfolio that a recruiter may well be reading.
+ * This was a hand-rolled thing: a normaliser that flattened leetspeak, a list of
+ * SHA-256 hashes committed in place of the words, and a check that hashed every
+ * substring of the name and looked each one up. It worked, it kept the terms out of a
+ * public repository, and it had a flaw written into its own header — substring
+ * matching over a ten-character field cannot tell a padded slur from an innocent name
+ * that happens to contain a short one, and no setting avoided both.
  *
- * WHY HASHING IS AFFORDABLE HERE AND WOULD NOT BE ANYWHERE ELSE. Hashes only support
- * exact matching, so the usual objection is that you cannot test whether a hash is
- * CONTAINED in a longer string. That objection dies against a ten-character field:
- * a normalised name has at most 36 substrings of three characters or more, so every
- * one of them can simply be hashed and looked up. The name cap is what makes this
- * work, and shortening the cap makes it cheaper rather than harder. If the field ever
- * grows past about twenty characters, revisit this: the substring count is quadratic.
+ * obscenity solves the half that was unsolvable there. Measured before adopting it:
+ * scunthorpe, assassin, analyst, class, grapes and shitake all pass, which is the
+ * Scunthorpe family the old version could only have handled by keeping every entry
+ * long and hoping. It also brings a maintained English dataset, so there is no word
+ * list in this repository and none for anybody to write.
  *
- * SUBSTRING MATCHING IS AGGRESSIVE ON PURPOSE AND WILL PRODUCE FALSE POSITIVES. A
- * display name is one token with no spaces, so a slur padded into "xxwordxx" is only
- * catchable by looking inside the string, and looking inside the string is also how
- * an innocent name catches a short blocked term it happens to contain. There is no
- * setting that avoids both. The mitigation is to keep blocklist.txt to unambiguous
- * terms and to keep the shortest of them long: a three-letter entry will misfire, a
- * six-letter one very rarely will.
+ * WHY A LIBRARY HERE AND NOT FOR VALIDATION. The same question got the opposite answer
+ * when Zod was removed, and the test is the same one: Zod replaced a handful of simple,
+ * stable conditions that could be read in one sitting. Profanity matching is
+ * adversarial and unbounded, the conditions are not enumerable, and somebody else
+ * maintains them. Zero runtime dependencies of its own, and it never reaches the
+ * browser — the filter is server-side, which is the point of it living in this folder
+ * rather than in utils/nameRules.ts beside the length rules.
  *
- * NOT A MODERATION SYSTEM. It stops the accidental and the lazy. Somebody determined
- * to get something through ten characters eventually will, and the real backstop is
- * that you delete the track in Spotify and the row goes with it.
+ * A HEURISTIC, NOT A JUDGE, which is the library author's own framing and worth
+ * repeating here. It stops the accidental and the lazy. Somebody determined to get
+ * something through ten characters eventually will, and the real backstop is that you
+ * delete the track in Spotify and the row goes with it.
+ *
+ * FALSE POSITIVES ARE FIXED IN THE DATASET, NOT IN CALLING CODE. If a real name is
+ * ever refused, add a whitelisted term to a copy of englishDataset here rather than
+ * special-casing it at the call site; obscenity exposes that on the DataSet builder.
  */
 
-const sha256 = (value: string): string =>
-  createHash("sha256").update(value, "utf8").digest("hex");
-
-/**
- * Every substring of `term` at least NAME_LIMITS.min characters long.
- *
- * The floor is the name minimum rather than 1 because a blocked term shorter than the
- * shortest allowed name could never be a name on its own, and checking two-character
- * fragments buys nothing but false positives.
- */
-const substrings = (term: string): string[] => {
-  const found: string[] = [];
-
-  for (let start = 0; start < term.length; start += 1) {
-    for (let end = start + NAME_LIMITS.min; end <= term.length; end += 1) {
-      found.push(term.slice(start, end));
-    }
-  }
-
-  return found;
+/** Structural, so a test can hand this a matcher built from harmless words. */
+export type ProfanityMatcher = {
+  hasMatch: (input: string) => boolean;
 };
 
-/**
- * Built from a hash list rather than reading one, so a test can hand it the hash of a
- * harmless word and check the mechanism without this repository or its test suite
- * containing a single slur. The exported `blocklist` below is the real one.
- */
-export const createBlocklist = (args: { hashes: string[] }) => {
-  const blocked = new Set(args.hashes);
-
-  return {
-    /** True when any substring of the normalised name is on the list. */
-    blocks: (name: string): boolean => {
-      if (!blocked.size) return false;
-
-      const normalized = normalizeTerm(name);
-      if (normalized.length < NAME_LIMITS.min) return false;
-
-      return substrings(normalized).some((candidate) => blocked.has(sha256(candidate)));
-    },
-  };
-};
+const englishMatcher: ProfanityMatcher = new RegExpMatcher({
+  ...englishDataset.build(),
+  ...englishRecommendedTransformers,
+});
 
 /**
- * The live filter.
- *
- * blockedTerms.json ships empty, and an empty list means this passes everything. That
- * is the honest default rather than a broken one: the alternative was committing
- * somebody's guess at a word list, and a filter you did not choose the contents of is
- * worse than one that is plainly switched off. See docs/suggest-setup.md to turn it on.
+ * Built from a matcher rather than reaching for one, so the mechanism can be proved
+ * against words like "kumquat" and this repository's test suite stays free of
+ * profanity. The exported `blocklist` below is the real one.
  */
-export const blocklist = createBlocklist({ hashes: BLOCKED_TERM_HASHES });
+export const createBlocklist = (args: { matcher: ProfanityMatcher }) => ({
+  /** True when the name matches anything in the dataset. Expects a normalised name. */
+  blocks: (name: string): boolean => Boolean(name) && args.matcher.hasMatch(name),
+});
+
+export const blocklist = createBlocklist({ matcher: englishMatcher });
