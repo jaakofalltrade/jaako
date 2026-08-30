@@ -196,6 +196,12 @@ export const SUGGEST_TEASER = {
   submit_label: "add to playlist",
   spec: suggestSpec,
   queue_label: "what is on it",
+  /**
+   * The column headings. Length has no word: it is a clock icon, because the figures
+   * under it are unmistakably durations and "length" over a column of 3:57 is a label
+   * explaining something nobody was confused by.
+   */
+  columns: { title: "track", album: "album", by: "added by", when: "added" },
   /** Only when the playlist is genuinely empty, or Spotify could not be reached. */
   queue_empty: "Nothing on it yet. Be the first.",
 

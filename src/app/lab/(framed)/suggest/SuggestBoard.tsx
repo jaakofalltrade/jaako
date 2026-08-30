@@ -7,6 +7,7 @@ import { RowState, SuggestFailure } from "@/models";
 import type { QueueEntry, SearchResult } from "@/models";
 import { SUGGEST_TEASER } from "@/data/lab";
 import { checkDisplayName, normalizeDisplayName } from "@/utils/nameRules";
+import { QueueHead } from "./QueueHead";
 import { QueueRow } from "./QueueRow";
 import { SearchRow } from "./SearchRow";
 import styles from "./suggest.module.scss";
@@ -256,6 +257,8 @@ export const SuggestBoard = ({ initialQueue, canAdd, playlistUrl }: SuggestBoard
 
         {rows.length ? (
           <ul className={styles.rows}>
+            <QueueHead />
+
             {shown.map((row, index) => (
               <QueueRow
                 key={row.key}

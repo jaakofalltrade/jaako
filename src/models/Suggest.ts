@@ -58,6 +58,13 @@ export type SearchResult = {
   uri: string;
   title: string;
   artist: string;
+  /**
+   * The record it is from. Empty when Spotify reports none, which happens.
+   *
+   * Free to carry: album(name,images) is already on every projection this app makes,
+   * because the cover was wanted anyway, so the name was arriving and being dropped.
+   */
+  album: string;
   /** Cover on Spotify's CDN, or null for a track with no artwork. */
   album_art: string | null;
   url: string;
@@ -67,18 +74,20 @@ export type SearchResult = {
 /**
  * One row of the playlist as the page renders it.
  *
- * Everything except `added_by` comes from Spotify. That one field is ours, joined on
- * by track uri, and it is null for anything added before this app existed or added by
- * the owner directly in Spotify.
+ * AN INTERSECTION RATHER THAN A COPY, and that is a correction. It listed every field
+ * of SearchResult again, which is exactly what toQueueEntry builds it from - it spreads
+ * a SearchResult and adds two - so the two shapes were the same thing written twice.
+ * Adding one field to a track broke this in two places before anybody noticed the
+ * duplication, which is the whole argument.
  */
-export type QueueEntry = {
-  uri: string;
-  title: string;
-  artist: string;
-  album_art: string | null;
-  url: string;
-  duration_ms: number;
+export type QueueEntry = SearchResult & {
   added_at: string;
+  /**
+   * Ours, not Spotify's. Null for anything added before this app existed, or added by
+   * the owner directly in Spotify: the API reports every track as added by whichever
+   * account owns the token, which is the same answer for all of them and therefore no
+   * answer at all.
+   */
   added_by: string | null;
 };
 

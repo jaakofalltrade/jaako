@@ -3,7 +3,7 @@
 import { RowState } from "@/models";
 import type { QueueEntry } from "@/models";
 import { SUGGEST_TEASER } from "@/data/lab";
-import { clock } from "@/utils/format";
+import { clock, shortDate } from "@/utils/format";
 import styles from "./suggest.module.scss";
 
 export type QueueRowProps = {
@@ -44,24 +44,28 @@ export const QueueRow = ({ entry, state, error, index, onRetry }: QueueRowProps)
       <span className={styles.rowArtist}>{entry.artist}</span>
     </span>
 
-    <span className={styles.rowMeta}>
-      {state === RowState.Failed ? (
-        <>
-          <span className={styles.rowError}>{error ?? SUGGEST_TEASER.add_failed}</span>
-          <button type="button" className={styles.change} onClick={onRetry}>
-            try again
-          </button>
-        </>
-      ) : (
-        <>
-          {entry.added_by ? (
-            <span className={styles.rowBy}>added by {entry.added_by}</span>
-          ) : null}
-          <span className={styles.rowTime}>
-            {state === RowState.Adding ? SUGGEST_TEASER.adding : clock(entry.duration_ms)}
-          </span>
-        </>
-      )}
-    </span>
+    {/* FAILED COLLAPSES THE REMAINING COLUMNS INTO ONE. A row that did not land has
+        nothing true to say about who added it or when, and leaving those cells filled
+        from the optimistic guess would be the row insisting on a fact it just lost. */}
+    {state === RowState.Failed ? (
+      <span className={styles.rowFailure}>
+        <span className={styles.rowError}>{error ?? SUGGEST_TEASER.add_failed}</span>
+        <button type="button" className={styles.change} onClick={onRetry}>
+          try again
+        </button>
+      </span>
+    ) : (
+      <>
+        <span className={styles.rowAlbum}>{entry.album}</span>
+
+        <span className={styles.rowBy}>{entry.added_by ?? ""}</span>
+
+        <span className={styles.rowWhen}>
+          {state === RowState.Adding ? SUGGEST_TEASER.adding : shortDate({ iso: entry.added_at })}
+        </span>
+
+        <span className={styles.rowTime}>{clock(entry.duration_ms)}</span>
+      </>
+    )}
   </li>
 );

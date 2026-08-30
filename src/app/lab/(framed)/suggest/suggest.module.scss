@@ -14,29 +14,37 @@
 
 .lead {
   max-width: var(--measure);
-  margin: 0;
+  margin-block: 0 var(--space-10);
   font-size: var(--text-lg);
   line-height: var(--leading-loose);
   color: var(--text-body);
 }
 
-/* The pitch and the rules it plays by, side by side.
+/* The playlist and its specification, side by side.
 
-   This grid used to hold the search field and the spec, which put the table of numbers
-   next to a control and made it read as instructions for that control. It belongs with
-   the sentence making the offer: that is the moment somebody decides whether to bother,
-   and three per day and ten characters are what they are deciding on.
+   The same arrangement the rest of the site already uses: a plate with its readout, a
+   role with its dates. The spec has been beside the search field and beside the lead on
+   the way here, and both were wrong for the same reason. It describes the PLAYLIST, so
+   it belongs against the playlist.
 
-   Prose leads because it is what gets read; the spec is the reference beside it. */
+   align-items:start rather than stretch, so the spec sits level with the top of the
+   cover instead of stretching to match a card taller than it. */
 .intro {
   display: grid;
   gap: var(--space-8) var(--space-10);
   align-items: start;
-  margin-block: var(--space-5) var(--space-10);
+  margin-block: var(--space-8) var(--space-9);
 
   @media (min-width: 48rem) {
-    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
   }
+}
+
+/* The card carries its own vertical rhythm when it stands alone; inside the grid the
+   grid owns it. */
+.intro .playlist,
+.intro .playlistOffline {
+  margin-block: 0;
 }
 
 .form {
@@ -254,6 +262,9 @@
 
 .searchLabel {
   display: block;
+  /* Matched to the input's inset, so the label sits over the text it names rather than
+     over the start of the rule. */
+  padding-left: var(--space-4);
   margin-bottom: var(--space-3);
   font-family: var(--font-mono);
   font-size: var(--text-3xs);
@@ -264,7 +275,11 @@
 
 .searchInput {
   width: 100%;
-  padding: var(--space-3) 0;
+  /* Inset from the left rather than flush against the start of its own underline. Text
+     sitting hard on the origin of the rule reads as a mistake; a little air makes the
+     rule read as a field the text sits IN rather than a line it is balanced on. The
+     right stays flush, because there is nothing over there to collide with. */
+  padding: var(--space-3) 0 var(--space-3) var(--space-4);
   border: 0;
   /* Not a box. The rule under it is the whole field. */
   border-bottom: var(--border-1) solid var(--hair-lit);
@@ -461,15 +476,48 @@
   display: grid;
 }
 
+/* ONE GRID, DECLARED ONCE, SHARED BY THE HEADING AND EVERY ROW. Two matching column
+   lists would drift the first time one of them changed width, and a heading that no
+   longer sits over the thing it names is worse than no heading. */
+.head,
 .row {
   display: grid;
-  grid-template-columns: 2rem 2.25rem minmax(0, 1fr) auto;
-  /* CENTRE, NOT BASELINE. The body is two lines and the meta is one, so aligning them
-     on a shared baseline hung the title, the index and the duration off the top of the
-     row while the cover sat below them. Nothing in this row is prose that has to line
-     up with prose; they are four things that should read as one line. */
+  grid-template-columns:
+    2rem                  /* index  */
+    2.25rem               /* cover  */
+    minmax(0, 2fr)        /* track  */
+    minmax(0, 1.4fr)      /* album  */
+    minmax(0, 1fr)        /* by     */
+    5.5rem                /* added  */
+    3.5rem;               /* length */
+  /* CENTRE, NOT BASELINE. The track cell is two lines and the rest are one, so a
+     shared baseline hung the title, the index and the duration off the top of the row
+     while the cover sat below them. Nothing here is prose that has to line up with
+     prose; they are seven things that should read as one line. */
   align-items: center;
   gap: var(--space-4);
+}
+
+/* The heading is a label, so it takes the label treatment and none of the row's. */
+.head {
+  padding-bottom: var(--space-3);
+  border-bottom: var(--border-1) solid var(--hair-lit);
+  font-family: var(--font-mono);
+  font-size: var(--text-3xs);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+/* The clock stands in for the word "length". The figures under it are unmistakably
+   durations, and a label explaining that is a label explaining nothing. */
+.headClock {
+  display: flex;
+  justify-content: flex-end;
+  opacity: .75;
+}
+
+.row {
   padding-block: var(--space-4);
   border-top: var(--border-1) solid var(--hair);
 
@@ -518,22 +566,47 @@
   color: var(--text-dim);
 }
 
-.rowMeta {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-4);
+/* The four quiet cells. Mono and small, like every other readout on the site, and
+   truncated rather than wrapped: a row is one line, and an album with a long title
+   should shorten rather than push the row to two. */
+.rowAlbum,
+.rowBy,
+.rowWhen,
+.rowTime {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-family: var(--font-mono);
   font-size: var(--text-3xs);
   letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
-  white-space: nowrap;
 }
 
+.rowAlbum { color: var(--text-dim); }
 .rowBy { color: var(--text-dim); }
+
+.rowWhen {
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
 
 .rowTime {
   color: var(--text-faint);
   font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* A failed row has nothing true to say about album, author or date, so it spends the
+   remaining columns on the reason and the way out instead. */
+.rowFailure {
+  grid-column: 3 / -1;
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  font-family: var(--font-mono);
+  font-size: var(--text-3xs);
+  letter-spacing: var(--tracking-wide);
 }
 
 /* The one place on this page that uses the alert colour, because it is the one thing
@@ -550,6 +623,32 @@
   .resultTime { display: none; }
   .slab { margin-left: 0; }
 
-  .row { grid-template-columns: 1.75rem 2.25rem minmax(0, 1fr); }
-  .rowMeta { grid-column: 3; margin-top: var(--space-2); flex-wrap: wrap; }
+  /* THE COLUMNS FOLD RATHER THAN SHRINK. Seven of them in a phone width would be
+     seven unreadable slivers; the track keeps the row and the rest stack under it,
+     which is what the row was before it had a heading. */
+  .head { display: none; }
+
+  .row {
+    grid-template-columns: 1.75rem 2.25rem minmax(0, 1fr);
+    row-gap: var(--space-2);
+  }
+
+  .rowAlbum,
+  .rowBy,
+  .rowWhen,
+  .rowTime {
+    grid-column: 3;
+    text-align: left;
+  }
+
+  .rowAlbum { grid-row: 2; }
+  .rowBy { grid-row: 3; }
+
+  /* Dropped rather than stacked. The date and the duration are the two a reader is
+     least likely to want on a phone, and four stacked mono lines per row turns a list
+     of twenty-four tracks into a page of paragraphs. */
+  .rowWhen,
+  .rowTime { display: none; }
+
+  .rowFailure { grid-column: 3; }
 }

@@ -58,6 +58,7 @@ export const PRESENCE_LABEL: Record<PresenceStatus, string> = {
 
 /** Lucide SVGs in public/icons, tinted by --icon-tint to sit in the palette. */
 export const ICON_SRC: Record<IconName, string> = {
+  [IconName.Clock]: "/icons/clock.svg",
   [IconName.Disc]: "/icons/disc.svg",
   [IconName.Globe]: "/icons/globe.svg",
   [IconName.Link]: "/icons/link.svg",

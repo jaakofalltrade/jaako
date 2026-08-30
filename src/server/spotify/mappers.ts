@@ -196,6 +196,7 @@ export const toSearchResult = (args: {
     uri,
     title: track.name ?? "unknown",
     artist: artistNames(track.artists),
+    album: track.album?.name ?? "",
     album_art: pickArt(track.album?.images),
     url: toSpotifyUrl(track.external_urls?.spotify),
     duration_ms: track.duration_ms ?? 0,

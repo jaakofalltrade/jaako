@@ -85,19 +85,20 @@ const SuggestTeaserPage = async () => {
         <Badge tone={badge.tone}>{badge.label}</Badge>
       </div>
 
-      <PlaylistCard playlist={snapshot?.summary ?? null} />
-
-      {/* The pitch and the rules it plays by, side by side. The spec used to sit
-          beside the search field, where it read as instructions for the control next to
-          it; it belongs with the sentence that makes the offer, because that is the
-          moment somebody is deciding whether to bother. */}
+      {/* THE THING AND ITS SPECIFICATION, side by side, which is the arrangement the
+          rest of the site already uses: a plate with its readout, a role with its
+          dates. The spec has been beside the search field and beside the lead on the
+          way here, and both were wrong for the same reason - it was describing the
+          playlist, and it belongs against the playlist. */}
       <div className={styles.intro}>
-        <p className={styles.lead} data-reveal>
-          {SUGGEST_TEASER.lead}
-        </p>
+        <PlaylistCard playlist={snapshot?.summary ?? null} />
 
         <DefinitionList items={SUGGEST_TEASER.spec} ruled className={styles.spec} />
       </div>
+
+      <p className={styles.lead} data-reveal>
+        {SUGGEST_TEASER.lead}
+      </p>
 
       <SuggestBoard
         initialQueue={queue}

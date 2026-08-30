@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clock, runtime, toDigits } from "@/utils/format";
+import { clock, runtime, shortDate, toDigits } from "@/utils/format";
 
 describe("clock", () => {
   it("renders milliseconds as m:ss", () => {
@@ -82,5 +82,34 @@ describe("runtime", () => {
   /* The real playlist today: one track, 236560ms. */
   it("renders the lab playlist as it stands", () => {
     expect(runtime(236_560)).toBe("4 min");
+  });
+});
+
+describe("shortDate", () => {
+  const now = new Date("2026-08-30T00:00:00Z");
+
+  it("drops the year for a date in the current one", () => {
+    expect(shortDate({ iso: "2026-08-30T07:10:24Z", now })).toBe("30 aug");
+  });
+
+  /* The year comes back the moment it is informative, which is the whole rule. */
+  it("keeps a two-digit year for any other year", () => {
+    expect(shortDate({ iso: "2025-12-01T00:00:00Z", now })).toBe("1 dec 25");
+  });
+
+  it("is lowercase, to match the rest of the type on the page", () => {
+    expect(shortDate({ iso: "2026-01-05T00:00:00Z", now })).toBe("5 jan");
+  });
+
+  /* Rendered into a table cell, so nothing is better than "Invalid Date". */
+  it("is empty for an unparseable or missing value", () => {
+    expect(shortDate({ iso: "not a date", now })).toBe("");
+    expect(shortDate({ iso: "", now })).toBe("");
+  });
+
+  /* Formatted in UTC on purpose: Spotify stamps added_at in UTC, and letting the
+     server's zone shift it would put a track on the wrong day either side of midnight. */
+  it("reads the timestamp in UTC rather than the local zone", () => {
+    expect(shortDate({ iso: "2026-03-01T23:30:00Z", now })).toBe("1 mar");
   });
 });
