@@ -8,11 +8,11 @@ import type { LabApp, MetaPair } from "@/models";
  *
  * Same split as src/data/site.ts against src/constants/site.ts: sentences live here,
  * identifiers live there. The plan every one of these entries came out of is in
- * docs/lab.md, and the teaser blocks at the foot of this file are the only copy the
- * three unbuilt pages render.
+ * docs/lab.md, and the teaser blocks at the foot of this file hold the copy each lab
+ * page renders.
  *
- * Nothing here is a promise about a date. Every status is either planned or building,
- * and the index says so out loud rather than implying a launch.
+ * Nothing here is a promise about a date. A status says where an app actually is, and
+ * the index prints it out loud rather than implying a launch.
  */
 
 export const LAB_INTRO = {
@@ -48,7 +48,7 @@ const slots: LabApp = {
   index: "01",
   name: "slot machine",
   blurb: "Three pulls a day. Lose, or win a code you can mail me to claim.",
-  status: LabStatus.Building,
+  status: LabStatus.Planned,
   shell: LabShell.Bare,
   href: routes.lab.slots,
   look: "arcade CRT",
@@ -59,7 +59,7 @@ const suggest: LabApp = {
   index: "02",
   name: "song suggestions",
   blurb: "Put a track on a public playlist I actually listen to, and see what everyone else added.",
-  status: LabStatus.Planned,
+  status: LabStatus.Live,
   shell: LabShell.Site,
   href: routes.lab.suggest,
   look: "this one, unchanged",
@@ -68,8 +68,8 @@ const suggest: LabApp = {
 const roast: LabApp = {
   id: LabAppId.Roast,
   index: "03",
-  name: "spotify roast",
-  blurb: "An agent reads your top artists and genres, then tells you what it thinks. It is not kind.",
+  name: "judgerist",
+  blurb: "An agent reads your top Spotify artists and genres, then tells you what it thinks. It is not kind.",
   status: LabStatus.Planned,
   shell: LabShell.Bare,
   href: routes.lab.roast,
@@ -144,12 +144,12 @@ export const SLOTS_TEASER = {
   voucher_label: "winning ticket",
   voucher_code: "JK-XXXX-XXX",
   voucher_note: "scan it or type it, then mail it to me to claim",
-  footnote: "Cabinet is being wired. Come back and pull it later.",
+  footnote: "Cabinet is not built yet. Come back and pull it later.",
 } as const;
 
 /** /lab/roast. A chat that has not started, in a client that is not connected. */
 export const ROAST_TEASER = {
-  title: "roast",
+  title: "judgerist",
   subtitle: "an agent, about your spotify",
   /** Delivered as bubbles, in order, from the agent. */
   lines: [

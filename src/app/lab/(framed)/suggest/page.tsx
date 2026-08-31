@@ -11,7 +11,7 @@ import { BackLink } from "@/design-system/portfolio/BackLink";
 import { MastheadBar } from "@/design-system/portfolio/MastheadBar";
 import { cookies } from "next/headers";
 import { QUEUE_SHOWN, VISITOR_COOKIE } from "@/constants";
-import { playlistService } from "@/server/spotify";
+import { spotifyService } from "@/server/spotify";
 import { parseVisitor } from "@/server/visitor";
 import { suggestService } from "@/server/suggest";
 import { PlaylistCard } from "./PlaylistCard";
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 const SuggestTeaserPage = async () => {
-  const snapshot = await playlistService.snapshot();
+  const snapshot = await spotifyService.playlist.snapshot();
 
   /*
    * The join that turns Spotify's rows into ours. One query for the whole page, and it

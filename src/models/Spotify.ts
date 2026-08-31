@@ -9,6 +9,18 @@
  * produces them, so it's never ambiguous which side of the wire you're holding.
  */
 
+/**
+ * Which of the two Spotify credentials a call spends.
+ *
+ * An enum rather than a boolean because it is bound into a client in
+ * server/spotify/spotifyApiClient.ts rather than passed per call, and "write: true" at
+ * a call site was the thing that made spending the wrong one possible.
+ */
+export enum Credential {
+  Read = "READ",
+  Write = "WRITE",
+}
+
 export enum PlaybackStatus {
   Playing = "PLAYING",
   Recent = "RECENT",
@@ -176,7 +188,3 @@ export type SearchTracksResponse = {
   };
 };
 
-/** What POST /playlists/{id}/items answers with. 201, and this is the whole body. */
-export type PlaylistAddResponse = {
-  snapshot_id?: string;
-};

@@ -7,7 +7,7 @@ import {
 import { Env, HttpStatus, SuggestFailure } from "@/models";
 import type { AddResponse, QueueEntry } from "@/models";
 import { serverConfig } from "@/server/serverConfig";
-import { playlistService } from "@/server/spotify";
+import { spotifyService } from "@/server/spotify";
 import { suggestService } from "@/server/suggest";
 import { mintVisitor, readVisitor, visitorCookie } from "@/server/visitor";
 
@@ -88,12 +88,12 @@ export const POST = async (request: Request) => {
    * make every add wait for both in turn. The uris read is deliberately uncached: a
    * cached answer a minute old is how the same track gets on twice.
    */
-  let track: Awaited<ReturnType<typeof playlistService.getTrack>>;
+  let track: Awaited<ReturnType<typeof spotifyService.playlist.getTrack>>;
   let present: Set<string>;
   try {
     [track, present] = await Promise.all([
-      playlistService.getTrack({ uri: track_uri }),
-      playlistService.trackUris(),
+      spotifyService.playlist.getTrack({ uri: track_uri }),
+      spotifyService.playlist.trackUris(),
     ]);
   } catch (error) {
     console.error("[suggest] pre-add reads failed:", error);
@@ -126,7 +126,7 @@ export const POST = async (request: Request) => {
   if (!allowed) return fail({ failure: SuggestFailure.CapReached, status: HttpStatus.TooManyRequests });
 
   try {
-    await playlistService.addTrack({ uri: track_uri });
+    await spotifyService.playlist.addTrack({ uri: track_uri });
   } catch (error) {
     // The allowance was spent on something that did not happen, so it goes back. A
     // failure here should cost the visitor nothing.

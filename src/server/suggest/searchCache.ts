@@ -23,7 +23,7 @@ import type { SearchResult } from "@/models";
  * daily cap itself was never allowed to live here for exactly this reason.
  *
  * Both are factory closures, the same arrangement as the token cache in
- * server/spotify/auth.ts, so swapping either for a shared store replaces one function.
+ * server/spotify/spotifyAccessTokens.ts, so swapping either for a shared store replaces one function.
  */
 
 const createSearchCache = () => {

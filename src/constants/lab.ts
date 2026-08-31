@@ -10,8 +10,8 @@ export const LAB_STATUS_BADGE: Record<
   LabStatus,
   { label: string; tone: BadgeTone }
 > = {
-  // Cyan is the accent and there is nothing live yet. When there is, it should be the
-  // only cyan thing on the index.
+  // Cyan is the accent, and live is the only status that gets it. Keeping it to one
+  // status is what makes it worth looking at on the index.
   [LabStatus.Live]: { label: "live", tone: BadgeTone.Cyan },
   [LabStatus.Building]: { label: "building", tone: BadgeTone.Steel },
   // Ghost is the retired tone elsewhere on the site. It reads correctly here too: an

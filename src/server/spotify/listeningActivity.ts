@@ -9,17 +9,18 @@ import {
   TOP_TRACK_LIMIT,
 } from "@/constants";
 import { Spotify } from "@/models";
-import { hasCredentials } from "./auth";
-import { spotifyFetch } from "./request";
+import { hasCredentials } from "./spotifyAccessTokens";
+import { spotifyRead } from "./spotifyApiClient";
 import { spotifyEndpoints } from "@/server/endpoints";
 import { artistNames, modalGenre, toItemUrl, toTrack } from "./mappers";
 
 /**
- * The two Spotify reads the site makes, and the one fetch helper they share.
+ * The listening reads: what is playing now, and what has been played most lately.
  *
- * What is left here after auth.ts, mappers.ts and endpoints.ts took their share is
- * the part that is actually about this site: which calls go out together, what each
- * playback state means, and what to render when Spotify says nothing useful.
+ * What is left here after spotifyAccessTokens.ts, spotifyApiClient.ts, mappers.ts and
+ * endpoints.ts took their share is the part that is actually about this site: which
+ * calls go out together, what each playback state means, and what to render when
+ * Spotify says nothing useful.
  *
  * Neither read throws. The panel is decoration, not infrastructure — anything going
  * wrong degrades to an offline shape so the homepage still renders. That is also why
@@ -28,23 +29,9 @@ import { artistNames, modalGenre, toItemUrl, toTrack } from "./mappers";
  * does not.
  */
 
-/* Through spotifyFetch, which retries once on a 401 with a freshly minted token. The
-   panel shares its access-token cache with the lab, so it shared the fault: a token
-   revoked before its clock ran out left this answering 401 until the process
-   restarted, and the panel would simply have gone quiet for an hour. */
-const get = async <T>(args: { path: string }): Promise<T | null> => {
-  const { path } = args;
-
-  const response = await spotifyFetch({ path });
-
-  // 204 means "nothing is playing" and carries no body at all — calling .json()
-  // on it throws, so it has to be caught before parsing.
-  if (response.status === 204) return null;
-  if (!response.ok) throw new Error(`GET ${path} failed: ${response.status}`);
-
-  const text = await response.text();
-  return text ? (JSON.parse(text) as T) : null;
-};
+/* The private get<T> that used to sit here is now spotifyRead.getJson, shared with
+   suggestPlaylist.ts. The 204 case this one knew about and that one did not - it is
+   what /me/player/currently-playing sends when nothing is playing - went with it. */
 
 /**
  * Builds the panel response.
@@ -60,10 +47,10 @@ const getNowPlaying = async (): Promise<Spotify.NowPlayingResponse> => {
     if (!hasCredentials()) return OFFLINE_RESPONSE;
 
     const [current, history] = await Promise.all([
-      get<Spotify.CurrentlyPlayingResponse>({
+      spotifyRead.getJson<Spotify.CurrentlyPlayingResponse>({
         path: spotifyEndpoints.currentlyPlaying(),
       }),
-      get<Spotify.RecentlyPlayedResponse>({
+      spotifyRead.getJson<Spotify.RecentlyPlayedResponse>({
         path: spotifyEndpoints.recentlyPlayed({ limit: RECENT_LIMIT }),
       }),
     ]);
@@ -128,14 +115,14 @@ const getTopItems = async (): Promise<Spotify.TopItemsResponse> => {
     if (!hasCredentials()) return TOP_ITEMS_OFFLINE;
 
     const [artists, tracks] = await Promise.all([
-      get<Spotify.TopArtistsResponse>({
+      spotifyRead.getJson<Spotify.TopArtistsResponse>({
         path: spotifyEndpoints.topItems({
           type: "artists",
           time_range: TOP_TIME_RANGE,
           limit: TOP_ARTIST_LIMIT,
         }),
       }),
-      get<Spotify.TopTracksResponse>({
+      spotifyRead.getJson<Spotify.TopTracksResponse>({
         path: spotifyEndpoints.topItems({
           type: "tracks",
           time_range: TOP_TIME_RANGE,
@@ -174,7 +161,7 @@ const getTopItems = async (): Promise<Spotify.TopItemsResponse> => {
   }
 };
 
-export const spotifyService = {
+export const listeningActivity = {
   getNowPlaying,
   getTopItems,
 };

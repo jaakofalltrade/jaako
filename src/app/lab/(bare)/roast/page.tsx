@@ -8,7 +8,7 @@ import styles from "./roast.module.scss";
 const app = LAB_APP[LabAppId.Roast];
 
 export const metadata: Metadata = {
-  title: "spotify roast · lab · jaako andes",
+  title: "judgerist · lab · jaako andes",
   description: "An agent reads your listening history and is not kind about it. Not built yet.",
 };
 

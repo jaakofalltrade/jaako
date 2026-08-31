@@ -1,4 +1,4 @@
-# `/lab/roast` : spotify roast
+# `/lab/roast` : judgerist
 
 An agent reads a person's listening data and is unkind about it.
 
@@ -63,7 +63,7 @@ declined, and being declined costs nothing but time.
 **The roast gets its own app registration**, with its own client id, secret and
 redirect URI, used by `/lab/roast` and nothing else. Two entries in the dashboard.
 
-This is not tidiness. `src/server/spotify/auth.ts` already documents the reason in
+This is not tidiness. `src/server/spotify/spotifyAccessTokens.ts` already documents the reason in
 capitals: **Spotify grants scopes per (user, application), not per token.** Approving
 a new scope updates the grant for that pair and invalidates access tokens already
 issued against it, including one a warm server is holding in module scope. The file

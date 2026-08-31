@@ -27,7 +27,7 @@ export type ServerConfig = {
   // IT DOES NOT MAKE THE READ TOKEN READ-ONLY. Spotify grants scopes per application,
   // so approving the write scope widened both of these; "pnpm token:check" shows it.
   // Nothing should be written that depends on the read credential being unable to
-  // write. See the header of src/server/spotify/auth.ts.
+  // write. See the header of src/server/spotify/spotifyAccessTokens.ts.
   spotify_refresh_token: string;
   spotify_write_refresh_token: string;
   spotify_token_url: string;
