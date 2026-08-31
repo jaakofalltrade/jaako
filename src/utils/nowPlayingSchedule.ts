@@ -35,11 +35,18 @@ import { Spotify } from "@/models";
  * off it, so `null` — nothing has landed yet — is an answer this can give rather
  * than a fourth thing the caller has to remember to handle. A first fetch that
  * failed is the same shape as a pause: try again shortly.
+ *
+ * BOTH BRANCHES SUBTRACT `elapsed`, and the idle one has to as much as the playing
+ * one does. The answer is a wait from now, but what it is measured from is the
+ * moment the response landed — so time the panel spent not counting still counts.
+ * A tab hidden for five minutes comes back due immediately rather than starting its
+ * thirty seconds over, which is what stopped a visitor who flicks between tabs from
+ * ever completing a single request.
  */
 export const nextRefetchMs = (args: {
   /** The last response, or null before the first one lands. */
   response: Spotify.NowPlayingResponse | null;
-  /** Milliseconds since that response landed, from the local progress clock. */
+  /** Milliseconds since that response landed. Wall clock, not the progress bar's. */
   elapsed: number;
 }): number => {
   const { response, elapsed } = args;
@@ -53,7 +60,10 @@ export const nextRefetchMs = (args: {
     !track ||
     track.duration_ms <= 0
   ) {
-    return IDLE_REFETCH_MS;
+    // No floor under this one. It cannot run away: `elapsed` is measured from the
+    // last response, so the wait is a full IDLE_REFETCH_MS again the moment one
+    // lands. Zero means the wait already passed while nobody was watching.
+    return Math.max(0, IDLE_REFETCH_MS - elapsed);
   }
 
   // One request per song: the duration already says when this track ends, so the

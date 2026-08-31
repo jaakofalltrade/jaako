@@ -115,6 +115,27 @@ describe("nextRefetchMs", () => {
       expect(nextRefetchMs({ response: null, elapsed: 0 })).toBe(IDLE_REFETCH_MS);
     });
 
+    /* Time spent hidden is time the answer was going stale, so it counts against the
+       wait rather than being thrown away. Restarting the thirty seconds on every
+       return is what let a visitor flicking between tabs never complete a request. */
+    it("counts time already waited against the next wait", () => {
+      expect(
+        nextRefetchMs({
+          response: response(Spotify.PlaybackStatus.Recent),
+          elapsed: 20_000,
+        }),
+      ).toBe(IDLE_REFETCH_MS - 20_000);
+    });
+
+    it("is due at once when the wait passed while the tab was hidden", () => {
+      expect(
+        nextRefetchMs({
+          response: response(Spotify.PlaybackStatus.Recent),
+          elapsed: 5 * 60_000,
+        }),
+      ).toBe(0);
+    });
+
     it("never answers with a wait a page can outlive", () => {
       for (const status of Object.values(Spotify.PlaybackStatus)) {
         const delay = nextRefetchMs({ response: response(status), elapsed: 0 });
