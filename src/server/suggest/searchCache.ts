@@ -1,6 +1,7 @@
 import "server-only";
 import { SEARCH_CACHE_MAX, SEARCH_CACHE_TTL_MS, SEARCH_RATE } from "@/constants";
 import type { SearchResult } from "@/models";
+import { getEpochMilliseconds } from "@/oras/milliseconds";
 
 /**
  * The two guards on the search proxy: a cache, and a throttle.
@@ -36,7 +37,7 @@ const createSearchCache = () => {
 
       // Evicted lazily on read rather than swept: the only moment staleness matters is
       // the moment somebody asks, and a timer would keep the process awake.
-      if (hit.expires_at <= Date.now()) {
+      if (hit.expires_at <= getEpochMilliseconds.now()) {
         entries.delete(args.key);
         return null;
       }
@@ -54,7 +55,7 @@ const createSearchCache = () => {
         if (oldest !== undefined) entries.delete(oldest);
       }
 
-      entries.set(key, { results, expires_at: Date.now() + SEARCH_CACHE_TTL_MS });
+      entries.set(key, { results, expires_at: getEpochMilliseconds.now() + SEARCH_CACHE_TTL_MS });
     },
   };
 };
@@ -71,7 +72,7 @@ const createSearchThrottle = () => {
   return {
     allow: (args: { key: string }): boolean => {
       const { key } = args;
-      const now = Date.now();
+      const now = getEpochMilliseconds.now();
       const recent = (hits.get(key) ?? []).filter((at) => now - at < SEARCH_RATE.window_ms);
 
       if (recent.length >= SEARCH_RATE.max) {

@@ -1,5 +1,6 @@
 import "server-only";
 import { TOKEN_EXPIRY_MARGIN_MS } from "@/constants";
+import { getEpochMilliseconds } from "@/oras/milliseconds";
 import { serverConfig } from "@/server/serverConfig";
 import { Spotify } from "@/models";
 
@@ -44,12 +45,12 @@ const createTokenCache = () => {
 
   return {
     read: (): string | null =>
-      cached && cached.expires_at > Date.now() ? cached.value : null,
+      cached && cached.expires_at > getEpochMilliseconds.now() ? cached.value : null,
     write: (args: { value: string; ttl_ms: number }) => {
       const { value, ttl_ms } = args;
       cached = {
         value,
-        expires_at: Date.now() + ttl_ms - TOKEN_EXPIRY_MARGIN_MS,
+        expires_at: getEpochMilliseconds.now() + ttl_ms - TOKEN_EXPIRY_MARGIN_MS,
       };
     },
     clear: () => {

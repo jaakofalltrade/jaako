@@ -1,5 +1,6 @@
 import "server-only";
 import { RATE_LIMIT } from "@/constants";
+import { getEpochMilliseconds } from "@/oras/milliseconds";
 
 /**
  * Per-IP throttle. Prunes timestamps outside the window on every call, which
@@ -14,7 +15,7 @@ const createRateLimiter = () => {
   return {
     allow: (args: { ip: string }): boolean => {
       const { ip } = args;
-      const now = Date.now();
+      const now = getEpochMilliseconds.now();
       const recent = (hits.get(ip) ?? []).filter((at) => now - at < RATE_LIMIT.window_ms);
 
       if (recent.length >= RATE_LIMIT.max) {

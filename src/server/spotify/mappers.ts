@@ -217,7 +217,10 @@ export const toQueueEntry = (args: { entry: Spotify.PlaylistItemResponse }): Que
 
   return {
     ...toSearchResult({ track, uri: track.uri ?? "" }),
-    added_at: entry.added_at ?? "",
+    /* null rather than "" for a missing value. This is the one date in the app that
+       comes from somewhere we do not control, so it is the one place a hole can get
+       in, and "" was a hole typed as a string — see the note on QueueEntry.added_at. */
+    added_at: entry.added_at ?? null,
     added_by: null,
   };
 };

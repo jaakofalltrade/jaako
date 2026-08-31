@@ -81,7 +81,18 @@ export type SearchResult = {
  * duplication, which is the whole argument.
  */
 export type QueueEntry = SearchResult & {
-  added_at: string;
+  /**
+   * When Spotify says the track was added, as an ISO timestamp in UTC. Null when it
+   * said nothing.
+   *
+   * NULLABLE BECAUSE THE MAPPER CAN NO LONGER PRETEND. It used to fall back to "" for
+   * a missing value, and an empty string is not a date — it was a hole in the data
+   * wearing the type of a filled one, which only survived because the old formatter
+   * silently rendered anything unparseable as a blank cell. oras throws on invalid
+   * input instead (see oras/settings.ts), so the honest shape is the one that admits
+   * the value can be absent, and the row simply renders no date for it.
+   */
+  added_at: string | null;
   /**
    * Ours, not Spotify's. Null for anything added before this app existed, or added by
    * the owner directly in Spotify: the API reports every track as added by whichever

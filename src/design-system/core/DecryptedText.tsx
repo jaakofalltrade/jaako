@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { DECRYPT_CHARS } from "@/constants";
 import { DecryptAlphabet, DecryptMode } from "@/models";
+import { getEpochMilliseconds } from "@/oras/milliseconds";
 import { cx } from "@/utils/cx";
 
 /**
@@ -240,8 +241,9 @@ export const DecryptedText = ({
   useEffect(() => {
     if (phase !== Phase.Done || replayEvery === undefined) return;
 
-    const due = nextReplayAt(replayEvery, Date.now());
-    const id = window.setTimeout(() => setPhase(Phase.Running), Math.max(0, due - Date.now()));
+    const due = nextReplayAt(replayEvery, getEpochMilliseconds.now());
+    const wait = Math.max(0, due - getEpochMilliseconds.now());
+    const id = window.setTimeout(() => setPhase(Phase.Running), wait);
 
     return () => window.clearTimeout(id);
   }, [phase, replayEvery]);

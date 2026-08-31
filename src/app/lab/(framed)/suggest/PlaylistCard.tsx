@@ -1,6 +1,6 @@
 import { SUGGEST_TEASER } from "@/data/lab";
 import type { PlaylistSummary } from "@/models";
-import { runtime } from "@/utils/format";
+import { getHoursMinutes } from "@/oras/milliseconds";
 import { Annotation } from "@/design-system/core/Annotation";
 import { AnnotationTone } from "@/models";
 import styles from "./suggest.module.scss";
@@ -76,7 +76,7 @@ export const PlaylistCard = ({ playlist }: PlaylistCardProps) => {
         <span className={styles.playlistSpec}>
           {tracks}
           <span aria-hidden="true"> · </span>
-          {runtime(playlist.runtime_ms)}
+          {getHoursMinutes.fromMilliseconds({ milliseconds: playlist.runtime_ms })}
           <span aria-hidden="true"> · </span>
           <span className={styles.playlistOpen}>open in spotify →</span>
         </span>

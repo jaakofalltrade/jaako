@@ -7,6 +7,7 @@ import {
 } from "@/constants";
 import { Spotify } from "@/models";
 import type { PlaylistSnapshot, SearchResult } from "@/models";
+import { getEpochMilliseconds } from "@/oras/milliseconds";
 import { serverConfig } from "@/server/serverConfig";
 import { spotifyEndpoints } from "@/server/endpoints";
 import { hasCredentials, hasWriteCredentials } from "./spotifyAccessTokens";
@@ -82,9 +83,9 @@ const createSnapshotCache = () => {
 
   return {
     read: (): PlaylistSnapshot | null =>
-      cached && cached.expires_at > Date.now() ? cached.value : null,
+      cached && cached.expires_at > getEpochMilliseconds.now() ? cached.value : null,
     write: (value: PlaylistSnapshot) => {
-      cached = { value, expires_at: Date.now() + PLAYLIST_SUMMARY_TTL_MS };
+      cached = { value, expires_at: getEpochMilliseconds.now() + PLAYLIST_SUMMARY_TTL_MS };
     },
     clear: () => {
       cached = null;
