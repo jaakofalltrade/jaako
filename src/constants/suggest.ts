@@ -7,27 +7,51 @@ import { ART_HOST } from "./spotify";
  * Same split as constants/contact.ts against models/Contact.ts: the enum values are
  * identifiers, so everything a human reads is mapped here.
  *
- * The playlist id is the one value here that a deployment may want to change, and it
- * still lives in this file rather than only in the environment. It is public, it does
- * not change, and a clone should render the real playlist without anybody being told
- * to set a variable first; serverConfig reads SPOTIFY_PLAYLIST_ID over the top of it
- * when there is one.
+ * The playlist ids are the values here a deployment may want to change, and they still
+ * live in this file rather than only in the environment. They are public, they do not
+ * change, and a clone should render a real playlist without anybody being told to set a
+ * variable first; serverConfig picks one by deployment and reads SPOTIFY_PLAYLIST_ID
+ * over the top of it when there is one.
  */
 
 /**
- * The lab playlist: <https://open.spotify.com/playlist/2CK3Ap0UNSCwatm9cIijx2>
+ * TWO PLAYLISTS, PICKED BY DEPLOYMENT IN serverConfig.ts.
  *
- * "Portfolio Playlist", public, owned by the site's own Spotify account. It exists,
- * so this is the real value rather than a placeholder.
+ * There used to be one, which meant every `pnpm dev` add and every staging smoke test
+ * landed on the playlist jaako actually listens to. Development and staging now write
+ * to the sandbox, and only production writes to the live one.
  *
- * A CONSTANT WITH AN ENVIRONMENT OVERRIDE, RATHER THAN AN ENVIRONMENT VARIABLE WITH NO
- * DEFAULT. It is not a secret — it is in the address bar of a public page — and it does
- * not change, so a clone of this repository should render the real playlist without
+ * CONSTANTS WITH AN ENVIRONMENT OVERRIDE, RATHER THAN ENVIRONMENT VARIABLES WITH NO
+ * DEFAULT. Neither is a secret — both are in the address bar of a public page — and
+ * neither changes, so a clone of this repository renders a real playlist without
  * anybody having to be told to set something first. serverConfig still reads
- * SPOTIFY_PLAYLIST_ID over the top of it, which is what a staging deployment would use
- * to avoid test adds landing on the playlist jaako actually listens to.
+ * SPOTIFY_PLAYLIST_ID over the top of whichever one the deployment selected.
+ *
+ * An id is the segment after /playlist/ in the share URL. The `?si=` on a copied link
+ * is a share token, not part of the id, and must not be carried in here.
  */
-export const SUGGEST_PLAYLIST_ID = "2CK3Ap0UNSCwatm9cIijx2";
+
+/**
+ * Production: <https://open.spotify.com/playlist/4eJiWoi2LBHIxFq2JqDvlo>
+ *
+ * The live playlist. Reached only by a deployment that resolves to Env.Production,
+ * which means ENV=PRODUCTION is actually set on the host — see the note in
+ * serverConfig.ts on what an unset ENV costs now that the tiers differ.
+ */
+export const SUGGEST_PLAYLIST_ID_PRODUCTION = "4eJiWoi2LBHIxFq2JqDvlo";
+
+/**
+ * Development and staging: <https://open.spotify.com/playlist/2CK3Ap0UNSCwatm9cIijx2>
+ *
+ * "Portfolio Playlist", public, owned by the same Spotify account. This was the single
+ * playlist before the split, so what is already on it is real suggestion history rather
+ * than test data — worth knowing before emptying it.
+ *
+ * PUBLIC ON PURPOSE. `playlist-modify-public` is the only write scope either token
+ * holds, so a private sandbox would answer 403 on every add and the failure would read
+ * as a bug in the route rather than as the wrong kind of playlist.
+ */
+export const SUGGEST_PLAYLIST_ID_DEVELOPMENT = "2CK3Ap0UNSCwatm9cIijx2";
 
 /**
  * Hosts a playlist cover is allowed to come from.

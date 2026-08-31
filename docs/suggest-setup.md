@@ -8,19 +8,38 @@ pick each one up as it lands.
 
 ---
 
-## 1. The playlist — already done
+## 1. The playlists — already done
 
-<https://open.spotify.com/playlist/2CK3Ap0UNSCwatm9cIijx2>
+Two of them, both public, both owned by the site's Spotify account. Which one a
+deployment writes to is decided in `src/server/serverConfig.ts`:
 
-**Portfolio Playlist**, public, owned by the site's Spotify account. Its id is
-`SUGGEST_PLAYLIST_ID` in `src/constants/suggest.ts`, so nothing has to be set for
-the page to render it: a fresh clone shows the live playlist straight away.
+| Deployment (`ENV`) | Playlist | Constant |
+| --- | --- | --- |
+| `PRODUCTION` | [4eJiWoi2LBHIxFq2JqDvlo](https://open.spotify.com/playlist/4eJiWoi2LBHIxFq2JqDvlo) | `SUGGEST_PLAYLIST_ID_PRODUCTION` |
+| `LOCAL`, `STAGING` | [2CK3Ap0UNSCwatm9cIijx2](https://open.spotify.com/playlist/2CK3Ap0UNSCwatm9cIijx2) | `SUGGEST_PLAYLIST_ID_DEVELOPMENT` |
 
-`SPOTIFY_PLAYLIST_ID` still overrides it per deployment, and that is the one reason to
-set it — staging writing to this playlist would mean test adds on the one you actually
-listen to.
+Both live in `src/constants/suggest.ts`, so nothing has to be set for the page to
+render: a fresh clone shows a live playlist straight away, and `pnpm dev` cannot add to
+the production one.
 
-> **If you ever swap it for a different playlist,** make it a new one rather than
+The sandbox is the original **Portfolio Playlist**, so what is on it is real suggestion
+history rather than test data — worth knowing before you empty it.
+
+> ### `ENV` decides this, so `ENV` now matters
+>
+> `toEnv` falls back to `LOCAL` for anything unset or unrecognised. While the three
+> configs were identical that cost nothing. It is not free any more: **an unset `ENV` on
+> the production host sends real visitor adds to the sandbox playlist**, with no error
+> and nothing in the logs to say so.
+>
+> Set `ENV=PRODUCTION` on the production host. Then set `SPOTIFY_PLAYLIST_ID` there as
+> well — it overrides whatever the tier resolved to, which turns a missing `ENV` from a
+> wrong playlist into a cosmetic bug. Belt and braces, because the failure is silent.
+
+`SPOTIFY_PLAYLIST_ID` overrides the tier's choice on any deployment. Use it to give
+staging a third playlist of its own, or as the guard above.
+
+> **If you ever swap either for a different playlist,** make it a new one rather than
 > something you already care about. Public, so `playlist-modify-public` is enough and
 > the write token never needs the private scope.
 
