@@ -179,7 +179,7 @@ Optional and unresolved: a display name on each row. Fun, and unverified free te
 which means it inherits the same validation `src/utils/contactRules.ts` already does
 for the contact form. Not built until asked for.
 
-### `/lab/roast` : spotify roast
+### `/lab/roast` : judgerist
 
 An agent reads a person's listening data and is unkind about it.
 
