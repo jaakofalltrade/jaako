@@ -6,6 +6,7 @@ import {
 } from "@/constants";
 import { Env, HttpStatus, SuggestFailure } from "@/models";
 import type { AddResponse, QueueEntry } from "@/models";
+import { getIsoDateTimeUtc } from "@/oras";
 import { serverConfig } from "@/server/serverConfig";
 import { spotifyService } from "@/server/spotify";
 import { suggestService } from "@/server/suggest";
@@ -155,7 +156,7 @@ export const POST = async (request: Request) => {
    */
   const entry: QueueEntry = {
     ...track,
-    added_at: new Date().toISOString(),
+    added_at: getIsoDateTimeUtc.now(),
     added_by: name,
   };
 

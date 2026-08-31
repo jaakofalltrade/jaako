@@ -6,6 +6,8 @@ import { MIN_QUERY_LENGTH, QUEUE_SHOWN, SEARCH_DEBOUNCE_MS, SUGGEST_MESSAGE } fr
 import { RowState } from "@/models";
 import type { QueueEntry, SearchResult } from "@/models";
 import { SUGGEST_TEASER } from "@/data/lab";
+import { getIsoDateTimeUtc } from "@/oras";
+import { getEpochMilliseconds } from "@/oras/milliseconds";
 import { checkDisplayName, normalizeDisplayName } from "@/utils/nameRules";
 import { QueueHead } from "./QueueHead";
 import { QueueRow } from "./QueueRow";
@@ -43,7 +45,10 @@ type Row = QueueEntry & { key: string; state: RowState; error?: string };
 
 const settled = (entry: QueueEntry): Row => ({
   ...entry,
-  key: `${entry.uri}:${entry.added_at}`,
+  /* added_at can be null now — Spotify does not always say when a track was added —
+     so the uri carries the key alone in that case. Two dateless rows for the same
+     track cannot both be on the playlist, so it is still unique where it matters. */
+  key: `${entry.uri}:${entry.added_at ?? ""}`,
   state: RowState.Settled,
 });
 
@@ -60,9 +65,9 @@ const settled = (entry: QueueEntry): Row => ({
  */
 const optimistic = (args: { track: SearchResult; signedAs: string }): Row => ({
   ...args.track,
-  added_at: new Date().toISOString(),
+  added_at: getIsoDateTimeUtc.now(),
   added_by: args.signedAs,
-  key: `pending:${args.track.uri}:${Date.now()}`,
+  key: `pending:${args.track.uri}:${getEpochMilliseconds.now()}`,
   state: RowState.Adding,
 });
 

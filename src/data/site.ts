@@ -1,4 +1,7 @@
 import { routes } from "@/client/endpoints";
+/* From oras/constants rather than "@/oras", which would pull luxon into a data file
+   that StatusReadout renders on the client. The constants half imports nothing. */
+import { Timezone } from "@/oras/constants";
 import {
   COORDS_LABEL,
   GITHUB_PATH,
@@ -139,9 +142,14 @@ export const CONTACT_SPEC = {
  * it is the only form that stays right across a DST change. The Philippines does not
  * observe one, so `utc_offset` can be the flat string it is — if this ever moves
  * somewhere that does, that field has to be derived from TIME_ZONE rather than typed.
+ *
+ * It is Timezone.Manila rather than the string it used to be, so the zone the clock
+ * reads and the zone the daily add cap counts against are provably the same one. They
+ * were the same by coincidence before: this file typed "Asia/Manila" and store.ts left
+ * the decision to Postgres, which was answering UTC.
  */
 export const STATUS = {
-  time_zone: "Asia/Manila",
+  time_zone: Timezone.Manila,
   zone_label: "pht",
   utc_offset: "gmt+8",
   employment: "employed",

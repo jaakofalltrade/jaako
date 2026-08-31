@@ -4,7 +4,7 @@ import React, { type CSSProperties } from "react";
 import { spotifyApi } from "@/client/spotifyApi";
 import { PEEK_LOADING, PEEK_OFFLINE_LINES, PEEK_STATUS } from "@/constants";
 import { AnnotationTone, DockState, IconName, Spotify } from "@/models";
-import { clock } from "@/utils/format";
+import { getEpochMilliseconds, getMinutesSeconds } from "@/oras/milliseconds";
 import { nextRefetchMs } from "@/utils/nowPlayingSchedule";
 import { clamp } from "@/utils/number";
 import { cx } from "@/utils/cx";
@@ -151,7 +151,7 @@ export const NowPlayingDock = () => {
    * however much of it the page was awake for.
    */
   const [settled, setSettled] = React.useState(0);
-  /** Null until the first response lands. Date.now() belongs in an event, not a render. */
+  /** Null until the first response lands. Reading the clock belongs in an event, not a render. */
   const settledAt = React.useRef<number | null>(null);
 
   const track = response?.track ?? null;
@@ -167,7 +167,7 @@ export const NowPlayingDock = () => {
    * in two places, is precisely the shape that drifts.
    */
   const apply = React.useCallback((next: Spotify.NowPlayingResponse) => {
-    settledAt.current = Date.now();
+    settledAt.current = getEpochMilliseconds.now();
     setResponse(next);
     setElapsed(0);
     setSettled((count) => count + 1);
@@ -254,7 +254,8 @@ export const NowPlayingDock = () => {
     // Nothing has landed yet on the very first pass, and the mount fetch is already
     // in flight — so nothing has been waited off, and this timer is only the backstop
     // for that fetch never arriving.
-    const waited = settledAt.current === null ? 0 : Date.now() - settledAt.current;
+    const waited =
+      settledAt.current === null ? 0 : getEpochMilliseconds.now() - settledAt.current;
 
     const id = setTimeout(() => load(), nextRefetchMs({ response, elapsed: waited }));
     return () => clearTimeout(id);
@@ -265,8 +266,8 @@ export const NowPlayingDock = () => {
   React.useEffect(() => {
     if (!playing || !track) return;
 
-    const startedAt = Date.now();
-    const id = setInterval(() => setElapsed(Date.now() - startedAt), 1000);
+    const startedAt = getEpochMilliseconds.now();
+    const id = setInterval(() => setElapsed(getEpochMilliseconds.now() - startedAt), 1000);
     return () => clearInterval(id);
   }, [playing, track]);
 
@@ -411,7 +412,8 @@ export const NowPlayingDock = () => {
                 <span aria-hidden="true" className="jk-dock__bar-fill" />
               </span>
               <span className="jk-dock__clock">
-                {clock(progress)} / {clock(track.duration_ms)}
+                {getMinutesSeconds.fromMilliseconds({ milliseconds: progress })} /{" "}
+                {getMinutesSeconds.fromMilliseconds({ milliseconds: track.duration_ms })}
               </span>
             </>
           ) : null}

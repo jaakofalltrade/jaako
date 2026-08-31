@@ -1,16 +1,21 @@
 "use client";
 
 import React from "react";
+import { getClockTime } from "@/oras";
 import { STATUS } from "@/data/site";
 
 /**
  * The clock in the status readout. The only thing on the page that is true right now.
  *
- * IT IS FORMATTED IN A FIXED ZONE, NOT THE READER'S. `Asia/Manila` is passed to Intl
- * explicitly, so this says what time it is where the work happens rather than what
- * time it is where the reader is sitting — which is the whole point of putting a clock
- * under a label that also says the timezone. A visitor in Berlin seeing their own
- * 15:47 next to "pht · gmt+8" would be reading a contradiction.
+ * IT IS FORMATTED IN A FIXED ZONE, NOT THE READER'S. Timezone.Manila is passed to
+ * getClockTime explicitly, so this says what time it is where the work happens rather
+ * than what time it is where the reader is sitting — which is the whole point of
+ * putting a clock under a label that also says the timezone. A visitor in Berlin
+ * seeing their own 15:47 next to "pht · gmt+8" would be reading a contradiction.
+ *
+ * This is the ONE readout on the site that deliberately ignores the visitor's zone.
+ * Dates elsewhere — the suggestion list — do use it, through useTimezone; the rule is
+ * that a date ABOUT the reader is theirs and a date about me is mine.
  *
  * useSyncExternalStore, and the wall clock is the external store — which is not a
  * stretch: it is a value that changes outside React, on its own schedule, that this
@@ -20,8 +25,8 @@ import { STATUS } from "@/data/site";
  * body or the placeholder sits there for a whole second.
  *
  * It also settles the hydration question for free, and there is a real one. The server
- * could format this perfectly well — Intl with an explicit timeZone gives the same
- * answer on any machine — but it would format it at request time, and the client would
+ * could format this perfectly well — an explicit zone gives the same answer on any
+ * machine — but it would format it at request time, and the client would
  * arrive a second or two later with a different seconds digit. getServerSnapshot
  * returns null instead, so the markup the server sends and the markup the client
  * hydrates are identical, and React re-renders with the live value immediately after.
@@ -35,19 +40,13 @@ import { STATUS } from "@/data/site";
  * getSnapshot that returned a Date, or an object, would loop.
  */
 
-/** en-GB rather than the reader's locale: 24-hour, zero-padded, no AM/PM, everywhere. */
-const FORMAT: Intl.DateTimeFormatOptions = {
-  timeZone: STATUS.time_zone,
-  hour: "2-digit",
-  minute: "2-digit",
-  second: "2-digit",
-  hour12: false,
-};
-
 /** Same shape as the real value, so the row is the right width before the first tick. */
 const PLACEHOLDER = "--:--:--";
 
-const readClock = () => new Intl.DateTimeFormat("en-GB", FORMAT).format(new Date());
+/* The format and the locale both live in oras now — DATE_TIME_FORMAT.clock_seconds and
+   the pinned en-GB in oras/settings.ts — rather than in an Intl options object here.
+   24-hour, zero-padded, no AM/PM, on every machine, exactly as before. */
+const readClock = () => getClockTime.now({ timezone: STATUS.time_zone });
 
 const clockStore = {
   subscribe: (listener: () => void) => {

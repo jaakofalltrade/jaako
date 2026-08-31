@@ -4,7 +4,7 @@ import { NAME_LIMITS } from "@/constants";
 import { ButtonVariant } from "@/models";
 import type { SearchResult } from "@/models";
 import { SUGGEST_TEASER } from "@/data/lab";
-import { clock } from "@/utils/format";
+import { getMinutesSeconds } from "@/oras/milliseconds";
 import { Button } from "@/design-system/core/Button";
 import { Field } from "@/design-system/forms/Field";
 import { Input } from "@/design-system/forms/Input";
@@ -53,7 +53,9 @@ export const SearchRow = ({
         </span>
       </span>
 
-      <span className={styles.resultTime}>{clock(track.duration_ms)}</span>
+      <span className={styles.resultTime}>
+        {getMinutesSeconds.fromMilliseconds({ milliseconds: track.duration_ms })}
+      </span>
 
       <Button variant={ButtonVariant.Ghost} onClick={onAdd} disabled={disabled}>
         add

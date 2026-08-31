@@ -1,6 +1,6 @@
 import { AnnotationTone, DecryptAlphabet } from "@/models";
 import { VISITOR_INDEX } from "@/data/site";
-import { toDigits } from "@/utils/format";
+import { getDigitCells } from "@/utils/format";
 import { cx } from "@/utils/cx";
 import { Annotation } from "../core/Annotation";
 import { DecryptedText } from "../core/DecryptedText";
@@ -34,7 +34,7 @@ export const VisitorIndex = ({
         visually-hidden line below, so the seven components add nothing for a screen
         reader to trip over. */}
     <span aria-hidden="true" className="jk-visitor__display">
-      {toDigits({ count, length: digits }).map((digit, index) => (
+      {getDigitCells({ count, length: digits }).map((digit, index) => (
         <span key={index} className="jk-visitor__digit">
           <DecryptedText text={digit} alphabet={DecryptAlphabet.Digits} />
         </span>
