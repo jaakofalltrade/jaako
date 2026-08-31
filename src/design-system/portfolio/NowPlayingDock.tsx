@@ -5,6 +5,7 @@ import { spotifyApi } from "@/client/spotifyApi";
 import { PEEK_LOADING, PEEK_OFFLINE_LINES, PEEK_STATUS } from "@/constants";
 import { AnnotationTone, DockState, IconName, Spotify } from "@/models";
 import { clock } from "@/utils/format";
+import { nextRefetchMs } from "@/utils/nowPlayingSchedule";
 import { clamp } from "@/utils/number";
 import { cx } from "@/utils/cx";
 import { Annotation } from "../core/Annotation";
@@ -31,8 +32,10 @@ import { Icon } from "../Icon";
  * Two states, as before: minimised and open. What went is the machinery around the
  * choice between them — see the note over the component — not the choice itself.
  *
- * The playback logic is untouched. The local progress extrapolation, the one-request-
- * per-song schedule and the paused-reports-as-Recent handling were already right.
+ * The local progress extrapolation and the paused-reports-as-Recent handling were
+ * already right and are untouched. The one-request-per-song schedule was not: it had
+ * no answer for a song that ends, which is the one thing every song does. See
+ * nextRefetchMs.
  */
 
 /**
@@ -94,12 +97,6 @@ const RecentLine = ({ title, album }: { title: string; album: string }) => {
   );
 };
 
-/** Server and client clocks disagree, and Spotify samples progress_ms. */
-const DRIFT_MS = 2000;
-
-/** Floor. Without it, a short interlude or rapid skipping becomes a request storm. */
-const MIN_REFETCH_MS = 10_000;
-
 /**
  * IT ALWAYS STARTS MINIMISED, and the whole apparatus that used to decide otherwise is
  * gone with the decision.
@@ -131,15 +128,59 @@ export const NowPlayingDock = () => {
   const [dock, setDock] = React.useState<DockState>(DockState.Sleeve);
   const [tabVisible, setTabVisible] = React.useState(true);
 
+  /**
+   * How many responses have landed, and when the last one did.
+   *
+   * THE COUNTER IS WHAT RE-ARMS THE TIMER, and it exists because the response alone
+   * cannot be trusted to say a fetch happened. getJson hands back the fallback it was
+   * given, and spotifyApi passes the module-level OFFLINE_RESPONSE — so two failures
+   * in a row call setResponse with the object that is already in state. React compares
+   * by identity, finds them equal, and skips the render; an effect keyed on `response`
+   * therefore never re-runs, and the timer that just fired is not replaced. A route
+   * that is down for a minute would get exactly one retry and then stop for good,
+   * which is the freeze this whole change is about, reached by a different door.
+   *
+   * A count cannot be equal to itself, so every settled load re-runs the effect
+   * whatever came back.
+   *
+   * The stamp is a ref rather than state because nothing renders from it: it is the
+   * scheduler's clock, and it is a different clock from `elapsed`. `elapsed` is the
+   * progress bar's, it only runs while a track is playing, and setInterval is
+   * throttled to about once a minute in a background tab. Scheduling off wall-clock
+   * time instead means a wait that is measured from the response rather than from
+   * however much of it the page was awake for.
+   */
+  const [settled, setSettled] = React.useState(0);
+  /** Null until the first response lands. Date.now() belongs in an event, not a render. */
+  const settledAt = React.useRef<number | null>(null);
+
   const track = response?.track ?? null;
   const playing = response?.status === Spotify.PlaybackStatus.Playing;
 
-  const load = React.useCallback(async (signal?: AbortSignal) => {
-    const next = await spotifyApi.nowPlaying({ signal });
-    if (signal?.aborted) return;
+  /**
+   * Everything that happens when a response lands, in the one place both callers
+   * reach it through.
+   *
+   * Extracted because there are two of them — the mount fetch below and `load` — and
+   * landing a response now means stamping the scheduler's clock and bumping its
+   * counter as well as setting the state. Three lines that must stay together, wanted
+   * in two places, is precisely the shape that drifts.
+   */
+  const apply = React.useCallback((next: Spotify.NowPlayingResponse) => {
+    settledAt.current = Date.now();
     setResponse(next);
     setElapsed(0);
+    setSettled((count) => count + 1);
   }, []);
+
+  const load = React.useCallback(
+    async (signal?: AbortSignal) => {
+      const next = await spotifyApi.nowPlaying({ signal });
+      if (signal?.aborted) return;
+      apply(next);
+    },
+    [apply],
+  );
 
   // The promise form rather than `load(signal)` on purpose: the state update belongs
   // in the callback, where it is plainly asynchronous, instead of looking like a
@@ -149,12 +190,11 @@ export const NowPlayingDock = () => {
 
     spotifyApi.nowPlaying({ signal: controller.signal }).then((next) => {
       if (controller.signal.aborted) return;
-      setResponse(next);
-      setElapsed(0);
+      apply(next);
     });
 
     return () => controller.abort();
-  }, []);
+  }, [apply]);
 
   /*
    * THE HERO GATE IS GONE. There used to be an IntersectionObserver here watching
@@ -181,25 +221,44 @@ export const NowPlayingDock = () => {
   }, []);
 
   /**
-   * One request per song rather than one every thirty seconds.
+   * One request per song while a song is playing, and a plain thirty seconds when one
+   * is not. nextRefetchMs decides which; the note on it explains why the second case
+   * has to exist at all.
    *
-   * The duration already tells us when the track ends, so the refetch is scheduled for
-   * that moment instead of polling blindly. Both guards matter: the drift margin
-   * because the two clocks disagree, and the floor because skipping rapidly through
-   * tracks would otherwise fire a request per skip.
+   * WHAT MATTERS HERE IS THAT THERE IS NO EARLY RETURN LEFT except the hidden tab.
+   * This effect is the only thing that produces the next request, so every path out of
+   * it that scheduled nothing was a path that stopped the panel permanently — and one
+   * of them was reached by an ordinary track ending. A timer is now always armed while
+   * the tab is on screen, whatever the last response said.
+   *
+   * The hidden-tab return is the one that is still correct, because visibilitychange
+   * brings it back: nothing is scheduled for a tab nobody is looking at, and returning
+   * to the tab re-runs this effect and arms a timer again.
+   *
+   * Keyed on `settled` rather than on `response`, for the reason set out over the
+   * counter: a response can arrive that is identical to the one already in state, and
+   * a dependency that does not change is a timer that is not replaced.
+   *
+   * The wait is measured from `settledAt`, so hiding the tab defers the schedule
+   * instead of restarting it. Coming back after longer than the wait is due at once,
+   * and coming back after a moment keeps what was left of it — flicking between tabs
+   * no longer starves the panel of the request it was about to make.
+   *
+   * No exhaustive-deps exemption any more. It was here because the effect read
+   * `elapsed`, which changes every second; it reads the ref now, and a ref is not a
+   * dependency.
    */
   React.useEffect(() => {
-    if (!playing || !track || track.duration_ms <= 0 || !tabVisible) return;
+    if (!tabVisible) return;
 
-    const remaining = track.duration_ms - (track.progress_ms + elapsed);
-    const delay = Math.max(MIN_REFETCH_MS, remaining + DRIFT_MS);
+    // Nothing has landed yet on the very first pass, and the mount fetch is already
+    // in flight — so nothing has been waited off, and this timer is only the backstop
+    // for that fetch never arriving.
+    const waited = settledAt.current === null ? 0 : Date.now() - settledAt.current;
 
-    const id = setTimeout(() => load(), delay);
+    const id = setTimeout(() => load(), nextRefetchMs({ response, elapsed: waited }));
     return () => clearTimeout(id);
-    // elapsed is deliberately excluded from the deps: including it would tear down and
-    // reschedule this timer every single second.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playing, track, tabVisible, load]);
+  }, [response, settled, tabVisible, load]);
 
   // Advance the progress bar locally so it is not frozen at the load-time value.
   // Costs no network.
