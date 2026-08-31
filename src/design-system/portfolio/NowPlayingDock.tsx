@@ -5,6 +5,7 @@ import { spotifyApi } from "@/client/spotifyApi";
 import { PEEK_LOADING, PEEK_OFFLINE_LINES, PEEK_STATUS } from "@/constants";
 import { AnnotationTone, DockState, IconName, Spotify } from "@/models";
 import { clock } from "@/utils/format";
+import { nextRefetchMs } from "@/utils/nowPlayingSchedule";
 import { clamp } from "@/utils/number";
 import { cx } from "@/utils/cx";
 import { Annotation } from "../core/Annotation";
@@ -31,8 +32,10 @@ import { Icon } from "../Icon";
  * Two states, as before: minimised and open. What went is the machinery around the
  * choice between them — see the note over the component — not the choice itself.
  *
- * The playback logic is untouched. The local progress extrapolation, the one-request-
- * per-song schedule and the paused-reports-as-Recent handling were already right.
+ * The local progress extrapolation and the paused-reports-as-Recent handling were
+ * already right and are untouched. The one-request-per-song schedule was not: it had
+ * no answer for a song that ends, which is the one thing every song does. See
+ * nextRefetchMs.
  */
 
 /**
@@ -93,12 +96,6 @@ const RecentLine = ({ title, album }: { title: string; album: string }) => {
     </span>
   );
 };
-
-/** Server and client clocks disagree, and Spotify samples progress_ms. */
-const DRIFT_MS = 2000;
-
-/** Floor. Without it, a short interlude or rapid skipping becomes a request storm. */
-const MIN_REFETCH_MS = 10_000;
 
 /**
  * IT ALWAYS STARTS MINIMISED, and the whole apparatus that used to decide otherwise is
@@ -181,25 +178,33 @@ export const NowPlayingDock = () => {
   }, []);
 
   /**
-   * One request per song rather than one every thirty seconds.
+   * One request per song while a song is playing, and a plain thirty seconds when one
+   * is not. nextRefetchMs decides which; the note on it explains why the second case
+   * has to exist at all.
    *
-   * The duration already tells us when the track ends, so the refetch is scheduled for
-   * that moment instead of polling blindly. Both guards matter: the drift margin
-   * because the two clocks disagree, and the floor because skipping rapidly through
-   * tracks would otherwise fire a request per skip.
+   * WHAT MATTERS HERE IS THAT THERE IS NO EARLY RETURN LEFT except the hidden tab.
+   * This effect is the only thing that produces the next request, so every path out of
+   * it that scheduled nothing was a path that stopped the panel permanently — and one
+   * of them was reached by an ordinary track ending. A timer is now always armed while
+   * the tab is on screen, whatever the last response said.
+   *
+   * The hidden-tab return is the one that is still correct, because visibilitychange
+   * brings it back: nothing is scheduled for a tab nobody is looking at, and returning
+   * to the tab re-runs this effect and arms a timer again.
+   *
+   * Keyed on `response` rather than on the `playing` and `track` it was read off,
+   * because it is the response that decides the delay now, and one dependency that
+   * changes exactly when a new one lands says that better than two derived ones.
    */
   React.useEffect(() => {
-    if (!playing || !track || track.duration_ms <= 0 || !tabVisible) return;
+    if (!tabVisible) return;
 
-    const remaining = track.duration_ms - (track.progress_ms + elapsed);
-    const delay = Math.max(MIN_REFETCH_MS, remaining + DRIFT_MS);
-
-    const id = setTimeout(() => load(), delay);
+    const id = setTimeout(() => load(), nextRefetchMs({ response, elapsed }));
     return () => clearTimeout(id);
     // elapsed is deliberately excluded from the deps: including it would tear down and
     // reschedule this timer every single second.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playing, track, tabVisible, load]);
+  }, [response, tabVisible, load]);
 
   // Advance the progress bar locally so it is not frozen at the load-time value.
   // Costs no network.

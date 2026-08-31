@@ -95,6 +95,36 @@ export const PEEK_OFFLINE_LINES = {
   artist: "back when the coffee lands",
 } as const;
 
+/* ---------------- when the panel asks again ---------------- */
+
+/**
+ * Added to the time left on a track so the refetch lands just after the change
+ * rather than on top of it. The two clocks disagree, and Spotify samples
+ * progress_ms rather than deriving it live.
+ */
+export const DRIFT_MS = 2000;
+
+/** Floor. Without it, a short interlude or rapid skipping becomes a request storm. */
+export const MIN_REFETCH_MS = 10_000;
+
+/**
+ * How long the panel waits before asking again when nothing is playing.
+ *
+ * THIS IS THE NUMBER THAT KEEPS THE PANEL ALIVE BETWEEN SONGS, and it is why the
+ * one-request-per-song schedule needs a second number at all. That schedule is
+ * derived from the time remaining on the current track, so it can only be drawn
+ * while there is a current track to derive it from. A paused player, a finished
+ * queue, a podcast, and a fetch that failed once all report no playing track, and
+ * every one of them used to leave nothing scheduled at all — the panel then sat on
+ * whatever song it last saw until somebody pressed refresh or reloaded the page.
+ *
+ * Thirty seconds because it is the s-maxage below: an idle panel behind the CDN
+ * costs one upstream call per half minute however many people have the page open.
+ * It is also about the resolution the answer deserves — "what is he listening to"
+ * does not need a finer one.
+ */
+export const IDLE_REFETCH_MS = 30_000;
+
 export const NOW_PLAYING_CACHE_HEADERS = {
   // s-maxage lets a CDN absorb traffic spikes; max-age=0 keeps the browser out of
   // it, since the refresh button is the only intended way to update the panel and
