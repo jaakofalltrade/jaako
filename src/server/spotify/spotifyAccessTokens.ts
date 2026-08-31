@@ -142,8 +142,8 @@ const exchange = async (args: {
  *
  * That happened: approving the write scope revoked the access token a warm server was
  * still holding, and because nothing here cleared the cache on a rejection, the site
- * answered 401 for every read until the process restarted. See spotifyFetch in
- * request.ts, which is the only caller.
+ * answered 401 for every read until the process restarted. See send() in
+ * spotifyApiClient.ts, which is the only caller.
  */
 export const invalidateAccessToken = (args: { write: boolean }): void => {
   (args.write ? writeTokenCache : readTokenCache).clear();

@@ -9,17 +9,18 @@ import { Spotify } from "@/models";
 import type { PlaylistSnapshot, SearchResult } from "@/models";
 import { serverConfig } from "@/server/serverConfig";
 import { spotifyEndpoints } from "@/server/endpoints";
-import { hasCredentials, hasWriteCredentials } from "./auth";
-import { spotifyFetch } from "./request";
+import { hasCredentials, hasWriteCredentials } from "./spotifyAccessTokens";
+import { spotifyRead, spotifyWrite } from "./spotifyApiClient";
 import { toPlaylistSummary, toQueueEntry, toSearchResult, trackIdFromUri } from "./mappers";
 
 /**
  * The lab playlist: reading it, searching for something to put on it, and putting it
  * there.
  *
- * Separate from spotifyService because the two answer to different pages and fail
- * differently. The now-playing panel is decoration on the homepage; this is the subject
- * of /lab/suggest.
+ * Separate from listeningActivity.ts because the two answer to different pages and
+ * fail differently. The now-playing panel is decoration on the homepage; this is the
+ * subject of /lab/suggest. They are reachable as one namespace from index.ts, which
+ * groups them without joining their failure domains.
  *
  * ONE REQUEST SERVES THE WHOLE PAGE, which is the shape everything here is arranged
  * around. Spotify embeds a playlist's first page of items inside the playlist record,
@@ -32,18 +33,10 @@ import { toPlaylistSummary, toQueueEntry, toSearchResult, trackIdFromUri } from 
  * uris-only read, which is under a hundred bytes.
  */
 
-/* Every call goes through spotifyFetch, which retries once on a 401 with a freshly
-   minted token. A cached access token can be revoked before its clock runs out; see
-   the header of request.ts for how that was found. */
-const get = async <T>(args: { path: string }): Promise<T | null> => {
-  const { path } = args;
-
-  const response = await spotifyFetch({ path });
-  if (!response.ok) throw new Error(`GET ${path} failed: ${response.status}`);
-
-  const text = await response.text();
-  return text ? (JSON.parse(text) as T) : null;
-};
+/* Reads go through spotifyRead and the add goes through spotifyWrite, both of which
+   retry once on a 401 with a freshly minted token. A cached access token can be
+   revoked before its clock runs out; see the header of spotifyApiClient.ts for how
+   that was found. The private get<T> that used to sit here is that file's getJson. */
 
 /** `next` arrives absolute; everything in this folder speaks paths. */
 const toPath = (next: string | null | undefined): string | null =>
@@ -64,7 +57,7 @@ const restOfPages = async <T>(args: {
 
   let path = toPath(first?.next);
   for (let page = 0; page < PLAYLIST_MAX_PAGES && path; page += 1) {
-    const body: Spotify.PlaylistItemsResponse | null = await get({ path });
+    const body: Spotify.PlaylistItemsResponse | null = await spotifyRead.getJson({ path });
     if (!body) break;
     found.push(...collect(body));
     path = toPath(body.next);
@@ -117,7 +110,7 @@ const snapshot = async (): Promise<PlaylistSnapshot | null> => {
 
     const id = serverConfig.spotify_playlist_id;
 
-    const playlist = await get<Spotify.PlaylistResponse>({
+    const playlist = await spotifyRead.getJson<Spotify.PlaylistResponse>({
       path: spotifyEndpoints.playlist({ id, limit: QUEUE_READ_LIMIT }),
     });
 
@@ -163,7 +156,7 @@ const snapshot = async (): Promise<PlaylistSnapshot | null> => {
 const trackUris = async (): Promise<Set<string>> => {
   const id = serverConfig.spotify_playlist_id;
 
-  const first = await get<Spotify.PlaylistItemsResponse>({
+  const first = await spotifyRead.getJson<Spotify.PlaylistItemsResponse>({
     path: spotifyEndpoints.playlistTrackUris({ id, limit: QUEUE_READ_LIMIT }),
   });
 
@@ -181,7 +174,7 @@ const getTrack = async (args: { uri: string }): Promise<SearchResult | null> => 
   const id = trackIdFromUri(args.uri);
   if (!id) return null;
 
-  const track = await get<Spotify.TrackResponse>({
+  const track = await spotifyRead.getJson<Spotify.TrackResponse>({
     path: spotifyEndpoints.track({ id }),
   });
 
@@ -190,7 +183,7 @@ const getTrack = async (args: { uri: string }): Promise<SearchResult | null> => 
 
 /** Track search, for the proxy route. Throws; the route decides what a failure means. */
 const search = async (args: { q: string }): Promise<SearchResult[]> => {
-  const found = await get<Spotify.SearchTracksResponse>({
+  const found = await spotifyRead.getJson<Spotify.SearchTracksResponse>({
     path: spotifyEndpoints.search({ q: args.q, limit: SEARCH_LIMIT }),
   });
 
@@ -215,17 +208,10 @@ const search = async (args: { q: string }): Promise<SearchResult[]> => {
 const addTrack = async (args: { uri: string }): Promise<void> => {
   const id = serverConfig.spotify_playlist_id;
 
-  const response = await spotifyFetch({
+  await spotifyWrite.post({
     path: spotifyEndpoints.playlistAdd({ id }),
-    write: true,
-    init: {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ uris: [args.uri], position: 0 }),
-    },
+    body: { uris: [args.uri], position: 0 },
   });
-
-  if (!response.ok) throw new Error(`add failed: ${response.status}`);
 
   // The playlist has changed and this process is the reason, so the next reader should
   // not be handed the snapshot taken before it.
@@ -236,7 +222,7 @@ const addTrack = async (args: { uri: string }): Promise<void> => {
 const canWrite = (): boolean =>
   hasWriteCredentials() && Boolean(serverConfig.spotify_playlist_id);
 
-export const playlistService = {
+export const suggestPlaylist = {
   snapshot,
   trackUris,
   getTrack,

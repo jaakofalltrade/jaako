@@ -34,7 +34,8 @@ import "server-only";
  * only be a second chance to send it wrong.
  *
  * Answers 204 with an empty body when nothing is playing. That is NOT in the schema —
- * only /me/player documents a 204 — but it happens, and request.ts handles it.
+ * only /me/player documents a 204 — but it happens, and getJson in
+ * spotifyApiClient.ts handles it.
  */
 export const currentlyPlaying = () => "/me/player/currently-playing";
 

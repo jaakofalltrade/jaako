@@ -12,6 +12,6 @@ import { spotifyService } from "@/server/spotify";
 export const dynamic = "force-dynamic";
 
 export const GET = async () => {
-  const payload = await spotifyService.getTopItems();
+  const payload = await spotifyService.listening.getTopItems();
   return NextResponse.json(payload, { headers: TOP_ITEMS_CACHE_HEADERS });
 };

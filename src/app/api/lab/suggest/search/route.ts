@@ -1,7 +1,7 @@
 import { MIN_QUERY_LENGTH } from "@/constants";
 import { HttpStatus } from "@/models";
 import type { SearchResponse } from "@/models";
-import { playlistService } from "@/server/spotify";
+import { spotifyService } from "@/server/spotify";
 import { suggestService } from "@/server/suggest";
 import { clientIp } from "@/server/clientIp";
 
@@ -51,7 +51,7 @@ export const GET = async (request: Request) => {
   if (cached) return json({ body: { results: cached }, status: HttpStatus.Ok });
 
   try {
-    const results = await playlistService.search({ q });
+    const results = await spotifyService.playlist.search({ q });
     suggestService.searchCache.write({ key, results });
     return json({ body: { results }, status: HttpStatus.Ok });
   } catch (error) {

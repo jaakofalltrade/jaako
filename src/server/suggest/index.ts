@@ -1,5 +1,5 @@
 import "server-only";
-import { playlistService } from "@/server/spotify";
+import { spotifyService } from "@/server/spotify";
 import { blocklist } from "./blocklist";
 import { hasStore, namesByUri, record, releaseAdd, reserveAdd } from "./store";
 import { searchCache, searchKey, searchThrottle } from "./searchCache";
@@ -24,12 +24,12 @@ import { validate } from "./validate";
  * different thing to whoever has to fix it. The route logs which; the page says the
  * playlist is not open yet.
  */
-const isConfigured = (): boolean => playlistService.canWrite() && hasStore();
+const isConfigured = (): boolean => spotifyService.playlist.canWrite() && hasStore();
 
 /** What is missing, for the server log. Never for the response. */
 const missingConfig = (): string[] =>
   [
-    playlistService.canWrite() ? null : "SPOTIFY_WRITE_REFRESH_TOKEN",
+    spotifyService.playlist.canWrite() ? null : "SPOTIFY_WRITE_REFRESH_TOKEN",
     hasStore() ? null : "DATABASE_URL",
   ].filter((name): name is string => Boolean(name));
 

@@ -22,7 +22,7 @@ import { serverConfig } from "@/server/serverConfig";
 /**
  * False on a fresh clone or a host with a forgotten variable.
  *
- * The same shape as hasCredentials() in server/spotify/auth.ts, and it exists for the
+ * The same shape as hasCredentials() in server/spotify/spotifyAccessTokens.ts, and it exists for the
  * same reason: a caller should be able to ask before it tries, so a missing variable
  * becomes a refusal it can explain rather than an exception at the driver.
  *

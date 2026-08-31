@@ -193,7 +193,7 @@ describe("toPlaylistSummary", () => {
 
   /* The count is passed in rather than read off the playlist, because the caller has
      already had to page through the items to sum their durations and knows the real
-     figure. items.total is what it derives that from; see playlistService.snapshot. */
+     figure. items.total is what it derives that from; see suggestPlaylist.snapshot. */
   it("reports the count it was given", () => {
     expect(toPlaylistSummary({ playlist: real, track_count: 42, runtime_ms: 0 }).track_count).toBe(42);
   });
