@@ -8,38 +8,32 @@ pick each one up as it lands.
 
 ---
 
-## 1. The playlists — already done
+## 1. The playlist — already done
 
-Two of them, both public, both owned by the site's Spotify account. Which one a
-deployment writes to is decided in `src/server/serverConfig.ts`:
+<https://open.spotify.com/playlist/2CK3Ap0UNSCwatm9cIijx2>
 
-| Deployment (`ENV`) | Playlist | Constant |
-| --- | --- | --- |
-| `PRODUCTION` | [4eJiWoi2LBHIxFq2JqDvlo](https://open.spotify.com/playlist/4eJiWoi2LBHIxFq2JqDvlo) | `SUGGEST_PLAYLIST_ID_PRODUCTION` |
-| `LOCAL`, `STAGING` | [2CK3Ap0UNSCwatm9cIijx2](https://open.spotify.com/playlist/2CK3Ap0UNSCwatm9cIijx2) | `SUGGEST_PLAYLIST_ID_DEVELOPMENT` |
+**Portfolio Playlist**, public, owned by the site's Spotify account. Its id is
+`SUGGEST_PLAYLIST_ID` in `src/constants/suggest.ts`, so nothing has to be set for
+the page to render it: a fresh clone shows the live playlist straight away.
 
-Both live in `src/constants/suggest.ts`, so nothing has to be set for the page to
-render: a fresh clone shows a live playlist straight away, and `pnpm dev` cannot add to
-the production one.
+`SPOTIFY_PLAYLIST_ID` still overrides it per deployment, and that is the one reason to
+set it — staging writing to this playlist would mean test adds on the one you actually
+listen to. It lives in `.env` rather than `.env.local`, because it is not a secret.
 
-The sandbox is the original **Portfolio Playlist**, so what is on it is real suggestion
-history rather than test data — worth knowing before you empty it.
+**To get the id out of a share link,** rather than by eye:
 
-> ### `ENV` decides this, so `ENV` now matters
->
-> `toEnv` falls back to `LOCAL` for anything unset or unrecognised. While the three
-> configs were identical that cost nothing. It is not free any more: **an unset `ENV` on
-> the production host sends real visitor adds to the sandbox playlist**, with no error
-> and nothing in the logs to say so.
->
-> Set `ENV=PRODUCTION` on the production host. Then set `SPOTIFY_PLAYLIST_ID` there as
-> well — it overrides whatever the tier resolved to, which turns a missing `ENV` from a
-> wrong playlist into a cosmetic bug. Belt and braces, because the failure is silent.
+```sh
+pnpm playlist:id "https://open.spotify.com/playlist/2CK3Ap0UNSCwatm9cIijx2?si=abc123"
+```
 
-`SPOTIFY_PLAYLIST_ID` overrides the tier's choice on any deployment. Use it to give
-staging a third playlist of its own, or as the guard above.
+The `?si=` on a copied link is a **share token**, not part of the id: Spotify stamps a
+different one on every copy, and pasting it into the variable produces an id that 404s.
+Some links also carry a locale segment, `/intl-de/playlist/...`, which moves the id one
+place along. The script strips both, accepts a `spotify:playlist:` URI or a bare id
+too, and prints the line ready to paste. It is offline and read-only — it parses a
+string, so it cannot confirm the playlist exists, only that the id is well formed.
 
-> **If you ever swap either for a different playlist,** make it a new one rather than
+> **If you ever swap it for a different playlist,** make it a new one rather than
 > something you already care about. Public, so `playlist-modify-public` is enough and
 > the write token never needs the private scope.
 
@@ -144,11 +138,30 @@ Once the code is built:
 
 ## The variables
 
+Secrets go in `.env.local`, which is not committed. Everything else goes in `.env`,
+which is. Next resolves `process.env` first, then `.env.local`, then `.env`, so the
+host overrides both by setting a real environment variable.
+
 | Variable | Where | Without it |
 | --- | --- | --- |
-| `SPOTIFY_PLAYLIST_ID` | optional | Defaults to the real lab playlist. Set it only to point a deployment elsewhere. |
+| `ENV` | `.env`, and the host | Falls back to `LOCAL`. In production that means the visitor cookie goes out **without `Secure`** — see below. |
+| `SPOTIFY_PLAYLIST_ID` | `.env`, optional | Defaults to the real lab playlist. Set it only to point a deployment elsewhere. |
 | `SPOTIFY_WRITE_REFRESH_TOKEN` | `.env.local` and the host | Reads work, adds refuse with a 503. |
 | `DATABASE_URL` | `.env.local` and the host | List renders without names, adds refuse. See `docs/neon-setup.md`. |
+
+### `ENV` is not decorative
+
+It has exactly one consumer today, and it is a security-relevant one. The add route
+sets the visitor cookie's `Secure` attribute from `serverConfig.env !== Env.Local`
+(`src/app/api/lab/suggest/add/route.ts`), because on plain-http localhost setting
+`Secure` would drop the cookie silently.
+
+`toEnv` falls back to `Env.Local` for anything unset or unrecognised — including a
+lowercase `production`, since it checks membership of the enum rather than casting. So
+**a production host that never sets `ENV` serves its visitor cookie without `Secure`**,
+and nothing anywhere reports it. Set `ENV=PRODUCTION` on the host. The `ENV=LOCAL` in
+`.env` is the default for a clone, and is deliberately the safe value rather than the
+production one.
 
 ## What the API actually returns
 

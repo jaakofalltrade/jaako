@@ -30,9 +30,14 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files
+#
+# .env holds the non-secret defaults every deployment shares and IS committed.
+# .env.local holds this machine's secrets and is not. Next resolves process.env first,
+# then .env.local, then .env, so the host overrides both without either being edited.
 .env*
 !.env.example
+!.env
 
 # vercel
 .vercel

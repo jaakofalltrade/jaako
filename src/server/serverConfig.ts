@@ -1,5 +1,5 @@
 import "server-only";
-import { SUGGEST_PLAYLIST_ID_DEVELOPMENT, SUGGEST_PLAYLIST_ID_PRODUCTION } from "@/constants";
+import { SUGGEST_PLAYLIST_ID } from "@/constants";
 import { Env, ServerConfig } from "@/models";
 import { isEnumValue } from "@/utils/enum";
 
@@ -14,17 +14,8 @@ import { isEnumValue } from "@/utils/enum";
  * every secret field would arrive in the browser as undefined and the panel and the
  * form would quietly degrade instead of the build stopping.
  *
- * The three configs used to be identical, and the structure was here so a tier could
- * diverge without a refactor. THE PLAYLIST IS THE FIRST FIELD THAT ACTUALLY DOES:
- * local and staging write to the sandbox, production writes to the live playlist.
- *
- * WHICH MEANS ENV NOW HAS TEETH. While the tiers were identical an unset ENV cost
- * nothing, because every branch of configByEnv held the same values. Now an unset ENV
- * on the production host resolves to Local and sends real visitor adds to the sandbox
- * playlist, silently and with no error anywhere. Two things guard that, and both are
- * deliberately outside this file: ENV=PRODUCTION set on the host, and
- * SPOTIFY_PLAYLIST_ID set there too, which wins whatever the tier resolves to. Setting
- * the second is what makes a missing ENV a cosmetic bug rather than a wrong playlist.
+ * The three configs are identical today. That's deliberate: the structure is
+ * here so staging can diverge without a refactor, not because it already has.
  */
 
 const SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token";
@@ -58,7 +49,7 @@ const localConfig: ServerConfig = {
   spotify_write_refresh_token: process.env.SPOTIFY_WRITE_REFRESH_TOKEN ?? "",
   spotify_token_url: SPOTIFY_TOKEN_URL,
   spotify_api_url: SPOTIFY_API_URL,
-  spotify_playlist_id: process.env.SPOTIFY_PLAYLIST_ID || SUGGEST_PLAYLIST_ID_DEVELOPMENT,
+  spotify_playlist_id: process.env.SPOTIFY_PLAYLIST_ID || SUGGEST_PLAYLIST_ID,
   database_url: process.env.DATABASE_URL ?? "",
   resend_api_key: process.env.RESEND_API_KEY ?? "",
 };
@@ -71,10 +62,7 @@ const stagingConfig: ServerConfig = {
   spotify_write_refresh_token: process.env.SPOTIFY_WRITE_REFRESH_TOKEN ?? "",
   spotify_token_url: SPOTIFY_TOKEN_URL,
   spotify_api_url: SPOTIFY_API_URL,
-  // Shares the sandbox with local rather than owning a third playlist: the point is
-  // that it is not the live one, and two ids are enough to express that. Give staging
-  // its own by setting SPOTIFY_PLAYLIST_ID on that deployment.
-  spotify_playlist_id: process.env.SPOTIFY_PLAYLIST_ID || SUGGEST_PLAYLIST_ID_DEVELOPMENT,
+  spotify_playlist_id: process.env.SPOTIFY_PLAYLIST_ID || SUGGEST_PLAYLIST_ID,
   database_url: process.env.DATABASE_URL ?? "",
   resend_api_key: process.env.RESEND_API_KEY ?? "",
 };
@@ -87,9 +75,7 @@ const productionConfig: ServerConfig = {
   spotify_write_refresh_token: process.env.SPOTIFY_WRITE_REFRESH_TOKEN ?? "",
   spotify_token_url: SPOTIFY_TOKEN_URL,
   spotify_api_url: SPOTIFY_API_URL,
-  // The only line in this file that names the live playlist. Reached only when ENV is
-  // actually PRODUCTION on the host; see the header.
-  spotify_playlist_id: process.env.SPOTIFY_PLAYLIST_ID || SUGGEST_PLAYLIST_ID_PRODUCTION,
+  spotify_playlist_id: process.env.SPOTIFY_PLAYLIST_ID || SUGGEST_PLAYLIST_ID,
   database_url: process.env.DATABASE_URL ?? "",
   resend_api_key: process.env.RESEND_API_KEY ?? "",
 };
