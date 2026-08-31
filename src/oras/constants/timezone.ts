@@ -32,6 +32,24 @@ export enum Timezone {
   Utc = "UTC",
 
   /**
+   * A zone this site never renders, kept so the test suite can prove DST is handled.
+   *
+   * THE PHILIPPINES HAS NO DAYLIGHT SAVING, which makes Manila a poor witness: every
+   * assertion written against it holds at a flat UTC+8 all year, so a suite built only
+   * on Manila and UTC cannot tell correct zone handling apart from adding eight hours.
+   * Sydney is UTC+10 in August and UTC+11 in January, and on the morning its clocks go
+   * back, 2026-04-04T15:30Z and 2026-04-04T16:30Z - an hour apart - both read 02:30.
+   * Nothing anchored to Manila can produce that, and it is exactly the case that breaks
+   * hand-rolled date arithmetic.
+   *
+   * It earns its place in the enum rather than living in the tests because every
+   * signature in oras is typed against this type; a bare IANA string would not compile.
+   * If a reader is ever actually shown Sydney time, this comment is wrong and the
+   * member should be documented like Manila is.
+   */
+  Sydney = "Australia/Sydney",
+
+  /**
    * Luxon's token for whatever zone the environment happens to be in.
    *
    * IN THE BROWSER THIS IS THE VISITOR'S OWN ZONE, resolved through

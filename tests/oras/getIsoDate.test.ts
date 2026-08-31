@@ -41,4 +41,33 @@ describe("getIsoDate", () => {
     at("2026-08-30T16:00:00Z");
     expect(getIsoDate.now({ timezone: Timezone.Manila })).toBe("2026-08-31");
   });
+
+  /*
+   * Three zones, one instant, and two different answers to "what day is it". Sydney is
+   * two hours further east than Manila, so it crosses into the new day first.
+   */
+  it("gives each zone its own day for the same instant", () => {
+    at("2026-08-30T14:30:00Z");
+
+    expect(getIsoDate.now({ timezone: Timezone.Utc })).toBe("2026-08-30");
+    expect(getIsoDate.now({ timezone: Timezone.Manila })).toBe("2026-08-30");
+    expect(getIsoDate.now({ timezone: Timezone.Sydney })).toBe("2026-08-31");
+  });
+
+  /*
+   * THE ROLLOVER MOVES WITH DAYLIGHT SAVING, which is the thing no Manila assertion can
+   * check. Sydney's day begins at 14:00Z in August (UTC+10) and at 13:00Z in December
+   * (UTC+11), so a fixed offset subtracted from UTC would get one of these two wrong.
+   */
+  it("rolls over an hour earlier in UTC once Sydney is on daylight saving", () => {
+    at("2026-08-30T13:59:00Z");
+    expect(getIsoDate.now({ timezone: Timezone.Sydney })).toBe("2026-08-30");
+    at("2026-08-30T14:00:00Z");
+    expect(getIsoDate.now({ timezone: Timezone.Sydney })).toBe("2026-08-31");
+
+    at("2025-12-31T12:59:00Z");
+    expect(getIsoDate.now({ timezone: Timezone.Sydney })).toBe("2025-12-31");
+    at("2025-12-31T13:00:00Z");
+    expect(getIsoDate.now({ timezone: Timezone.Sydney })).toBe("2026-01-01");
+  });
 });

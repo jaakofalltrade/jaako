@@ -40,6 +40,20 @@ import { hasDatabase, sql } from "@/server/db";
  * Passing the key in changes nothing else. It is still one bound parameter in one
  * statement, still conflicting against the same composite primary key, so the property
  * that makes this race-proof is untouched.
+ *
+ * WHY THIS IS NOT UTC, WHICH IS THE FIRST THING ANYBODY ASKS. Everything this codebase
+ * puts in Neon is an ISO timestamp in UTC - see src/oras - and this column is the one
+ * exception, because it is not a timestamp. `day` is a BUCKET LABEL: the thing the
+ * counter hangs off, and half of the primary key. "31 August in Manila" is a span of
+ * twenty-four hours, not an instant, and UTC is a way of naming instants. Storing it
+ * "in UTC" would mean storing the moment the Manila day begins - 2026-08-30T16:00Z for
+ * the 31st - which is the same information written so that nobody reading the table can
+ * see what day it means.
+ *
+ * And there is nowhere to convert it back. NO QUERY IN THIS APP EVER SELECTS `day`.
+ * It is written as part of the key and matched against by the upsert below, and that is
+ * the whole of its life, so "store it in UTC and convert on read" has no read to happen
+ * at. Whichever calendar names the bucket has to be settled here, at write time.
  */
 export const reserveAdd = async (args: {
   visitor_id: string;

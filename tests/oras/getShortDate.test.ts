@@ -42,6 +42,27 @@ describe("getShortDate", () => {
   it("renders one instant on each reader's own calendar", () => {
     expect(from("2026-03-01T23:30:00Z", Timezone.Utc)).toBe("1 mar");
     expect(from("2026-03-01T23:30:00Z", Timezone.Manila)).toBe("2 mar");
+    expect(from("2026-03-01T23:30:00Z", Timezone.Sydney)).toBe("2 mar");
+  });
+
+  /*
+   * Sydney is two hours ahead of Manila, so there is a window each evening where the
+   * two are on different dates and a row sits under a different heading for each.
+   */
+  it("separates two zones that are only two hours apart", () => {
+    expect(from("2026-08-30T14:30:00Z", Timezone.Manila)).toBe("30 aug");
+    expect(from("2026-08-30T14:30:00Z", Timezone.Sydney)).toBe("31 aug");
+  });
+
+  /*
+   * DAYLIGHT SAVING, WHICH NOTHING ANCHORED TO MANILA CAN TEST. These two instants are
+   * a full hour apart and both land on 02:30 in Sydney, because that is the morning its
+   * clocks go back and the hour is lived through twice. The date has to come out the
+   * same for both, and a fixed-offset shortcut would put one of them on the wrong day.
+   */
+  it("survives the hour Sydney repeats when its clocks go back", () => {
+    expect(from("2026-04-04T15:30:00Z", Timezone.Sydney)).toBe("5 apr");
+    expect(from("2026-04-04T16:30:00Z", Timezone.Sydney)).toBe("5 apr");
   });
 
   /*
@@ -53,6 +74,14 @@ describe("getShortDate", () => {
   it("decides this year on the reader's calendar rather than in UTC", () => {
     expect(from("2025-12-31T20:00:00Z", Timezone.Utc)).toBe("31 dec 25");
     expect(from("2025-12-31T20:00:00Z", Timezone.Manila)).toBe("1 jan");
+  });
+
+  /* The same rule, on a zone that is into the new year earlier still - 13:00Z, because
+     Sydney is on daylight saving at the end of December and running at UTC+11. */
+  it("drops the year for a reader whose new year has already started", () => {
+    expect(from("2025-12-31T13:00:00Z", Timezone.Utc)).toBe("31 dec 25");
+    expect(from("2025-12-31T13:00:00Z", Timezone.Manila)).toBe("31 dec 25");
+    expect(from("2025-12-31T13:00:00Z", Timezone.Sydney)).toBe("1 jan");
   });
 
   /*

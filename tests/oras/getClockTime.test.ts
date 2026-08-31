@@ -24,5 +24,22 @@ describe("getClockTime", () => {
   /* The status strip's whole point: what time it is where the work happens. */
   it("reads the zone it is given rather than the machine's", () => {
     expect(getClockTime.now({ timezone: Timezone.Manila })).toBe("14:07:08");
+    expect(getClockTime.now({ timezone: Timezone.Sydney })).toBe("16:07:08");
+  });
+
+  /*
+   * THE OFFSET IS NOT A CONSTANT, and this is the assertion that says so. The same
+   * wall-clock instant reads 16:07 in Sydney in August and 17:07 in January, because
+   * Sydney is UTC+10 in winter and UTC+11 on daylight saving. Manila is flat all year,
+   * so it cannot fail this way and cannot catch it either.
+   */
+  it("follows the zone through a daylight saving change", () => {
+    expect(getClockTime.now({ timezone: Timezone.Sydney })).toBe("16:07:08");
+
+    vi.setSystemTime(new Date("2026-01-05T06:07:08Z"));
+
+    expect(getClockTime.now({ timezone: Timezone.Sydney })).toBe("17:07:08");
+    // Manila, for contrast: the same reading in both seasons.
+    expect(getClockTime.now({ timezone: Timezone.Manila })).toBe("14:07:08");
   });
 });
