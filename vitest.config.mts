@@ -19,6 +19,11 @@ export default defineConfig({
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
 
+      /* scripts/ is not under src/ and so is not reachable by `@`. It gets its own
+         alias rather than an exception to the no-relative-imports rule below, because
+         one line here is cheaper than a rule with a carve-out in it. */
+      "@scripts": fileURLToPath(new URL("./scripts", import.meta.url)),
+
       /* `server-only` is a real runtime guard and it works by throwing on import
          outside a server component, which includes here. Aliasing it to an empty
          module is what makes src/server/spotify/mappers.ts testable at all, and it
