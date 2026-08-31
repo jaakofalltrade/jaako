@@ -69,10 +69,24 @@ export const LINKEDIN_URL = `https://www.${LINKEDIN_PATH}/`;
  * northern and eastern hemispheres. If it ever moves west or south, those come off the
  * template and get derived from the sign.
  */
-export const COORDS = { lat: 12.9714, lon: 123.9944 } as const;
+export const COORDS = { lat: 12.976017522517163, lon: 124.02524553964031 } as const;
+
+/**
+ * One half of the readout, rounded for print.
+ *
+ * The pair above is a GPS fix at full precision, and interpolating that straight would
+ * put fifteen decimals in the masthead, give its two halves different lengths, and
+ * shift the rule that sits between them. Four decimals is a little over ten metres,
+ * which is all a masthead is claiming; MAPS_URL below still gets the exact point, which
+ * is the one place the extra digits could matter.
+ *
+ * Rounded here rather than in COORDS because a number cannot hold a trailing zero:
+ * 12.9760 stringifies as "12.976" and lands a character short of 124.0252.
+ */
+const degrees = (value: number): string => value.toFixed(4);
 
 /** The masthead readout. Middot to match every other joined pair on the site. */
-export const COORDS_LABEL = `${COORDS.lat}° N · ${COORDS.lon}° E`;
+export const COORDS_LABEL = `${degrees(COORDS.lat)}° N · ${degrees(COORDS.lon)}° E`;
 
 /**
  * The same point, as a map.
