@@ -22,11 +22,11 @@ export const LAB_INTRO = {
   /**
    * What a lab is, not what is currently in it.
    *
-   * It used to be a one-line trailer for the three apps below - "a slot machine, a
-   * playlist you can put a song on, and an agent with opinions" - which read as a
-   * summary of a list the reader was already looking at, and would have been wrong the
-   * day a fourth app arrived. This describes the room instead, so it stays true however
-   * the register underneath it changes.
+   * It used to be a one-line trailer for the apps below - "a slot machine, a playlist
+   * you can put a song on, and an agent with opinions" - which read as a summary of a
+   * list the reader was already looking at, and went stale the moment the next app
+   * arrived. This describes the room instead, so it stays true however the register
+   * underneath it changes. It has already outlived the trailer it replaced.
    */
   lead: "The lab is the room off the side of the portfolio. Apps I built because I wanted them to exist, experiments I am using to learn something, and ideas too odd for the front page. They go up as they are made, finished or not.",
   /**
@@ -38,9 +38,9 @@ export const LAB_INTRO = {
 } as const;
 
 /*
- * The three entries are declared one at a time and then collected twice: once as the
- * ordered list the index renders, and once as a lookup so a page can ask for its own
- * row by id rather than scanning for it. Both views, one definition.
+ * Each entry is declared on its own and then collected twice: once as the ordered
+ * list the index renders, and once as a lookup so a page can ask for its own row by
+ * id rather than scanning for it. Both views, one definition.
  */
 
 const slots: LabApp = {
@@ -76,19 +76,31 @@ const roast: LabApp = {
   look: "messaging app",
 };
 
-/** The order the index lists them in. Not alphabetical: it is the build order. */
-export const LAB_APPS: LabApp[] = [slots, suggest, roast];
+const deepcuts: LabApp = {
+  id: LabAppId.Deepcuts,
+  index: "04",
+  name: "deepcuts",
+  blurb: "Rip a pack from my playlist. The fewer plays a song has, the rarer the card.",
+  status: LabStatus.Planned,
+  shell: LabShell.Bare,
+  href: routes.lab.deepcuts,
+  look: "trading card pack",
+};
 
-/** The same three, addressed by id, so a page can ask for its own row. */
+/** The order the index lists them in. Not alphabetical: it is the build order. */
+export const LAB_APPS: LabApp[] = [slots, suggest, roast, deepcuts];
+
+/** The same set, addressed by id, so a page can ask for its own row. */
 export const LAB_APP: Record<LabAppId, LabApp> = {
   [LabAppId.Slots]: slots,
   [LabAppId.Suggest]: suggest,
   [LabAppId.Roast]: roast,
+  [LabAppId.Deepcuts]: deepcuts,
 };
 
 /* ---------------- the teasers ----------------
 
-   Three unbuilt pages, each already wearing the design it will ship in. The copy is
+   The unbuilt pages, each already wearing the design it will ship in. The copy is
    here rather than in the components for the same reason the rest of the site's is:
    a change of tone should be an edit to one file.
 
@@ -96,7 +108,7 @@ export const LAB_APP: Record<LabAppId, LabApp> = {
    with a date attached, because that is the one line a page like this cannot keep. */
 
 /*
- * The two readout tables are declared outside their teaser objects and typed MetaPair
+ * The readout tables are declared outside their teaser objects and typed MetaPair
  * rather than inferred through `as const`. DefinitionList takes a mutable array, and
  * a readonly one is not assignable to it — which is a type error at the call site
  * that reads like a mistake in the component rather than in this file.
@@ -125,6 +137,30 @@ const slotsReadout: MetaPair[] = [
  * cannot be discovered by trying, and those two were filling the table rather than
  * answering anything.
  */
+/*
+ * Every row is a thing a visitor cannot work out by looking at the pack, which is the
+ * same bar suggestSpec is held to below.
+ *
+ * "plays" names its source out loud. It is the one row here that corrects an
+ * assumption rather than filling one in: a page about a Spotify playlist that scores
+ * cards by play count implies Spotify supplies the counts, and Spotify has never
+ * exposed them. Saying so on the teaser is cheaper than a visitor deciding later that
+ * the numbers are made up.
+ *
+ * Nothing is derived from a constant, unlike suggestSpec, because none of these
+ * numbers is enforced by anything yet. When a route starts counting packs, "packs"
+ * becomes a reference to whatever constant it counts against — the same move, and for
+ * the same reason, as the DAILY_ADD_CAP note above.
+ */
+const deepcutsSpec: MetaPair[] = [
+  { term: "pack", value: "5 cards" },
+  { term: "packs", value: "1 / day" },
+  { term: "pulled from", value: "a playlist of mine" },
+  { term: "rarity", value: "fewest plays wins" },
+  { term: "plays", value: "last.fm, not spotify" },
+  { term: "thresholds", value: "undecided" },
+];
+
 const suggestSpec: MetaPair[] = [
   { term: "playlist", value: "public, one of mine" },
   { term: "adds", value: `${DAILY_ADD_CAP} per person per day` },
@@ -232,4 +268,59 @@ export const SUGGEST_TEASER = {
   /** Under the search field when adding is switched off but reading still works. */
   closed_hint: "Not taking suggestions right now.",
   footnote: "The one app in the lab that keeps this design, because it is about the music this site already talks about.",
+} as const;
+
+/**
+ * /lab/deepcuts. A pack that is still sealed, in front of a fan nobody has turned over.
+ *
+ * The teaser is the wrapper. Slots stops its reels and roast leaves its agent
+ * permanently mid-thought; this one just never gets opened, which is the same trick
+ * and the cheapest of them to make true — an unopened pack is what an unbuilt pack app
+ * actually is, so nothing here has to pretend.
+ *
+ * The ladder is printed in full underneath, and that is deliberate rather than a way
+ * to fill the page. The one thing a visitor cannot guess about this app is that the
+ * rarity runs backwards, and a legend where "unheard" beats "chart" explains the whole
+ * joke without opening anything.
+ */
+export const DEEPCUTS_TEASER = {
+  title: "deepcuts",
+  subtitle: "a pack, out of my playlist",
+  /**
+   * States the inversion in the first clause, because everything after it reads wrong
+   * to anyone still assuming the hits are the prize.
+   */
+  lead: "Rip a pack and the songs almost nobody plays are the ones worth keeping. Five cards out of a playlist I actually listen to, scored on how few plays each track has, so a chart hit is the card you throw back and a track with four thousand plays is the pull.",
+
+  /* The wrapper. Printed on the foil, so these are read as packaging. */
+  pack_label: "deepcuts",
+  pack_series: "series 01",
+  pack_count: "5 cards",
+  /** On the tear strip, and it is the whole status: the pack does not open. */
+  rip_label: "tear here",
+  rip_note: "sealed",
+
+  /** Under the fan of face-down cards behind the pack. */
+  fan_note: "Nothing has been pulled yet. Nothing can be.",
+  /** The monogram repeated across a card back, so the fan reads as a deck. */
+  card_back: "JK",
+
+  ladder_label: "what is in a pack",
+  /**
+   * Says which direction is good once, in the legend, rather than trusting the order
+   * of the rungs to carry it. A ladder printed commonest-first looks like every other
+   * rarity ladder, and every other rarity ladder means the opposite of this one.
+   */
+  ladder_note: "Rarest at the bottom. The fewer plays a song has, the better the card.",
+
+  spec_label: "the rules, so far",
+  spec: deepcutsSpec,
+
+  /**
+   * The honest note about where the numbers come from, expanded from the one-word
+   * spec row into the sentence that row cannot fit.
+   */
+  source_note: "Spotify does not publish play counts and never has, so the counts come from last.fm scrobbles. They are a decent proxy for how much of the world has heard a song, and they are not Spotify's streams.",
+
+  footnote: "Pack is not built yet. It stays shut.",
 } as const;
