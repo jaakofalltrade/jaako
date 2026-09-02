@@ -758,6 +758,95 @@
   }
 }
 
+/* --- what stands where the live blocks are going ---------------------------------
+
+   Two placeholders, both arrangement only: the bars themselves are Skeleton, from
+   components/_skeleton.scss, and everything about how they look lives there. What is
+   here is where they sit and how big they are, which is this page's business because
+   the shapes have to match the blocks they are standing in for. A skeleton that is the
+   wrong size is worse than none — the page assembles, then jumps when the real thing
+   lands, which is the exact reflow the placeholder exists to prevent.
+
+   So each rule below is copied from the real block above it and has to stay copied. If
+   .playlist changes its columns, this changes with it.
+
+   NOT THE SAME THING AS .row. Those three blank rows further up are a teaser for an
+   app that is not built; these are a fetch that is genuinely in flight. One is allowed
+   to pulse and the other is not, and the comment on .row says why. */
+
+/* Mirrors .playlist: the same two columns, the same gap, the same box. */
+.cardSkeleton {
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr);
+  gap: var(--space-6);
+  align-items: start;
+  padding: var(--space-5) var(--space-2);
+}
+
+.cardSkeletonCover {
+  width: 9rem;
+  height: 9rem;
+}
+
+/* Label, name, spec — the three lines .playlistBody puts in that column. The bar
+   floor is raised from the default because the middle of the three is standing in for
+   .playlistName, which is display type at --text-xl and nothing like a line of prose. */
+.cardSkeletonBody {
+  --skeleton-bar: 1.25rem;
+
+  align-content: start;
+  max-width: var(--measure);
+}
+
+/* NO TOP MARGIN, BECAUSE THE BOARD HAS NONE.
+
+   SuggestBoard is a fragment whose first child is .search, and .search sets no margin —
+   the block starts wherever .intro's bottom margin leaves it. A margin here does not
+   mirror anything; it drops the placeholder lower than the thing it stands in for and
+   the whole page hops up when the real board lands, which is the one thing a skeleton
+   exists to prevent. .queue's --space-11 is the gap INSIDE the board, between the field
+   and the list, so it belongs on .boardSkeletonRows and it is there. */
+.boardSkeleton {
+  margin-top: 0;
+}
+
+/* The search field: one bar at the height of the input plus its label, held to the
+   same measure .search is. */
+.boardSkeletonField {
+  --skeleton-bar: 4rem;
+
+  max-width: var(--measure);
+}
+
+/* THE HEADING IS PART OF THE SHAPE, AND LEAVING IT OUT COSTS THE SAME AS A WRONG MARGIN.
+
+   .queue draws "what is on it" above its list, and h3 is a real element with a real
+   height. A skeleton that goes straight from the field to the rows puts every row a
+   heading plus a --space-7 too high, and the whole lower page — footnote included —
+   drops by that much the moment the board arrives. So the bar is here, sized off the
+   same two tokens the heading is: --text-xl at --leading-snug is exactly what .queueTitle
+   occupies, at any viewport, without this file having to guess a pixel height.
+
+   --space-11 above it is .queue's own top margin: the gap between the search field and
+   the list, which starts at the heading rather than at the rows. */
+.boardSkeletonTitle {
+  --skeleton-bar: calc(var(--text-xl) * var(--leading-snug));
+
+  /* About the width of the words. A full-measure bar where a three-word heading goes
+     reads as a paragraph and moves the eye to the wrong place. */
+  max-width: 11rem;
+  margin-top: var(--space-11);
+}
+
+/* And the queue under it. Row height and gap are .row's and .rows', and the space above
+   is .rows' own --space-7, so nothing in the list moves as it fills in. */
+.boardSkeletonRows {
+  --skeleton-bar: var(--space-10);
+
+  gap: var(--space-3);
+  margin-top: var(--space-7);
+}
+
 /* ============================================================================
    NARROW SCREENS
 
@@ -872,13 +961,15 @@
 
   .rowFailure { grid-column: 3 / -1; }
   /* The cover keeps its own proportion at this width. */
-  .playlist {
+  .playlist,
+  .cardSkeleton {
     grid-template-columns: 6rem minmax(0, 1fr);
     gap: var(--space-5);
   }
 
   .playlistCover,
-  .playlistCoverEmpty {
+  .playlistCoverEmpty,
+  .cardSkeletonCover {
     width: 6rem;
     height: 6rem;
   }

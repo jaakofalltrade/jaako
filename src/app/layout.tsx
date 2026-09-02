@@ -84,8 +84,25 @@ const DuotoneFilter = () => (
  * docs/lab.md for why. What stays is the document, the two font faces, the duotone
  * filter and globals.scss, because a bare page still wants the reset and the type.
  */
+/*
+ * data-scroll-behavior IS NOT DECORATION, AND IT IS NOT OPTIONAL HERE.
+ *
+ * base/_reset.scss sets scroll-behavior:smooth on <html> for the jump menu, which is
+ * what it is for. But Next also scrolls to the top on every client navigation, and that
+ * scroll obeys the same property — so a link clicked halfway down a page animated its
+ * way back up before the new route settled. Half a second of nothing, on every row in
+ * the lab index and the work list.
+ *
+ * Through Next 15 the router worked around this on its own, forcing the property to
+ * auto around its own scroll and putting it back. Next 16 stopped doing that unless the
+ * document opts in with this attribute — see disable-smooth-scroll.js in next/dist, and
+ * the "Scroll Behavior Override" section of its version-16 upgrade guide. Nothing warns
+ * about this in a production build; the symptom is just a site that feels slow.
+ *
+ * So: hash jumps stay smooth, route changes are instant again.
+ */
 const RootLayout = ({ children }: Readonly<{ children: React.ReactNode }>) => (
-  <html lang="en" className={fontVars}>
+  <html lang="en" data-scroll-behavior="smooth" className={fontVars}>
     <body>
       <DuotoneFilter />
       {children}

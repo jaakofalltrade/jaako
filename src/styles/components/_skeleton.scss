@@ -1,0 +1,84 @@
+/* The shape of something still loading. design-system/core/Skeleton.tsx.
+
+   Reads as the page's own quiet surface rather than as grey boxes: --surface-well is
+   the same fill the select, the dock and the plates sit on, so a loading block looks
+   like a part of this site that has not filled in yet rather than like a widget
+   borrowed from somewhere else.
+
+   Nothing in here sets a width or a height. The caller does, because the shapes are
+   its layout — see .cardSkeleton and .boardSkeleton in the suggest module for the two
+   that exist. */
+
+.jk-skeleton {
+  /* A grid rather than stacked blocks so one component covers both shapes it needs to:
+     a lone bar stretches to whatever height the caller gave the wrapper (a cover, a
+     card), while a stack of them sits at text height and ignores it. */
+  display: grid;
+  gap: var(--space-3);
+
+  /* THE FLOOR IS A FALLBACK, NOT A DECLARATION. 0.75rem is one line of text and the
+     default for every row. Written as `--skeleton-bar: 0.75rem` here it would be a real
+     declaration on the same element the caller's class lands on, at the same specificity
+     — so which one won would come down to whether this stylesheet or the caller's CSS
+     module happened to be emitted first, and a raised bar floor would fail silently.
+     As a var() fallback there is nothing to lose to: unset means 0.75rem, set means the
+     caller's value, in any order. */
+  grid-auto-rows: minmax(var(--skeleton-bar, 0.75rem), 1fr);
+
+  /* One animation on the wrapper rather than one per bar. The bars are meant to breathe
+     together — staggering them turns a placeholder into a light show, and the eye then
+     watches the animation instead of reading the page around it. The duration is the
+     presence dot's in layout/_shell.scss, because they are saying the same thing: this
+     is live and it is working. The keyframe is the shallower one — tokens/_motion.scss
+     says why a translucent fill cannot use the dot's. */
+  animation: jk-skeleton-pulse 2.6s var(--ease-in-out) infinite;
+}
+
+.jk-skeleton__bar {
+  min-inline-size: 0;
+  /* --surface-well thinned by about half.
+
+     At full strength these read as filled boxes: solid enough to look like content that
+     has arrived rather than space that is waiting, which is the one thing a placeholder
+     must not do. Thinned, the ground and the photograph behind it come through and the
+     shapes sit at about the weight of the hairlines the rest of the page is made of.
+
+     Mixed rather than written as a new rgba() so the fill stays tied to the token. If
+     the palette moves, this moves with it, and the site keeps one quiet surface colour
+     instead of two that are nearly the same. */
+  background: color-mix(in srgb, var(--surface-well) 70%, transparent);
+  /* --radius-sm, the pressable radius. A skeleton is standing in for a card or a row,
+     and both of those are soft-cornered. */
+  border-radius: var(--radius-sm);
+}
+
+/* --- and what lands in their place ------------------------------------------------
+
+   A boundary resolving is an instant swap: the shapes are gone and the content is there
+   in the same frame, which lands harder than the wait it ended. This is the other half
+   of the pair — put it on whatever a Skeleton was standing in for, and the arrival is a
+   dissolve rather than a cut.
+
+   AN ANIMATION, NOT A TRANSITION, AND NOT data-reveal.
+
+   An animation runs the moment the element exists, so this needs nothing watching the
+   DOM: no observer, no census, no chance of a node that arrived at the wrong moment
+   being missed and left at opacity 0 forever. The reveal system is the right tool for
+   content scrolling into view and the wrong one here, where the content is already in
+   frame and the only question is when the server answered.
+
+   NO TRAVEL, WHICH IS WHERE THIS PARTS COMPANY WITH THE REVEAL. [data-reveal] rises a
+   rem as it fades. The whole point of the skeleton was to hold the exact box this
+   content lands in, so moving it on arrival would undo that in the last 450ms. Opacity
+   only, and it stays where the shapes were. */
+
+.jk-arrived {
+  animation: jk-arrive var(--dur-slow) var(--ease-out) both;
+}
+
+/* The bypass. The shapes stay — they are the layout, not the motion — and the content
+   arrives at full opacity with no dissolve at all. */
+@media (prefers-reduced-motion: reduce) {
+  .jk-skeleton { animation: none; }
+  .jk-arrived { animation: none; }
+}
