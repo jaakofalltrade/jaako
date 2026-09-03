@@ -805,7 +805,8 @@
    mirror anything; it drops the placeholder lower than the thing it stands in for and
    the whole page hops up when the real board lands, which is the one thing a skeleton
    exists to prevent. .queue's --space-11 is the gap INSIDE the board, between the field
-   and the list, so it belongs on .boardSkeletonRows and it is there. */
+   and the heading the list starts at, so it belongs on .boardSkeletonTitle and it is
+   there. */
 .boardSkeleton {
   margin-top: 0;
 }
@@ -838,13 +839,24 @@
   margin-top: var(--space-11);
 }
 
-/* And the queue under it. Row height and gap are .row's and .rows', and the space above
-   is .rows' own --space-7, so nothing in the list moves as it fills in. */
+/* And the queue under it. Row height and gap are .row's and .rows'.
+
+   NO SPACE ABOVE, BECAUSE THE REAL LIST HAS NONE. .rows is declared twice in this file:
+   once up top with `margin: var(--space-7) 0 0`, and again in "the list" section with
+   `margin: 0`. Same class, same specificity, and the later one wins — so the shipped
+   list sits flush under .queueTitle and its --space-7 never renders. Copying the dead
+   declaration here put the placeholder rows 1.5rem lower than the rows that replace
+   them, and the footnote under them jumped UP by that much on arrival, which is the one
+   direction a skeleton must never move the page.
+
+   Mirroring what renders, not what the first .rows rule asks for. If the --space-7 is
+   what was actually wanted, the fix is to delete `margin: 0` from the second .rows rule
+   and put the gap back here with it. */
 .boardSkeletonRows {
   --skeleton-bar: var(--space-10);
 
   gap: var(--space-3);
-  margin-top: var(--space-7);
+  margin-top: 0;
 }
 
 /* ============================================================================
