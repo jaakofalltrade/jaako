@@ -9,6 +9,7 @@
 export * as Spotify from "./Spotify";
 
 export * from "./Contact";
+export * from "./Deepcuts";
 export * from "./Env";
 export * from "./Experience";
 export * from "./Handle";

@@ -66,27 +66,3 @@ export type LabApp = {
    */
   look: string;
 };
-
-/**
- * deepcuts' rarity ladder, commonest first.
- *
- * The declaration order is the mechanic, not a formatting choice. It runs from the
- * songs everyone has already played to the ones almost nobody has, so a card gets
- * rarer as its play count falls — the inversion the whole app is built on, and the
- * reason a chart hit is the card you throw away.
- *
- * Named after what a song is rather than what a skin is worth. "Covert" and "Mil-Spec"
- * would have been the closer analogy and they say nothing about music; these say where
- * a track sits in a listener's life, which is the thing being scored.
- *
- * The play counts that separate one rung from the next are not decided and are not
- * modelled here. They are a tuning constant, they will move once there is real data,
- * and pinning them into the type would make a tuning pass a schema change.
- */
-export enum DeepcutTier {
-  Chart = "CHART",
-  Rotation = "ROTATION",
-  Album = "ALBUM",
-  Deepcut = "DEEPCUT",
-  Unheard = "UNHEARD",
-}

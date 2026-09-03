@@ -353,6 +353,16 @@ Open, and none of it blocking:
 
 ## Status today
 
-`/lab/suggest` works. Everything else is a teaser: a static render of what the app will
-look like with its controls inert, storing nothing and fetching nothing. `/lab/deepcuts`
-is the newest of them and the pack on it does not open.
+`/lab/suggest` works. `/lab/slots` and `/lab/roast` are teasers: a static render of what
+the app will look like with its controls inert, storing nothing and fetching nothing.
+
+`/lab/deepcuts` is in between, which is what `building` on the index means. The pack
+opens, the fan spreads, the cards turn over worst to best and each one is graded on a
+rung — and every track on them comes out of a fixture in `src/data/deepcuts.ts`. No
+playlist has been read and no play count has been looked up. The page says so above the
+pack rather than in a footnote, because a visitor who works that out unaided concludes
+the whole app is a mock-up rather than just the numbers.
+
+What is left is the part that has nothing to do with the design: read the playlist,
+match each track on last.fm, cache the scored snapshot, and deal out of it. The shapes
+are not waiting on any of that, which was the point of building them first.
