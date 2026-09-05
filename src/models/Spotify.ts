@@ -181,6 +181,88 @@ export type PlaylistResponse = {
   items?: PlaylistItemsResponse;
 };
 
+/* ---------------- the account's own playlists ----------------
+
+   /lab/deepcuts lists the playlists a pack could be dealt from, which is a different
+   read from the one above: that one is ONE playlist named by an id in config, this one
+   is EVERY playlist on the account.
+
+   GET /me/playlists TAKES NO `fields` PARAMETER. The projection that keeps the
+   playlist read above small is documented for the /playlists/{id} family only, so this
+   response arrives whole and the shapes below are a subset of what turns up rather than
+   a subset that was asked for. Nothing is saved by pretending otherwise.
+
+   IT IS ALSO A 403 WITHOUT playlist-read-private, and so is
+   GET /users/{id}/playlists — for public playlists, on the owner's own token.
+   Measured against the live API on 2026-09-05. See SCOPE_SETS in
+   scripts/spotify-token.mjs for why that scope is requested and what it is not for. */
+
+/**
+ * One playlist as it arrives in a list of them.
+ *
+ * Spotify calls this the simplified playlist object. It is the full record above minus
+ * the embedded page of items, plus the two fields the full record does not need to
+ * carry: `id`, because a list has to key its rows on something, and `public`, which is
+ * what decides whether a playlist reaches a page anyone can open.
+ *
+ * `public` IS THREE-VALUED AND THE THIRD VALUE IS THE INTERESTING ONE. Spotify sends
+ * null when it will not say — the relationship between the token and the playlist is
+ * not one it answers for — and null is not "yes". Every filter on this field compares
+ * against true rather than testing for truthiness, so an unanswered playlist is treated
+ * as private, which is the direction to be wrong in.
+ *
+ * `owner.id` rather than `owner.display_name`: a library holds followed playlists
+ * alongside owned ones, and two accounts can share a display name.
+ */
+export type SimplePlaylistResponse = {
+  id?: string;
+  name?: string;
+  description?: string;
+  public?: boolean | null;
+  collaborative?: boolean;
+  external_urls?: { spotify?: string };
+  images?: ImageResponse[];
+  owner?: { id?: string; display_name?: string };
+  /**
+   * How many tracks are on it. `items`, NOT `tracks`, and that is measured.
+   *
+   * The note at the top of the previous section found this on the full playlist record,
+   * the hard way. It holds here too, measured against GET /me/playlists itself on
+   * 2026-09-05: across a real library of 199 playlists, every entry carried
+   * `items: { href, total }` and not one carried a `tracks` key at all.
+   *
+   * `tracks` IS STILL DECLARED AND STILL READ, SECOND. It is the name every version of
+   * Spotify's documentation uses, so it is the name this endpoint would move back to if
+   * it ever moved. Reading it after `items` costs one `??` and cannot be wrong either
+   * way, and the failure it insures against is the quiet one this whole section warns
+   * about: a track count of zero on a playlist with forty songs on it, rendered without
+   * complaint.
+   */
+  items?: { total?: number };
+  tracks?: { total?: number };
+};
+
+/** One page of GET /me/playlists. */
+export type MyPlaylistsResponse = {
+  /** The size of the WHOLE library, before any filter of ours. Never the rendered count. */
+  total?: number;
+  /** An absolute URL to the next page, or null on the last one. */
+  next?: string | null;
+  items?: SimplePlaylistResponse[];
+};
+
+/**
+ * GET /me, cut down to the one field anything here reads.
+ *
+ * Which account the read token belongs to. Needed because "my playlists" cannot be
+ * answered by the library endpoint alone: it returns followed playlists beside owned
+ * ones, and telling them apart means comparing an owner id against this.
+ */
+export type ProfileResponse = {
+  id?: string;
+  display_name?: string;
+};
+
 /** What /search?type=track answers with. */
 export type SearchTracksResponse = {
   tracks?: {

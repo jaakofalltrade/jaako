@@ -59,8 +59,24 @@
   padding: clamp(1.25rem, 0.75rem + 3vw, 3.5rem) 1.25rem 5rem;
   font-family: var(--dc-display);
   color: var(--dc-ink);
-  text-align: center;
+  /* RANGED LEFT, WHICH IT WAS NOT. The page centred its title, its line and its lead,
+     which worked while the whole thing was a poster for an app that did nothing. It
+     stopped working the moment the masthead grew a second column: a centred title with
+     a block of figures beside it has no resting place, and every block below - the
+     shelf, the ladder, the readout - was already ranged left inside its own box, so the
+     page had one centred axis and three left edges.
+
+     The COLUMN is still centred on the viewport. Only the type inside it moved. */
+  text-align: left;
 }
+
+/* ONE WIDTH FOR EVERY BLOCK ON THE PAGE, so they share an edge: 52rem, written on each
+   block the way .bar and .masthead below carry it.
+
+   52rem rather than the 34rem the ladder and the readout used to take, because the
+   shelf sets the floor now - three packs and two gaps do not fit a narrower column, and
+   a shelf that broke the page's edge to fit was the first version of this. Anything
+   wanting a shorter measure caps itself instead; see .lead and .shelfNote. */
 
 /* The table the pack is lying on.
 
@@ -112,9 +128,34 @@
   color: var(--dc-ink-soft);
 }
 
+/* ---------------- the masthead ---------------- */
+
+/* Title and lead on the left, the two figures on the right.
+
+   auto/max-content rather than two fractions: the figures are the width of their own
+   longest line and no wider, and the title column takes everything else. Two fractions
+   would give a block of two short readouts half the page. */
+.masthead {
+  width: min(52rem, 100%);
+  display: grid;
+  grid-template-columns: 1fr max-content;
+  align-items: start;
+  gap: 2.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.mastheadMain {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
 .title {
   margin: 0;
-  font-size: clamp(2.5rem, 1.5rem + 5vw, 4.5rem);
+  /* Smaller at the top end than the 4.5rem it was. That size was set for a centred
+     title with a whole viewport to itself; in a column beside a block of figures it ran
+     into them. */
+  font-size: clamp(2.25rem, 1.5rem + 3.5vw, 3.5rem);
   font-weight: 600;
   letter-spacing: -0.02em;
   line-height: 1;
@@ -130,148 +171,77 @@
 }
 
 .lead {
-  max-width: 44ch;
+  /* Capped rather than laid out: the column is 52rem and prose at that width is hard to
+     track back along. The measure is the paragraph's business, not the grid's. */
+  max-width: 48ch;
   margin: 0.75rem 0 0;
   font-size: 1rem;
   line-height: 1.6;
   color: var(--dc-ink-soft);
 }
 
-/* ---------------- the pack, and the fan behind it ---------------- */
+/* ---------------- the two figures ---------------- */
 
-.table {
-  position: relative;
-  width: min(30rem, 100%);
-  margin: 3rem 0 0;
-  /* Room for the fan, which sits behind the pack and spreads wider than it. */
-  padding: 0 2rem;
+/* A readout, printed like the rules readout at the foot of the page rather than like
+   copy. Both are label-and-value pairs and neither is a sentence.
+
+   NO RULES BETWEEN THE ROWS, unlike that one. Two pairs do not need a grid drawn round
+   them, and the standing rule is that a hairline has to earn its place. */
+.stats {
+  margin: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  gap: 0.9rem;
 }
 
-.fan {
-  position: absolute;
-  /* Pinned to the pack's own box rather than laid out beside it: the cards are meant
-     to look like they are underneath the wrapper, not next to it. */
-  inset: 0 0 auto;
-  height: 17rem;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-}
-
-.card {
-  position: absolute;
-  top: 0;
-  width: 7.5rem;
-  height: 10.5rem;
-  border: 1px solid var(--dc-hair);
-  border-radius: 0.5rem;
-  background: var(--dc-card);
-  /* The only shadow on the page, and it is doing the one job a shadow is for here:
-     sitting a piece of card on a table. */
-  box-shadow: 0 8px 18px rgba(29, 26, 22, 0.1);
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-
-  /* Fanned by hand rather than by an nth-child formula. The angles are not on a
-     regular interval: a real fan is spread by a thumb and the outer cards travel
-     further than the inner ones.
-
-     Each card drops a little as it goes out, so the tops describe an arc instead of a
-     straight line. Without it the fan reads as five rectangles leaning over, and the
-     spread has to be wide enough that the two inner cards are not swallowed whole by
-     the wrapper standing in front of them. */
-  &[data-position="0"] {
-    transform: translate(-10.5rem, 1.75rem) rotate(-19deg);
-  }
-
-  &[data-position="1"] {
-    transform: translate(-5.75rem, 0.45rem) rotate(-9deg);
-  }
-
-  &[data-position="2"] {
-    transform: translateY(-0.35rem) rotate(-1deg);
-  }
-
-  &[data-position="3"] {
-    transform: translate(5.75rem, 0.45rem) rotate(9deg);
-  }
-
-  &[data-position="4"] {
-    transform: translate(10.5rem, 1.75rem) rotate(19deg);
-  }
-}
-
-/* The back. A monogram tiled across the card, drawn with a repeating gradient behind
-   it so the surface has a weave rather than being a flat rectangle. */
-.cardBack {
-  width: 100%;
-  height: 100%;
-  display: grid;
-  place-items: center;
-  font-family: var(--dc-mono);
-  font-size: 0.85rem;
-  /* Tracked out, but not so far that the second letter lands under the wrapper on the
-     cards that sit behind it. */
-  letter-spacing: 0.18em;
-  text-indent: 0.18em;
-  color: var(--dc-ink-soft);
-  opacity: 0.5;
-  background:
-    repeating-linear-gradient(
-      45deg,
-      transparent 0 6px,
-      rgba(29, 26, 22, 0.045) 6px 7px
-    );
-}
-
-.pack {
-  position: relative;
-  z-index: 1;
-  width: 12rem;
-  min-height: 16rem;
-  margin-top: 1.5rem;
-  padding: 3rem 1.25rem 1.5rem;
-  border-radius: 0.75rem;
+.statRow {
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  color: var(--dc-ink);
-  /* The foil. Two bright bands raked across a dull sheet, which is what a wrapper
-     looks like under a room light. Not a glow: it is bounded by the pack. */
-  background:
-    linear-gradient(
-      118deg,
-      var(--dc-foil-low) 0%,
-      var(--dc-foil) 22%,
-      var(--dc-foil-high) 34%,
-      var(--dc-foil) 46%,
-      var(--dc-foil-low) 62%,
-      var(--dc-foil-high) 78%,
-      var(--dc-foil) 100%
-    );
-  box-shadow: 0 14px 30px rgba(29, 26, 22, 0.16);
+  gap: 0.2rem;
 }
 
-/* The perforation. A dashed rule across the top of the wrapper, with the two words
-   that make the pack a teaser sitting on either side of it. */
-.strip {
-  position: absolute;
-  inset: 0 0 auto;
-  padding: 0.5rem 0.75rem;
-  border-bottom: 1px dashed rgba(29, 26, 22, 0.35);
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+.statTerm,
+.statValue {
+  margin: 0;
+}
+
+.statTerm {
   font-family: var(--dc-mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.16em;
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
+  color: var(--dc-ink-soft);
 }
+
+.statValue {
+  /* Capped so a long playlist name wraps rather than widening the whole column and
+     squeezing the title. max-content on the grid track means this cap is what actually
+     decides the column's width. */
+  max-width: 18ch;
+  font-size: 0.95rem;
+  line-height: 1.35;
+  color: var(--dc-ink);
+}
+
+/* Held while the counters are in flight. No pulse and no bars: this block is two short
+   lines, and a shimmering placeholder for "nothing yet" would be a promise that
+   something is coming when the honest answer is that nothing is. */
+.statsSkeleton {
+  width: 12rem;
+  height: 4.5rem;
+}
+
+/* THE SEALED PACK AND ITS FAN OF FACE-DOWN CARDS USED TO LIVE HERE.
+
+   They are gone with the markup that drew them: .table, .fan, .card, .cardBack, .pack,
+   .packLabel, .packMeta and .fanNote, plus their own media query. That block was the
+   teaser - one unopened wrapper standing in for an app that could not open one - and
+   the shelf now shows seventy-five real ones. Two pack images on a page compete to be
+   the subject of it.
+
+   Two rules survived the cut because the shelf still prints them on every wrapper. The
+   tear strip's own box did not: .strip was positioned absolutely inside a pack whose
+   padding was cut for it, and .shelfStrip is a different box doing the same job. */
 
 .stripLabel {
   color: rgba(29, 26, 22, 0.55);
@@ -282,56 +252,14 @@
   color: var(--dc-ink);
 }
 
-.packLabel {
-  font-size: 1.5rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
 
-.packMeta {
-  display: flex;
-  justify-content: space-between;
-  font-family: var(--dc-mono);
-  font-size: 0.65rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(29, 26, 22, 0.6);
-}
+/* ---------------- the ladder ----------------
 
-.fanNote {
-  margin-top: 1.5rem;
-  font-family: var(--dc-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.1em;
-  color: var(--dc-ink-soft);
-}
-
-/* ---------------- the ladder ---------------- */
-
-.ladder,
-.rules {
-  width: min(34rem, 100%);
-  margin-top: 3.5rem;
-  text-align: left;
-}
-
-.ladderHead,
-.rulesHead {
-  margin: 0 0 0.4rem;
-  font-family: var(--dc-mono);
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--dc-ink-soft);
-}
-
-.ladderNote {
-  margin: 0 0 1.25rem;
-  font-size: 0.9rem;
-  line-height: 1.5;
-  color: var(--dc-ink-soft);
-}
+   .ladder, .rules, .ladderHead, .rulesHead and .ladderNote have gone with the two
+   stacked sections that used to sit below the packs. Both are tabs above them now and
+   .tabPanel is the box they share, so a heading of their own would repeat the tab that
+   was just clicked to reach it. What is left below is the rungs themselves, which the
+   legend tab still renders. */
 
 .rungs {
   margin: 0;
@@ -342,7 +270,7 @@
 
 .rung {
   display: grid;
-  grid-template-columns: 1.5rem minmax(6rem, auto) 1fr;
+  grid-template-columns: 1.5rem minmax(6rem, auto) max-content 1fr;
   align-items: baseline;
   gap: 0.75rem;
   padding: 0.75rem 0;
@@ -453,42 +381,836 @@
   color: var(--dc-ink-soft);
 }
 
-/* The fan is the first thing to break on a narrow screen: five cards spread across
-   17rem do not fit a phone, and the outer two would be cut off by the viewport rather
-   than tucked behind the pack. Tightening the spread keeps the shape. */
 @media (max-width: 34rem) {
-  .card {
-    width: 6rem;
-    height: 8.5rem;
-
-    &[data-position="0"] {
-      transform: translate(-5.25rem, 1.35rem) rotate(-17deg);
-    }
-
-    &[data-position="1"] {
-      transform: translate(-2.75rem, 0.35rem) rotate(-8deg);
-    }
-
-    &[data-position="3"] {
-      transform: translate(2.75rem, 0.35rem) rotate(8deg);
-    }
-
-    &[data-position="4"] {
-      transform: translate(5.25rem, 1.35rem) rotate(17deg);
-    }
+  /* The masthead stops being two columns. A block of figures beside a title needs room
+     for both, and on a phone the title would be four words wide with the figures
+     wrapping under themselves beside it. */
+  .masthead {
+    grid-template-columns: 1fr;
+    gap: 1.75rem;
   }
 
-  .fan {
-    height: 14rem;
-  }
-
+  /* The play band drops onto the label's row and the note goes under both, so a rung
+     keeps a readable measure instead of four columns squeezed across a phone. */
   .rung {
-    grid-template-columns: 1.5rem 1fr;
+    grid-template-columns: 1.5rem 1fr max-content;
   }
 
-  /* The note drops under the label rather than beside it, so it keeps a readable
-     measure instead of wrapping every three words. */
   .rungNote {
-    grid-column: 2;
+    grid-column: 2 / -1;
   }
+}
+
+/* ---------------- the shelf ----------------
+
+   The one live block on the page: one pack per playlist, read from Spotify.
+
+   IT REUSES THE WRAPPER RATHER THAN INVENTING A SECOND OBJECT. The hero pack above is
+   the pack you would rip; these are the packs there are. A grid of plain cards, or a
+   list of rows with a cover thumbnail beside each, was the easy shape and it would have
+   said the playlists are a menu attached to the app. They are the app: every pack on
+   this page is the same object at a different size.
+
+   The foil is the same two-band rake as .pack and the reasoning at the top of this file
+   applies to it unchanged. It is a gradient bounded by the shape. Nothing here glows,
+   the cover included: it is a printed surface under a sheen, which is what art on a
+   real wrapper is. */
+
+.shelf {
+  width: min(52rem, 100%);
+  margin-top: 2rem;
+}
+
+.shelfHead {
+  margin: 0 0 0.4rem;
+  font-family: var(--dc-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--dc-ink-soft);
+}
+
+.shelfNote {
+  max-width: 46ch;
+  margin: 0 0 1.75rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--dc-ink-soft);
+}
+
+.shelfEmpty {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--dc-ink-soft);
+}
+
+/* auto-fill rather than auto-fit, so an account with two public playlists gets two
+   pack-sized packs and a gap where the third would be, instead of two stretched to half
+   the page each. A pack has a shape and it is not negotiable by column count. */
+.packs {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  /* Three across at the column's full width, so a page of nine is three full rows and
+     never a row of one hanging under them. auto-fill rather than a bare repeat(3): the
+     last page holds whatever is left over, and those should stay pack-sized rather than
+     stretch to a third of the page each. */
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 1.5rem;
+}
+
+.shelfPack {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  /* THE BUTTON RESET, AND IT IS NOT BOILERPLATE. A pack became a <button> when clicking
+     one started opening it rather than navigating, and a button brings the user agent's
+     own type with it: centred text, the system font at 13px, and a border. The names and
+     counts on every pack went centre-aligned the moment the element changed. */
+  width: 100%;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  /* Room at the top for the two things printed over it: the serrated edge, then the
+     crimp band carrying the tear line. Both are absolutely positioned, so the padding
+     is what stops the cover sliding under them. */
+  padding: 2.2rem 0 0;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  text-decoration: none;
+  color: var(--dc-ink);
+  background:
+    linear-gradient(
+      118deg,
+      var(--dc-foil-low) 0%,
+      var(--dc-foil) 22%,
+      var(--dc-foil-high) 34%,
+      var(--dc-foil) 46%,
+      var(--dc-foil-low) 62%,
+      var(--dc-foil-high) 78%,
+      var(--dc-foil) 100%
+    );
+  /* The one shadow rule this file allows: a thing sitting on a table. Shallower than
+     the hero pack's, because these lie in a row and it stands up in front of a fan. */
+  box-shadow: 0 8px 18px rgba(29, 26, 22, 0.14);
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease;
+
+  /* Lifted, not lit. A pack picked up off the table is the whole gesture, and it is the
+     only one available here without reaching for the glow this file forbids. */
+  &:hover,
+  &:focus-visible {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 26px rgba(29, 26, 22, 0.2);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--dc-ink);
+    outline-offset: 3px;
+  }
+
+  /* A pack does not leap off the table for somebody who asked the browser not to
+     animate. The shadow still deepens, so the hover is not silent. */
+  @media (prefers-reduced-motion: reduce) {
+    transition: box-shadow 220ms ease;
+
+    &:hover,
+    &:focus-visible {
+      transform: none;
+    }
+  }
+}
+
+/* THE CRIMP, WHICH IS WHAT MAKES THIS READ AS A PACK RATHER THAN A CARD WITH A PICTURE
+   ON IT.
+
+   A real foil pack is sealed by pressing the two sheets together along the top, and the
+   press leaves two marks: a band of fine vertical ribbing where the crimping wheel bit,
+   and a serrated edge above it. Both are drawn below, and both are gradients bounded by
+   the shape, which is the rule this file's header sets out for every foil on the page.
+
+   THE SERRATION IS PAINTED, NOT CUT. The obvious way to notch an edge is a mask or a
+   clip-path, and both would cut through to whatever is behind the pack - which here is
+   a radial gradient, so the teeth would have to match a colour that changes down the
+   page. Painting the teeth in the pack's own two foil tones keeps the wrapper a solid
+   rectangle and still reads as a torn edge, because a crimped edge is not a hole: it is
+   the place the foil is thinner and catches the light differently. */
+.shelfTeeth {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 0.5rem;
+  /* Two 45-degree gradients meeting is the standard way to draw a row of triangles
+     without a mask. The tile is one tooth.
+
+     SIZED AND TONED BY EYE AGAINST THE REAL PAGE, twice. The first pass used 0.45rem
+     teeth in --dc-foil-low over --dc-foil-high, and at that size and contrast the row
+     read as more of the vertical ribbing below it rather than as a cut edge - the
+     triangles were there and nobody would have called them teeth. Wider, taller and
+     two steps darker is what separates the two bands. */
+  background:
+    linear-gradient(45deg, rgba(29, 26, 22, 0.34) 25%, transparent 25%) 0 0 / 0.62rem 0.5rem,
+    linear-gradient(-45deg, rgba(29, 26, 22, 0.34) 25%, transparent 25%) 0 0 / 0.62rem 0.5rem,
+    var(--dc-foil-high);
+  z-index: 2;
+}
+
+/* The tear strip. The same type as the hero pack's used to be, in a different box: that
+   one was positioned absolutely inside a wrapper whose top padding was cut for it. */
+.shelfStrip {
+  position: absolute;
+  inset: 0.5rem 0 auto;
+  padding: 0.4rem 0.75rem 0.45rem;
+  border-bottom: 1px dashed rgba(29, 26, 22, 0.4);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-family: var(--dc-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  /* The ribbing the crimping wheel leaves. Fine, vertical, and low-contrast: at this
+     scale a ridge is one pixel of highlight beside one of shadow, and anything heavier
+     stops looking like pressed foil and starts looking like a barcode. */
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.42) 0 1px,
+      rgba(255, 255, 255, 0) 1px 2px,
+      rgba(29, 26, 22, 0.09) 2px 3px,
+      rgba(255, 255, 255, 0) 3px 5px
+    );
+  /* Over the art, which starts under it. A wrapper is printed in one pass. */
+  z-index: 1;
+}
+
+.shelfArt {
+  position: relative;
+  display: block;
+  aspect-ratio: 1;
+  margin: 0 0.75rem;
+  border-radius: 0.35rem;
+  overflow: hidden;
+  background: var(--dc-board);
+  /* The art sits UNDER the foil rather than on top of it, and this is the line that
+     says so: a hairline of shadow around the print, as though the sheet dips where the
+     ink is. Inset, so it is inside the shape's bounds like everything else here. */
+  box-shadow:
+    inset 0 0 0 1px rgba(29, 26, 22, 0.12),
+    inset 0 1px 6px rgba(29, 26, 22, 0.18);
+}
+
+/* The cover itself, warmed and lifted a little so it belongs to the wrapper.
+
+   A playlist cover is somebody else's photograph and it arrives at whatever contrast it
+   was uploaded at. Left alone, a dark one reads as a hole cut in the foil and a bright
+   one reads as a sticker. A touch of contrast and saturation, and the sheen above,
+   pull the range of them into something that looks printed on the same press. */
+.shelfCover {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(1.08) contrast(1.04);
+}
+
+/* THE SHINE. Two bands raked across the print, and the second one is the bright one.
+
+   `overlay` rather than a flat white wash, and that is the whole difference between
+   shiny and washed out: overlay lightens what is already light and deepens what is
+   already dark, so a cover keeps its own contrast and gains a sheen, where a plain
+   translucent white would fog the whole square evenly.
+
+   Still not a glow. Every stop is inside the art's own box and nothing is thrown beyond
+   it; see the header of this file on why the rare rungs are foils rather than light. */
+.shelfArt::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    118deg,
+    rgba(255, 255, 255, 0.34) 0%,
+    rgba(255, 255, 255, 0.06) 26%,
+    rgba(29, 26, 22, 0.16) 52%,
+    rgba(255, 255, 255, 0.5) 72%,
+    rgba(255, 255, 255, 0.08) 84%,
+    rgba(29, 26, 22, 0.1) 100%
+  );
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+/* .shelfBack, the monogram weave that filled a coverless pack, is gone. A playlist with
+   no art gets no art block at all now - see .shelfPack[data-plain] below. The weave was
+   the back of a CARD printed on the front of a WRAPPER, and nine of them down a grid
+   read as broken images rather than as a deck. */
+
+.shelfBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  /* Pushed to the foot of the wrapper, so the count sits on one baseline across a row
+     whose names run to one line and to two. */
+  margin-top: auto;
+  padding: 0.9rem 0.75rem 0.5rem;
+}
+
+.shelfName {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  /* Two lines, then an ellipsis. A playlist named at length is a real thing and it must
+     not be allowed to make one pack in a row twice the height of its neighbours. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* The count, and nothing else. "open in spotify" used to sit under it, which was four
+   words repeated nine times down a grid to say what the cursor already says about a
+   link, and it was the line that could not fit a pack's width without breaking. */
+.shelfMeta {
+  font-family: var(--dc-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(29, 26, 22, 0.62);
+}
+
+/* The bottom crimp. A pack is pressed at both ends, and without this one the wrapper
+   reads as torn open already. Quieter than the top: no serration and no tear line,
+   because only one end of a pack is meant to be opened. */
+.shelfFoot {
+  height: 0.5rem;
+  margin-top: 0.25rem;
+  border-top: 1px solid rgba(29, 26, 22, 0.12);
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.34) 0 1px,
+      rgba(255, 255, 255, 0) 1px 2px,
+      rgba(29, 26, 22, 0.07) 2px 3px,
+      rgba(255, 255, 255, 0) 3px 5px
+    );
+}
+
+/* ---------------- the pager ---------------- */
+
+.pager {
+  margin-top: 1.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.pagerButton {
+  min-width: 2rem;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid var(--dc-hair);
+  border-radius: 0.25rem;
+  background: transparent;
+  font-family: var(--dc-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dc-ink-soft);
+  cursor: pointer;
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    border-color: rgba(29, 26, 22, 0.35);
+    color: var(--dc-ink);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--dc-ink);
+    outline-offset: 2px;
+  }
+
+  /* The page you are on. Filled rather than merely darker, because a row of numbers
+     needs one of them to be unmistakable at a glance. */
+  &[data-current] {
+    border-color: var(--dc-ink);
+    background: var(--dc-ink);
+    color: var(--dc-card);
+  }
+
+  /* At either end. Dimmed and unclickable, not hidden: a control that disappears moves
+     every button beside it, so the target under the pointer changes as you page. */
+  &:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+}
+
+.pagerGap {
+  padding: 0 0.15rem;
+  font-family: var(--dc-mono);
+  font-size: 0.7rem;
+  color: var(--dc-ink-soft);
+}
+
+/* ---------------- the shelf, while it is in flight ---------------- */
+
+.shelfSkeleton {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 1.5rem;
+}
+
+/* The sentence the skeleton announces. Read out, never seen: it is the only thing in
+   this region a screen reader can use, since everything beside it is an empty box.
+
+   Not .jk-sr-only. The declarations are identical and that class belongs to the site's
+   global cascade, which a bare lab app does not draw on. Same rule as the readout
+   below: this file owns its own everything. */
+.shelfLoading {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* The shape a pack will land in, held at the pack's own proportions rather than a fixed
+   height so nothing shifts when the real ones arrive.
+
+   A DULL SHEET WITH NO BANDS ON IT. The foil rake is what makes a pack look like a
+   pack, and a placeholder that already looks like one is a pack with no playlist behind
+   it. This is the paper before anything is printed on it. */
+.shelfSkeletonPack {
+  display: block;
+  /* The square cover, plus the strip above it and the two lines below. */
+  aspect-ratio: 11 / 16;
+  border-radius: 0.75rem;
+  background: var(--dc-board);
+  opacity: 0.55;
+  animation: dc-shelf-wait 1.6s ease-in-out infinite;
+
+  /* The pulse is the only thing on this page that moves on its own. Somebody who asked
+     for no motion gets the shape and no breathing. */
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes dc-shelf-wait {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@media (max-width: 34rem) {
+  /* Two packs across on a phone rather than one. A single pack per row turns a shelf of
+     eight into a page of scrolling, and a pack stays legible at half a narrow
+     viewport. */
+  .packs,
+  .shelfSkeleton {
+    grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+    gap: 1rem;
+  }
+}
+
+/* ---------------- the tabs above the shelf ---------------- */
+
+.explain {
+  width: min(52rem, 100%);
+  margin-top: 2.5rem;
+}
+
+.tabList {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--dc-hair);
+}
+
+.tab {
+  padding: 0.5rem 0.9rem;
+  border: 0;
+  /* The selected tab sits ON the rule under the strip, which is what joins it to the
+     panel. Drawn as a transparent border so selecting a tab cannot change its height. */
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  font-family: var(--dc-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dc-ink-soft);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--dc-ink);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--dc-ink);
+    outline-offset: -2px;
+  }
+
+  &[data-selected] {
+    border-bottom-color: var(--dc-ink);
+    color: var(--dc-ink);
+  }
+}
+
+.tabPanel {
+  padding-top: 1.5rem;
+
+  /* The panel is focusable so a keyboard reader has somewhere to land after the strip.
+     That puts a focus ring round the whole block, which is right when it was reached by
+     Tab and noise when it was reached by a click - :focus-visible is exactly that
+     distinction. */
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--dc-ink);
+    outline-offset: 4px;
+  }
+}
+
+/* The play band for a rung, printed on the legend now that there is a formula behind
+   it. Mono and quiet: it is a number you check a card against, not a heading. */
+.rungPlays {
+  font-family: var(--dc-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  color: var(--dc-ink-soft);
+  white-space: nowrap;
+}
+
+/* ---------------- a pack with nothing printed on it ---------------- */
+
+/* NO COVER, NO ART BLOCK. A placeholder square was the first version and it was worse
+   than nothing: a monogram weave is the back of a CARD, and printing one on the front of
+   a WRAPPER read as nine broken images down the grid. An unprinted foil pack is a real
+   object and this is what it looks like.
+
+   The body grows to fill the space the art would have taken, so a plain pack is the same
+   height as its neighbours and the grid does not go ragged. */
+.shelfPack[data-plain] {
+  .shelfBody {
+    justify-content: flex-end;
+    min-height: 9rem;
+  }
+}
+
+/* ---------------- the opened pack ---------------- */
+
+.dialog {
+  width: min(34rem, calc(100vw - 2rem));
+  max-height: min(44rem, calc(100dvh - 4rem));
+  padding: 0;
+  border: 1px solid var(--dc-hair);
+  border-radius: 0.75rem;
+  background: var(--dc-card);
+  color: var(--dc-ink);
+  font-family: var(--dc-display);
+  overflow: auto;
+  box-shadow: 0 24px 60px rgba(29, 26, 22, 0.28);
+
+  /* THE PACK COMING TO THE FRONT. It starts small and slightly back and settles, which
+     is the one gesture available for "this wrapper is now in your hand". Paired with the
+     backdrop below so the page falls away at the same moment.
+
+     `allow-discrete` and the @starting-style block are what make an entry animation work
+     at all on an element that goes from display:none to the top layer. Without them the
+     dialog is simply there. */
+  transition:
+    opacity var(--dc-dialog-dur, 220ms) ease,
+    transform var(--dc-dialog-dur, 220ms) cubic-bezier(0.2, 0.9, 0.3, 1.2),
+    overlay var(--dc-dialog-dur, 220ms) allow-discrete,
+    display var(--dc-dialog-dur, 220ms) allow-discrete;
+
+  opacity: 0;
+  transform: scale(0.9) translateY(1rem);
+
+  &[open] {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+
+    @starting-style {
+      opacity: 0;
+      transform: scale(0.9) translateY(1rem);
+    }
+  }
+
+  /* THE BLUR, ON THE BACKDROP RATHER THAN ON THE PAGE. A filter on a page wrapper would
+     create a containing block and drag .ground - which is fixed - out from under the
+     whole document. ::backdrop sits between the page and this and costs the page nothing.
+
+     NOT hand-prefixed. Writing the -webkit- pair by hand makes Lightning CSS drop the
+     standard property, and the blur then vanishes in Chrome with no error at all. The
+     bare property is the one that works; the build adds what it needs. */
+  &::backdrop {
+    background: rgba(29, 26, 22, 0.32);
+    backdrop-filter: blur(6px);
+    opacity: 0;
+    transition:
+      opacity var(--dc-dialog-dur, 220ms) ease,
+      overlay var(--dc-dialog-dur, 220ms) allow-discrete,
+      display var(--dc-dialog-dur, 220ms) allow-discrete;
+  }
+
+  &[open]::backdrop {
+    opacity: 1;
+
+    @starting-style {
+      opacity: 0;
+    }
+  }
+
+  /* Somebody who asked for no motion still gets the panel and the blur; what they do
+     not get is the thing that flies at them. */
+  @media (prefers-reduced-motion: reduce) {
+    transition: opacity var(--dc-dialog-dur, 220ms) ease;
+    transform: none;
+
+    &[open] {
+      transform: none;
+
+      @starting-style {
+        transform: none;
+      }
+    }
+  }
+}
+
+.dialogPanel {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.dialogHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.dialogLabel {
+  margin: 0 0 0.15rem;
+  font-family: var(--dc-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--dc-ink-soft);
+}
+
+/* A PLAYLIST'S NAME, NOT A HEADING, THOUGH IT IS MARKED UP AS ONE.
+
+   The <h2> is right: a dialog needs a title and this is it. What is not right is what
+   the site's reset does to every h1-h6 - display face, bold, tracked, and
+   text-transform: lowercase, "set lowercase everywhere by design". That rule is about
+   the portfolio's headings; this is a string Spotify gave us, and it arrived as
+   "Portfolio Playlist (Local Env)" and rendered as "portfolio playlist (local env)".
+   The same name on the pack behind the dialog is a <span> and kept its capitals, so the
+   page was contradicting itself about what the playlist is called.
+
+   Every inherited property is therefore restated rather than only the transform, which
+   is the same rule this module's header sets out: a bare lab app owns its own type and
+   does not take the site's. */
+.dialogName {
+  margin: 0;
+  font-family: var(--dc-display);
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  text-transform: none;
+  color: var(--dc-ink);
+}
+
+.dialogClose {
+  flex: none;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--dc-hair);
+  border-radius: 0.25rem;
+  background: transparent;
+  font-family: var(--dc-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dc-ink-soft);
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    border-color: rgba(29, 26, 22, 0.35);
+    color: var(--dc-ink);
+  }
+}
+
+.dialogCover {
+  width: 7.5rem;
+  height: 7.5rem;
+  border-radius: 0.35rem;
+  object-fit: cover;
+  box-shadow: inset 0 0 0 1px rgba(29, 26, 22, 0.12);
+}
+
+.dialogNote {
+  margin: 0;
+  font-family: var(--dc-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dc-ink-soft);
+}
+
+.dialogOpen {
+  align-self: flex-start;
+  font-family: var(--dc-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dc-ink-soft);
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--dc-ink);
+  }
+}
+
+/* ---------------- the cards inside a pack ---------------- */
+
+.cards {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--dc-hair);
+}
+
+.card {
+  display: grid;
+  grid-template-columns: 0.75rem 1fr max-content;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--dc-hair);
+}
+
+/* The rung, as the same swatch the legend prints. One vocabulary for rarity across the
+   page: if a colour means "deep cut" in the legend it has to mean it here. */
+.cardSwatch {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 0.15rem;
+  border: 1px solid var(--dc-hair);
+  /* An unmatched track has no rung and gets no colour rather than a grey one that would
+     read as its own tier. */
+  background: transparent;
+
+  .card[data-tier="CHART"] & {
+    background: var(--dc-chart);
+  }
+
+  .card[data-tier="ROTATION"] & {
+    background: var(--dc-rotation);
+  }
+
+  .card[data-tier="ALBUM"] & {
+    background: var(--dc-album);
+  }
+
+  .card[data-tier="DEEPCUT"] & {
+    background: linear-gradient(
+      125deg,
+      var(--dc-deepcut) 0%,
+      #d9cbe8 48%,
+      var(--dc-deepcut) 100%
+    );
+  }
+
+  .card[data-tier="UNHEARD"] & {
+    background: conic-gradient(
+      from 210deg,
+      var(--dc-unheard),
+      #e6c9a4,
+      var(--dc-deepcut),
+      #cfd6d9,
+      var(--dc-unheard)
+    );
+  }
+}
+
+.cardMain {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.cardTitle,
+.cardArtist {
+  /* A long title truncates rather than wrapping to three lines and pushing the rung out
+     of alignment with the rows above it. min-width:0 on the parent is what lets this
+     work inside a grid track. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cardTitle {
+  font-size: 0.9rem;
+  line-height: 1.3;
+}
+
+.cardArtist {
+  font-size: 0.75rem;
+  color: var(--dc-ink-soft);
+}
+
+.cardRarity {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.1rem;
+  text-align: right;
+}
+
+.cardTier {
+  font-family: var(--dc-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.cardPlays {
+  font-family: var(--dc-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dc-ink-soft);
+}
+
+/* The one sentence at the top of the legend tab, saying which end of the ladder is
+   good. Restored with the note itself when the two sections became tabs. */
+.ladderNote {
+  margin: 0 0 1.25rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--dc-ink-soft);
 }

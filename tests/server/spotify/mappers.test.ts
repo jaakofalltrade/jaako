@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { Spotify } from "@/models";
-import { artistNames, modalGenre, toItemUrl, toPlaylistSummary, toTrack } from "@/server/spotify/mappers";
+import {
+  artistNames,
+  modalGenre,
+  toDeepcutsPlaylist,
+  toItemUrl,
+  toPlaylistSummary,
+  toTrack,
+} from "@/server/spotify/mappers";
 
 /**
  * The Spotify mappers.
@@ -239,5 +246,107 @@ describe("toPlaylistSummary", () => {
   it("falls back to Spotify's home page for a link on another host", () => {
     const bad = { ...real, external_urls: { spotify: "https://example.test/playlist" } };
     expect(toPlaylistSummary({ playlist: bad, track_count: 0, runtime_ms: 0 }).url).toBe("https://open.spotify.com");
+  });
+});
+
+describe("toDeepcutsPlaylist", () => {
+  const cover = "https://image-cdn-fa.spotifycdn.com/image/abc";
+
+  it("maps a playlist to a pack", () => {
+    expect(
+      toDeepcutsPlaylist({
+        playlist: {
+          id: "2CK3Ap0UNSCwatm9cIijx2",
+          name: "deep house",
+          images: [{ url: cover, width: null, height: null }],
+          external_urls: { spotify: "https://open.spotify.com/playlist/2CK3Ap0UNSCwatm9cIijx2" },
+          tracks: { total: 41 },
+        },
+      })
+    ).toEqual({
+      id: "2CK3Ap0UNSCwatm9cIijx2",
+      name: "deep house",
+      cover,
+      url: "https://open.spotify.com/playlist/2CK3Ap0UNSCwatm9cIijx2",
+      track_count: 41,
+    });
+  });
+
+  /* The id is the one field with no stand-in: it is the key the shelf is drawn with and
+     what a pack rip will eventually be dealt from. Null so a single malformed entry
+     drops itself instead of taking the whole shelf down. */
+  it("is null for a playlist with no id", () => {
+    expect(toDeepcutsPlaylist({ playlist: { name: "nameless" } })).toBeNull();
+  });
+
+  /* THE COUNT IS `items`, NOT `tracks`, AND THAT IS MEASURED. Both the full playlist
+     record and the simplified one Spotify returns in a list answer `items` where every
+     version of the documentation says `tracks`. The second name is read as insurance
+     against the endpoint ever moving back to the documented one, because the failure it
+     would cause is silent: zero on a playlist with forty songs on it. */
+  it("reads the count from items.total, which is the name Spotify actually uses", () => {
+    expect(
+      toDeepcutsPlaylist({ playlist: { id: "a", items: { total: 9 } } })?.track_count
+    ).toBe(9);
+  });
+
+  it("falls back to the documented tracks.total", () => {
+    expect(
+      toDeepcutsPlaylist({ playlist: { id: "a", tracks: { total: 7 } } })?.track_count
+    ).toBe(7);
+  });
+
+  it("prefers items over tracks when both arrive", () => {
+    expect(
+      toDeepcutsPlaylist({ playlist: { id: "a", items: { total: 9 }, tracks: { total: 7 } } })
+        ?.track_count
+    ).toBe(9);
+  });
+
+  it("is zero when neither name carries a count", () => {
+    expect(toDeepcutsPlaylist({ playlist: { id: "a" } })?.track_count).toBe(0);
+  });
+
+  /* An empty playlist is a real thing and its count is a real zero. `??` rather than
+     `||` is what keeps it from falling through to the other name, or to the default. */
+  it("keeps zero as a real answer rather than falling through", () => {
+    expect(
+      toDeepcutsPlaylist({ playlist: { id: "a", items: { total: 0 }, tracks: { total: 40 } } })
+        ?.track_count
+    ).toBe(0);
+  });
+
+  it("names an untitled playlist rather than rendering undefined", () => {
+    expect(toDeepcutsPlaylist({ playlist: { id: "a" } })?.name).toBe("untitled playlist");
+  });
+
+  /* A playlist cover comes from a rotating spotifycdn.com subdomain, which is why this
+     takes the wider suffix check rather than the exact i.scdn.co one album art gets. */
+  it("keeps a cover on the rotating playlist CDN", () => {
+    expect(
+      toDeepcutsPlaylist({
+        playlist: { id: "a", images: [{ url: "https://image-cdn-ak.spotifycdn.com/image/x" }] },
+      })?.cover
+    ).toBe("https://image-cdn-ak.spotifycdn.com/image/x");
+  });
+
+  it("refuses a cover from a host we did not expect", () => {
+    expect(
+      toDeepcutsPlaylist({
+        playlist: { id: "a", images: [{ url: "https://evilspotifycdn.com/image/x" }] },
+      })?.cover
+    ).toBeNull();
+  });
+
+  it("has no cover when the playlist has no images", () => {
+    expect(toDeepcutsPlaylist({ playlist: { id: "a" } })?.cover).toBeNull();
+  });
+
+  it("falls back to Spotify's home page for a link on another host", () => {
+    expect(
+      toDeepcutsPlaylist({
+        playlist: { id: "a", external_urls: { spotify: "https://example.test/x" } },
+      })?.url
+    ).toBe("https://open.spotify.com");
   });
 });

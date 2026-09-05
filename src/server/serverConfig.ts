@@ -52,6 +52,7 @@ const localConfig: ServerConfig = {
   spotify_playlist_id: process.env.SPOTIFY_PLAYLIST_ID || SUGGEST_PLAYLIST_ID,
   database_url: process.env.DATABASE_URL ?? "",
   resend_api_key: process.env.RESEND_API_KEY ?? "",
+  lastfm_api_key: process.env.LASTFM_API_KEY ?? "",
 };
 
 const stagingConfig: ServerConfig = {
@@ -65,6 +66,7 @@ const stagingConfig: ServerConfig = {
   spotify_playlist_id: process.env.SPOTIFY_PLAYLIST_ID || SUGGEST_PLAYLIST_ID,
   database_url: process.env.DATABASE_URL ?? "",
   resend_api_key: process.env.RESEND_API_KEY ?? "",
+  lastfm_api_key: process.env.LASTFM_API_KEY ?? "",
 };
 
 const productionConfig: ServerConfig = {
@@ -78,6 +80,7 @@ const productionConfig: ServerConfig = {
   spotify_playlist_id: process.env.SPOTIFY_PLAYLIST_ID || SUGGEST_PLAYLIST_ID,
   database_url: process.env.DATABASE_URL ?? "",
   resend_api_key: process.env.RESEND_API_KEY ?? "",
+  lastfm_api_key: process.env.LASTFM_API_KEY ?? "",
 };
 
 const configByEnv: Record<Env, ServerConfig> = {

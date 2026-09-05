@@ -8,7 +8,7 @@ import {
   SPOTIFY_WEB_URL,
 } from "@/constants";
 import { Spotify } from "@/models";
-import type { PlaylistSummary, QueueEntry, SearchResult } from "@/models";
+import type { DeepcutsPlaylist, PlaylistSummary, QueueEntry, SearchResult } from "@/models";
 import { mostCommon } from "@/utils/collection";
 import { fromHost, fromHostList } from "@/utils/url";
 
@@ -164,6 +164,44 @@ export const toPlaylistSummary = (args: {
     track_count,
     runtime_ms,
     owner: playlist.owner?.display_name ?? "",
+  };
+};
+
+/**
+ * One playlist from the library, as a pack on /lab/deepcuts.
+ *
+ * Null for a playlist with no id, which is the one field the page cannot do without:
+ * it is the key the list is drawn with and the value a pack rip will be dealt from.
+ * Everything else has a sensible stand-in, and this is the mapper for a LIST — one
+ * malformed entry drops itself rather than taking the shelf down.
+ *
+ * The count comes from `items.total` FIRST, which is measured rather than documented:
+ * every playlist in a real 199-playlist library answered `items` and none carried a
+ * `tracks` key, where every version of Spotify's documentation says `tracks`.
+ * `tracks.total` is read second as insurance against that moving back, not as a guess —
+ * see the note in models/Spotify.ts.
+ *
+ * The cover takes the same wider host check toPlaylistSummary does, and for the same
+ * reason: a playlist's uploaded cover is served from a rotating spotifycdn.com
+ * subdomain rather than from i.scdn.co.
+ */
+export const toDeepcutsPlaylist = (args: {
+  playlist: Spotify.SimplePlaylistResponse;
+}): DeepcutsPlaylist | null => {
+  const { playlist } = args;
+  if (!playlist.id) return null;
+
+  return {
+    id: playlist.id,
+    name: playlist.name ?? "untitled playlist",
+    cover: fromHostList({
+      url: pickArtUrl(playlist.images),
+      hosts: PLAYLIST_ART_HOSTS,
+      suffixes: PLAYLIST_ART_SUFFIXES,
+      fallback: null,
+    }),
+    url: toSpotifyUrl(playlist.external_urls?.spotify),
+    track_count: playlist.items?.total ?? playlist.tracks?.total ?? 0,
   };
 };
 

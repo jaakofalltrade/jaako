@@ -299,13 +299,25 @@ machine's counter it wants a value with a long TTL rather than a daily one.
 
 Open, and none of it blocking:
 
-- **The thresholds.** Which play counts separate the rungs. Deliberately not modelled:
-  they are tuning constants, they will move the first time real numbers are seen, and
-  the teaser says `thresholds: undecided` rather than inventing five bands.
-- **Which playlist.** The teaser says "a playlist of mine" on purpose. Pointing it at
-  the `/lab/suggest` playlist is tempting and is a real design decision, not a wiring
-  detail: it would mean visitors are dealt cards out of a list other visitors filled,
-  which is a different app from being dealt cards out of mine.
+- ~~**The thresholds.**~~ *Settled, as a formula rather than five bands.* **One rung per
+  order of magnitude**: 10m+ plays is `chart`, 1m `rotation`, 100k `album cut`, 10k
+  `deep cut`, under 10k `unheard`. Play counts are a power law spanning six or seven
+  decades, so a logarithmic ladder is the only one whose steps are evenly spaced against
+  the data - split 0 to 50m into five equal slices and the first slice swallows nearly
+  every song ever recorded. `DEEPCUT_TIER_FLOOR` in `src/constants/lab.ts`, applied by
+  `rarityOf` in `src/utils/rarity.ts`.
+
+  What is still open is where the ladder is **anchored**, which depends on the kind of
+  music being scored: a playlist two decades quieter than these numbers assume comes out
+  as five unheards. Move the floors when there is real data; do not add rungs between
+  them.
+- **Which playlist.** *Half answered.* The page now reads the account's public
+  playlists from Spotify and prints one pack per playlist, so "a playlist of mine" is a
+  shelf a visitor can see rather than a phrase. What is still open is which one a RIP
+  deals from: the visitor picking a pack off the shelf, or one playlist nominated in
+  config. Pointing it at the `/lab/suggest` playlist remains a real design decision and
+  not a wiring detail, because it would mean visitors are dealt cards out of a list
+  other visitors filled, which is a different app from being dealt cards out of mine.
 - **Whether a pull persists.** Cards that survive between visits need the store and an
   identity; cards that do not are a rip and a screenshot. The cookie identity described
   above is enough for either.
@@ -314,9 +326,12 @@ Open, and none of it blocking:
 
 ## Constraints to check before writing app code
 
-- **Spotify scopes.** Today's token has `user-read-currently-playing`,
-  `user-read-recently-played` and `user-top-read`. Suggestions need
-  `playlist-modify-public` on the owner token. The roast needs a per-visitor OAuth
+- **Spotify scopes.** Today's read token has `user-read-currently-playing`,
+  `user-read-recently-played`, `user-top-read` and `playlist-read-private`.
+  Suggestions need `playlist-modify-public` on the owner token. deepcuts needs
+  `playlist-read-private` to LIST playlists at all — `GET /me/playlists` is a 403
+  without it even for public ones, so the scope buys the list rather than the private
+  entries on it, and the public-only filter is ours. The roast needs a per-visitor OAuth
   flow, which is a second token store and a callback route, not an extra scope.
 - **CSP.** `connect-src 'self'` allows our own streamed routes and nothing else, so
   any browser call must go through `/api`. `img-src` allows `i.scdn.co` only, which
@@ -348,6 +363,8 @@ Open, and none of it blocking:
    and needs no OAuth of its own: the playlist read is the owner's token and the play
    counts are an unauthenticated key. The scoring pass can be written and checked
    against real numbers long before any of the pack rip is built.
+   *In progress.* The Spotify half is done and the schema for the rip is in place; what
+   is missing is Last.fm and the rip itself.
 4. `/lab/roast`, last, because it is the only one whose audience is capped by Spotify
    rather than by us.
 
@@ -356,3 +373,54 @@ Open, and none of it blocking:
 `/lab/suggest` works. Everything else is a teaser: a static render of what the app will
 look like with its controls inert, storing nothing and fetching nothing. `/lab/deepcuts`
 is the newest of them and the pack on it does not open.
+
+`/lab/deepcuts` is now half connected, and no longer a teaser page in shape.
+
+The **shelf** is live: every public playlist on the account, read from Spotify on the
+server, one foil pack each, nine to a page, linking out to the real thing. Nothing on it
+is scored, because scoring needs a play count and that is Last.fm's half of the job, not
+Spotify's. So the page shows real packs and still turns over no cards.
+
+**The sealed hero pack and its fan of face-down cards are gone.** They were the teaser -
+one unopened wrapper standing in for an app that could not open one - and a shelf of
+seventy-five real ones says the same thing with data. Keeping both put two pack images
+on one page competing to be the subject. The tear strip and the card-back weave survive
+on the shelf, so none of the look went with them. The ladder stays, because the inverted
+rarity is the one thing a visitor cannot guess.
+
+**Two figures sit beside the title and both read "nothing yet".** Most-opened pack and
+rarest card pulled, queried from `pack_rip` and `pack_card` in Neon (002_deepcuts.sql).
+The tables are empty by construction: nothing opens a pack. They exist ahead of the rip
+so the masthead's layout is settled now rather than changing on the day the numbers
+arrive, and so the rip has somewhere to write without a migration.
+
+**The pager and the tab strip are reusable.**
+`src/design-system/core/Pagination.tsx` and `Tabs.tsx` ship no styling at all and take
+every class from their caller, which is what lets a bare lab app use them without
+pulling the site's `jk-` cascade in - the thing every bare module's header forbids. The
+arithmetic is `pageWindow` in `src/utils/pagination.ts`, pure and pinned.
+
+**The legend and the rules are two tabs ABOVE the shelf.** Normally a legend goes under
+what it labels; here what it labels is a grid of sealed wrappers, and the single fact a
+visitor cannot guess - that rarity runs backwards - has to arrive before they open one.
+Two stacked sections would have pushed the shelf off the first screen, so they are tabs.
+The legend prints the play bands now that there is a formula behind them.
+
+**A pack opens.** Clicking one brings it to the front over a blurred backdrop and lists
+what is inside: every song, its artist, its rung and its play count. A pack is a
+`<button>` rather than an anchor now, because it does something on this page instead of
+navigating; the Spotify link moved inside the panel. The contents come from
+`GET /api/lab/deepcuts/pack?id=`, which **checks the id against the shelf** - without
+that it is an open proxy for reading any playlist on Spotify through the owner's token.
+
+**last.fm is wired up and switched off.** `LASTFM_API_KEY` in `serverConfig`,
+`src/server/lastfm/` for the client, six-hour cache, bounded concurrency, at most
+`SCORED_TRACK_LIMIT` tracks scored per pack. Without a key the packs still open and list
+their songs, every track reads "unmatched", and the panel says play counts are not
+switched on rather than pretending. A track last.fm cannot match gets **no rung** rather
+than the rarest one - defaulting an unmatched track to `unheard` would make every failed
+match look like the best card in the app.
+
+**A playlist with no cover gets no art block at all.** The monogram weave that used to
+fill the gap was the back of a *card* printed on the front of a *wrapper*, and nine of
+them down a grid read as broken images. A plain foil pack is a real object.
