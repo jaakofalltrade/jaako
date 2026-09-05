@@ -225,6 +225,16 @@ export const SUGGEST_TEASER = {
   /** While a search is in flight and there is nothing to show yet. */
   searching: "looking...",
 
+  /**
+   * What the two loading blocks announce.
+   *
+   * Read out, never seen: the skeletons on this page are shapes, and a shape says
+   * nothing to a reader who cannot see it. One sentence per region rather than one
+   * per shape, which is why these sit on the boundary and not on Skeleton itself.
+   */
+  loading_playlist: "Loading the playlist.",
+  loading_queue: "Loading what is on the playlist.",
+
   /** On an optimistic row, and on one whose add came back an error with no sentence. */
   adding: "adding",
   add_failed: "That did not go through.",

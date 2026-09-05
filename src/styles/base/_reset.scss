@@ -75,11 +75,26 @@ body {
 
    See tokens/_effects.scss for why the blur is only 5px and why the pane is at .78;
    neither is a free number. */
+/* THE GROUND HAS TO REACH ACROSS THE SCROLLBAR GUTTER, WHICH inset:0 DOES NOT DO.
+
+   A fixed element is laid out against the initial containing block, and the ICB stops
+   at the inner edge of the gutter reserved by scrollbar-gutter above. So `inset: 0`
+   sized both of these to the content area and left the last ~15px on the right showing
+   the root's own background instead — a cream strip down the edge of every page, over
+   a photograph that is nothing like cream. It reads as a dead scrollbar, and it was on
+   screen whether the page scrolled or not, which is the gutter's whole point.
+
+   100vw is measured against the viewport rather than the ICB, so it includes the
+   gutter. It cannot bring back the horizontal scrollbar that width normally risks:
+   fixed elements are outside the document's scrollable overflow. `inset` still supplies
+   the other three edges — with left and right both set, the width simply wins on the
+   right, which is the edge that needed covering. */
 body::before,
 body::after {
   content: "";
   position: fixed;
   inset: 0;
+  width: 100vw;
   pointer-events: none;
 }
 
