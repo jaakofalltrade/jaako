@@ -13,24 +13,24 @@ import styles from "./lab.module.scss";
 
 export const metadata: Metadata = {
   title: "lab · jaako andes",
-  description: "Things that are not a portfolio. A slot machine, a shared playlist, and an agent with opinions.",
+  description: "Things that are not a portfolio. A slot machine, a shared playlist, an agent with opinions, and a pack of cards.",
 };
 
 /**
  * The index.
  *
- * Built from the components the rest of the site is built from, on purpose. The three
- * apps look like nothing else here and like nothing like each other, so the room they
- * are listed in has to be the calm one. A lobby that was already shouting would leave
- * the apps nowhere to go.
+ * Built from the components the rest of the site is built from, on purpose. Every app
+ * in here looks like nothing else on the site and like nothing like each other, so the
+ * room they are listed in has to be the calm one. A lobby that was already shouting
+ * would leave the apps nowhere to go.
  *
  * The numbering is the same editorial device as /work, and it carries the same
- * promise: this is a catalogue, and it is complete. Adding a fourth app means adding
- * a row to src/data/lab.ts, and this page needs no edit at all.
+ * promise: this is a catalogue, and it is complete. Adding another app means adding a
+ * row to src/data/lab.ts, and this page needs no edit at all.
  *
  * Each row used to name its own art direction under the blurb - "looks like: arcade
- * CRT". It was a caption on a link that is not a picture, and three of them stacked
- * down the page turned a list into a specification sheet. The lead says the same thing
+ * CRT". It was a caption on a link that is not a picture, and a stack of them ran down
+ * the page turning a list into a specification sheet. The lead says the same thing
  * once, in a sentence, which is where it belongs.
  *
  * The rows read exactly like the ones on /work, down to the hover: this is a numbered

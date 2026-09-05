@@ -1,11 +1,11 @@
 # The lab
 
-Everything on this site that is not the portfolio lives under `/lab`. Three apps are
-planned, none of them is built, and all three currently render a teaser wearing their
-own design so the shape of each is visible before any of it works.
+Everything on this site that is not the portfolio lives under `/lab`. Only `/lab/suggest`
+actually works; every other app in the register renders a teaser wearing the design it
+will ship in, so the shape of each is visible before any of it does anything.
 
 This document is the agreed plan. It records what was decided, what was rejected and
-why, and what is still open. Read it before building any of the three.
+why, and what is still open. Read it before building any of them.
 
 ---
 
@@ -16,7 +16,7 @@ apps answer none. They are toys, they are meant to look nothing like a CV, and p
 them at the site root would slowly turn a portfolio into a directory of unrelated
 things.
 
-`/lab` gives them one door and one index. Adding a fourth app is a row in
+`/lab` gives them one door and one index. Adding another app is a row in
 `src/data/lab.ts` and a folder, and no decision has to be re-litigated to do it.
 
 ---
@@ -28,9 +28,9 @@ because the reason a thing was rejected is the part that gets lost.
 
 ### Routes
 
-Canonical paths are `/lab`, `/lab/slots`, `/lab/suggest`, `/lab/roast`. The index at
-`/lab` lists every app with its status, so there is always somewhere to send a person
-who has not seen any of them.
+Canonical paths are `/lab`, `/lab/slots`, `/lab/suggest`, `/lab/roast`, `/lab/deepcuts`.
+The index at `/lab` lists every app with its status, so there is always somewhere to
+send a person who has not seen any of them.
 
 Rejected: top-level `/slots`, `/suggest`, `/roast`. Shorter and more shareable, but it
 leaves no home for a list of them and it fills the one namespace that future portfolio
@@ -70,7 +70,7 @@ level so a route can opt out.
 
     src/app/(site)/layout.tsx        PageShell: portfolio, /work, /experience
     src/app/lab/(framed)/layout.tsx  PageShell: /lab and /lab/suggest
-    src/app/lab/(bare)/layout.tsx    no shell: /lab/slots and /lab/roast
+    src/app/lab/(bare)/layout.tsx    no shell: /lab/slots, /lab/roast, /lab/deepcuts
 
 Route groups do not appear in the URL, so `/lab/slots` is still `/lab/slots`. The root
 layout keeps `<html>`, `<body>`, the fonts, the duotone filter and `globals.scss`,
@@ -216,6 +216,100 @@ better than a limit presented as a failure.
 Open: whether to submit for a quota extension at all. Personal projects are often
 declined, and being declined costs nothing but time.
 
+### `/lab/deepcuts` : deepcuts
+
+A pack of cards is dealt out of one of my playlists, and how rare each card is depends
+on how few plays the track has.
+
+**Design: a trading card pack rip.** Panini or Pokemon rather than Valve. Light ground,
+warm paper, cards fanning out from behind a foil wrapper, and foil treatments on the
+two rarest rungs.
+
+> Deliberately not a CS-GO crate. The mechanic is borrowed from one, and the look is
+> not: a dark blue-grey crate with a glowing Covert drop would be a second dark, glowing
+> app sitting next to the slot cabinet, and the no-glow exception in this document is
+> scoped to slots alone. The rare rungs are foils instead, which means a gradient inside
+> the shape's own bounds rather than light thrown off it. `deepcuts.module.scss` says
+> so at the top, because it is the rule most likely to be broken by the next person
+> adding a tier.
+
+**Rarity runs backwards, and that is the app.** The fewest plays wins. A chart hit is
+the common you throw back and a track with a few thousand plays is the pull.
+
+Rejected: the literal CS reading, where the most-played track is the rarest. It is more
+immediately legible to anyone who has opened a case, and it makes the prize the most
+generic thing on the playlist, which is the opposite of a personal playlist's point.
+Inverting it costs one sentence of explanation on the page and buys the entire joke.
+
+The ladder is `DeepcutTier` in `src/models/Lab.ts`, commonest first, with its labels in
+`src/constants/lab.ts` next to `LAB_STATUS_BADGE`:
+
+    chart      everyone has heard it
+    rotation   a song that had its year
+    album cut  never a single
+    deep cut   thin numbers
+    unheard    almost nobody has played this
+
+**Spotify cannot supply the number this app is scored on.** This is the constraint that
+shapes everything else, and it is worth stating plainly because the app sounds like it
+should be pure Spotify:
+
+- The Web API has never exposed play counts. Not per track, not per playlist, not for
+  the owner's own library.
+- The closest field is `popularity`, an integer 0 to 100 that Spotify describes as
+  based "in the most part, on the total number of plays the track has had and how
+  recent those plays are". It arrives free: `GET /v1/playlists/{id}/tracks` returns
+  **full** track objects, so one request gets the playlist and a number for every
+  track on it with no per-track fan-out.
+- **`popularity` is marked deprecated in Spotify's own reference.** It still returns
+  values today. Given that audio features, audio analysis, recommendations and related
+  artists are already permanently unavailable to this app, building the entire scoring
+  mechanic on a field Spotify has flagged for removal is a bet this app should not
+  take.
+
+**So the counts come from Last.fm.** `track.getInfo` returns a global `playcount` and a
+`listeners` figure. Free API key, no OAuth, server-side only, and it is a real integer
+a card can print rather than a normalised score.
+
+The costs are accepted rather than solved:
+
+- **Matching is fuzzy.** Spotify gives an artist and a title; Last.fm is asked for the
+  same pair and may return a different recording, a live version, or nothing. A track
+  that cannot be matched has no tier, and the honest answer is to leave it out of the
+  pack rather than guess a rung for it.
+- **Scrobbles are not streams.** Last.fm counts what its own users scrobbled. It is a
+  decent proxy for how much of the world has heard a song and it is not Spotify's play
+  count. `DEEPCUTS_TEASER.source_note` already says this out loud on the page, because
+  a visitor who works it out on their own concludes the numbers are invented.
+- **It is a second upstream.** The playlist read stays on Spotify; only the counts come
+  from Last.fm. If Last.fm is unreachable the pack cannot be scored, which is a whole
+  outage rather than a degraded one.
+
+Rejected: Deezer's `rank`, which is another normalised index with the same objection as
+`popularity` and no advantage over it. Songstats, Chartmetric and Soundcharts have real
+Spotify stream figures and all of them are paid, which is a subscription for a toy.
+MusicBrainz, Genius and Musixmatch carry no play data at all.
+
+**Counts are cached, not fetched per pack.** A playlist changes slowly and a global
+play count changes slower. The intended shape is one scored snapshot of the playlist,
+refreshed on a schedule, with packs dealt out of the snapshot: a pack rip should be one
+read, not a fan-out of Last.fm calls while a visitor waits on an animation. That makes
+this the second app after `/lab/suggest` to want the store, and unlike the slot
+machine's counter it wants a value with a long TTL rather than a daily one.
+
+Open, and none of it blocking:
+
+- **The thresholds.** Which play counts separate the rungs. Deliberately not modelled:
+  they are tuning constants, they will move the first time real numbers are seen, and
+  the teaser says `thresholds: undecided` rather than inventing five bands.
+- **Which playlist.** The teaser says "a playlist of mine" on purpose. Pointing it at
+  the `/lab/suggest` playlist is tempting and is a real design decision, not a wiring
+  detail: it would mean visitors are dealt cards out of a list other visitors filled,
+  which is a different app from being dealt cards out of mine.
+- **Whether a pull persists.** Cards that survive between visits need the store and an
+  identity; cards that do not are a rip and a screenshot. The cookie identity described
+  above is enough for either.
+
 ---
 
 ## Constraints to check before writing app code
@@ -230,9 +324,18 @@ declined, and being declined costs nothing but time.
 - **Downloads are not free.** A generated voucher image cannot be handed over with a
   plain `<a download>` under the current headers. The QR is rendered inline as SVG and
   the fallback is that the visitor screenshots it or types the code.
-- **No new runtime dependency has been added.** The repo has five, deliberately. QR
-  generation and the Claude SDK are the two that this plan eventually forces, and both
-  should be argued for at the point of use.
+- **Play counts are not Spotify's to give.** Nothing in the Web API returns one, and
+  `popularity` is a normalised score that Spotify has now marked deprecated. Any lab
+  app that wants a real number needs a second upstream; deepcuts uses Last.fm.
+- **A second upstream is a second key and a second CSP question.** `LASTFM_API_KEY`
+  belongs in `serverConfig` beside the Spotify credentials, and the call is made
+  server-side. `connect-src 'self'` means the browser must never reach Last.fm
+  directly, so this goes through `/api` like everything else.
+- **No new runtime dependency has been added.** The repo's dependency list is short
+  deliberately. QR generation and the Claude SDK are the two that this plan eventually
+  forces, and both should be argued for at the point of use. Last.fm is not one of
+  them: it is a JSON endpoint reached with `fetch`, the same way the Spotify client
+  already works.
 
 ---
 
@@ -241,10 +344,15 @@ declined, and being declined costs nothing but time.
 1. `/lab/suggest`, because it needs no agent, no prize, and no per-visitor OAuth. It
    is the one that proves the store interface and the cookie identity.
 2. `/lab/slots`, once the store is real. Cabinet first, prize code second.
-3. `/lab/roast`, last, because it is the only one blocked on an external review that
-   may never arrive.
+3. `/lab/deepcuts`, which needs the store for a cached snapshot rather than a counter,
+   and needs no OAuth of its own: the playlist read is the owner's token and the play
+   counts are an unauthenticated key. The scoring pass can be written and checked
+   against real numbers long before any of the pack rip is built.
+4. `/lab/roast`, last, because it is the only one whose audience is capped by Spotify
+   rather than by us.
 
 ## Status today
 
-Teasers only. Nothing stores, nothing fetches, nothing is installed. Every page under
-`/lab` is a static render of what the app will look like with its controls inert.
+`/lab/suggest` works. Everything else is a teaser: a static render of what the app will
+look like with its controls inert, storing nothing and fetching nothing. `/lab/deepcuts`
+is the newest of them and the pack on it does not open.

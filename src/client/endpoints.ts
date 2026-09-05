@@ -39,18 +39,19 @@ export const routes = {
    * The lab and the apps in it.
    *
    * Written out rather than built from a LabAppId, because a builder would mean the
-   * enum value doubles as a URL segment and the two are allowed to differ. Four
-   * literals also means every path on the site can still be found by searching this
+   * enum value doubles as a URL segment and the two are allowed to differ. Writing
+   * them out also means every path on the site can still be found by searching this
    * file for the string in the address bar.
    *
    * Nested for the same reason `endpoints.spotify` is: these belong together and
-   * flattening them would put four lab entries in the middle of the portfolio's.
+   * flattening them would drop the whole lab in among the portfolio's paths.
    */
   lab: {
     index: "/lab",
     slots: "/lab/slots",
     suggest: "/lab/suggest",
     roast: "/lab/roast",
+    deepcuts: "/lab/deepcuts",
   },
 } as const;
 

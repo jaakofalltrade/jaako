@@ -1,0 +1,494 @@
+/* The pack. /lab/deepcuts.
+
+   READ THIS BEFORE COPYING ANYTHING OUT OF HERE.
+
+   This app is light, which makes it the odd one out among the bare lab pages and the
+   nearest of them to the portfolio's own palette. That is a coincidence of subject
+   rather than a shared system: trading cards are printed on card, card is pale, and a
+   pack rip staged on a near-black ground reads as a loot crate. Which is the app this
+   one is deliberately not.
+
+   Nothing here reads src/styles/tokens. Every value is declared below, on .app, for
+   the reason slots gives at greater length: an app in the lab is not part of the
+   portfolio's system, and wiring it in would mean a change to the site's palette can
+   quietly repaint a card. The resemblance is allowed to be a resemblance.
+
+   No glow. The standing prohibition is intact here and only slots is exempt from it.
+   The rare rungs are foils, and a foil is a sheen across a surface rather than light
+   thrown off one: every treatment below is a gradient inside a shape's own bounds,
+   and there is no box-shadow on this page doing anything but sitting a card on a
+   table. If a future tier wants to glow, that is a decision to argue for, not a thing
+   to reach for because the tier is called "unheard". */
+
+.app {
+  /* Paper first: three warm neutrals, because everything else on the page is printed
+     on one of them. */
+  --dc-paper: #f4f0e8;
+  --dc-card: #fffdf8;
+  --dc-board: #e6dfd2;
+
+  --dc-ink: #1d1a16;
+  --dc-ink-soft: #6a6358;
+  --dc-hair: rgba(29, 26, 22, 0.14);
+
+  /* The wrapper. Muted rather than metallic: a foil pack photographed in daylight is
+     mostly a dull sheet with two bright bands across it. */
+  --dc-foil: #cfd6d9;
+  --dc-foil-high: #f2f5f6;
+  --dc-foil-low: #9aa5aa;
+
+  /* The ladder, commonest to rarest. The step from rung to rung is saturation and
+     nothing else: the common end is the paper the page is already printed on, and
+     each rung up puts more pigment on the same card. */
+  --dc-chart: #b9b2a4;
+  --dc-rotation: #8fa6a8;
+  --dc-album: #7d8cb5;
+  --dc-deepcut: #9a7bb8;
+  --dc-unheard: #c08a5e;
+
+  --dc-display: var(--font-quicksand), "Helvetica Neue", Helvetica, sans-serif;
+  --dc-mono: var(--font-geist-mono), ui-monospace, "Courier New", monospace;
+
+  position: relative;
+  z-index: 0;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  padding: clamp(1.25rem, 0.75rem + 3vw, 3.5rem) 1.25rem 5rem;
+  font-family: var(--dc-display);
+  color: var(--dc-ink);
+  text-align: center;
+}
+
+/* The table the pack is lying on.
+
+   Fixed rather than a background on .app, for the reason slots gives: the page's own
+   ground is two fixed pseudo-elements on <body>, and a scrolling background would let
+   the site's cream show through at the ends of an overscroll. */
+.ground {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(120% 90% at 50% 12%, var(--dc-card) 0%, var(--dc-paper) 55%, var(--dc-board) 100%);
+}
+
+.bar {
+  width: min(52rem, 100%);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.exit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--dc-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--dc-ink-soft);
+
+  &:hover,
+  &:focus-visible {
+    color: var(--dc-ink);
+  }
+}
+
+.exitLabel {
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+.spec {
+  font-family: var(--dc-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  color: var(--dc-ink-soft);
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(2.5rem, 1.5rem + 5vw, 4.5rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.subtitle {
+  margin: 0;
+  font-family: var(--dc-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dc-ink-soft);
+}
+
+.lead {
+  max-width: 44ch;
+  margin: 0.75rem 0 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--dc-ink-soft);
+}
+
+/* ---------------- the pack, and the fan behind it ---------------- */
+
+.table {
+  position: relative;
+  width: min(30rem, 100%);
+  margin: 3rem 0 0;
+  /* Room for the fan, which sits behind the pack and spreads wider than it. */
+  padding: 0 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.fan {
+  position: absolute;
+  /* Pinned to the pack's own box rather than laid out beside it: the cards are meant
+     to look like they are underneath the wrapper, not next to it. */
+  inset: 0 0 auto;
+  height: 17rem;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.card {
+  position: absolute;
+  top: 0;
+  width: 7.5rem;
+  height: 10.5rem;
+  border: 1px solid var(--dc-hair);
+  border-radius: 0.5rem;
+  background: var(--dc-card);
+  /* The only shadow on the page, and it is doing the one job a shadow is for here:
+     sitting a piece of card on a table. */
+  box-shadow: 0 8px 18px rgba(29, 26, 22, 0.1);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+
+  /* Fanned by hand rather than by an nth-child formula. The angles are not on a
+     regular interval: a real fan is spread by a thumb and the outer cards travel
+     further than the inner ones.
+
+     Each card drops a little as it goes out, so the tops describe an arc instead of a
+     straight line. Without it the fan reads as five rectangles leaning over, and the
+     spread has to be wide enough that the two inner cards are not swallowed whole by
+     the wrapper standing in front of them. */
+  &[data-position="0"] {
+    transform: translate(-10.5rem, 1.75rem) rotate(-19deg);
+  }
+
+  &[data-position="1"] {
+    transform: translate(-5.75rem, 0.45rem) rotate(-9deg);
+  }
+
+  &[data-position="2"] {
+    transform: translateY(-0.35rem) rotate(-1deg);
+  }
+
+  &[data-position="3"] {
+    transform: translate(5.75rem, 0.45rem) rotate(9deg);
+  }
+
+  &[data-position="4"] {
+    transform: translate(10.5rem, 1.75rem) rotate(19deg);
+  }
+}
+
+/* The back. A monogram tiled across the card, drawn with a repeating gradient behind
+   it so the surface has a weave rather than being a flat rectangle. */
+.cardBack {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  font-family: var(--dc-mono);
+  font-size: 0.85rem;
+  /* Tracked out, but not so far that the second letter lands under the wrapper on the
+     cards that sit behind it. */
+  letter-spacing: 0.18em;
+  text-indent: 0.18em;
+  color: var(--dc-ink-soft);
+  opacity: 0.5;
+  background:
+    repeating-linear-gradient(
+      45deg,
+      transparent 0 6px,
+      rgba(29, 26, 22, 0.045) 6px 7px
+    );
+}
+
+.pack {
+  position: relative;
+  z-index: 1;
+  width: 12rem;
+  min-height: 16rem;
+  margin-top: 1.5rem;
+  padding: 3rem 1.25rem 1.5rem;
+  border-radius: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  color: var(--dc-ink);
+  /* The foil. Two bright bands raked across a dull sheet, which is what a wrapper
+     looks like under a room light. Not a glow: it is bounded by the pack. */
+  background:
+    linear-gradient(
+      118deg,
+      var(--dc-foil-low) 0%,
+      var(--dc-foil) 22%,
+      var(--dc-foil-high) 34%,
+      var(--dc-foil) 46%,
+      var(--dc-foil-low) 62%,
+      var(--dc-foil-high) 78%,
+      var(--dc-foil) 100%
+    );
+  box-shadow: 0 14px 30px rgba(29, 26, 22, 0.16);
+}
+
+/* The perforation. A dashed rule across the top of the wrapper, with the two words
+   that make the pack a teaser sitting on either side of it. */
+.strip {
+  position: absolute;
+  inset: 0 0 auto;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px dashed rgba(29, 26, 22, 0.35);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-family: var(--dc-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.stripLabel {
+  color: rgba(29, 26, 22, 0.55);
+}
+
+.stripNote {
+  font-weight: 600;
+  color: var(--dc-ink);
+}
+
+.packLabel {
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.packMeta {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--dc-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(29, 26, 22, 0.6);
+}
+
+.fanNote {
+  margin-top: 1.5rem;
+  font-family: var(--dc-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  color: var(--dc-ink-soft);
+}
+
+/* ---------------- the ladder ---------------- */
+
+.ladder,
+.rules {
+  width: min(34rem, 100%);
+  margin-top: 3.5rem;
+  text-align: left;
+}
+
+.ladderHead,
+.rulesHead {
+  margin: 0 0 0.4rem;
+  font-family: var(--dc-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--dc-ink-soft);
+}
+
+.ladderNote {
+  margin: 0 0 1.25rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--dc-ink-soft);
+}
+
+.rungs {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--dc-hair);
+}
+
+.rung {
+  display: grid;
+  grid-template-columns: 1.5rem minmax(6rem, auto) 1fr;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--dc-hair);
+}
+
+/* One swatch per rung, and the rarity is the swatch.
+
+   The two rare rungs are foils rather than flat colour: a deep cut gets a raked band
+   across it, and unheard gets the full sweep. Both are gradients confined to a 1rem
+   square, which is the distinction this file's header insists on. */
+.rungSwatch {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.15rem;
+  border: 1px solid var(--dc-hair);
+  align-self: center;
+
+  .rung[data-tier="CHART"] & {
+    background: var(--dc-chart);
+  }
+
+  .rung[data-tier="ROTATION"] & {
+    background: var(--dc-rotation);
+  }
+
+  .rung[data-tier="ALBUM"] & {
+    background: var(--dc-album);
+  }
+
+  .rung[data-tier="DEEPCUT"] & {
+    background: linear-gradient(
+      125deg,
+      var(--dc-deepcut) 0%,
+      #d9cbe8 48%,
+      var(--dc-deepcut) 100%
+    );
+  }
+
+  .rung[data-tier="UNHEARD"] & {
+    background: conic-gradient(
+      from 210deg,
+      var(--dc-unheard),
+      #e6c9a4,
+      var(--dc-deepcut),
+      #cfd6d9,
+      var(--dc-unheard)
+    );
+  }
+}
+
+.rungLabel {
+  font-family: var(--dc-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.rungNote {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--dc-ink-soft);
+}
+
+/* ---------------- the rules ---------------- */
+
+.readout {
+  margin: 0;
+  border-top: 1px solid var(--dc-hair);
+}
+
+.readoutRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--dc-hair);
+}
+
+.readoutTerm,
+.readoutValue {
+  margin: 0;
+  font-family: var(--dc-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.readoutTerm {
+  color: var(--dc-ink-soft);
+}
+
+.source {
+  margin: 1.25rem 0 0;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--dc-ink-soft);
+}
+
+.footnote {
+  max-width: 34ch;
+  margin: 3.5rem 0 0;
+  font-family: var(--dc-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dc-ink-soft);
+}
+
+/* The fan is the first thing to break on a narrow screen: five cards spread across
+   17rem do not fit a phone, and the outer two would be cut off by the viewport rather
+   than tucked behind the pack. Tightening the spread keeps the shape. */
+@media (max-width: 34rem) {
+  .card {
+    width: 6rem;
+    height: 8.5rem;
+
+    &[data-position="0"] {
+      transform: translate(-5.25rem, 1.35rem) rotate(-17deg);
+    }
+
+    &[data-position="1"] {
+      transform: translate(-2.75rem, 0.35rem) rotate(-8deg);
+    }
+
+    &[data-position="3"] {
+      transform: translate(2.75rem, 0.35rem) rotate(8deg);
+    }
+
+    &[data-position="4"] {
+      transform: translate(5.25rem, 1.35rem) rotate(17deg);
+    }
+  }
+
+  .fan {
+    height: 14rem;
+  }
+
+  .rung {
+    grid-template-columns: 1.5rem 1fr;
+  }
+
+  /* The note drops under the label rather than beside it, so it keeps a readable
+     measure instead of wrapping every three words. */
+  .rungNote {
+    grid-column: 2;
+  }
+}
