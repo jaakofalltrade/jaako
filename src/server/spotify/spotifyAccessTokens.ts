@@ -1,5 +1,5 @@
 import "server-only";
-import { TOKEN_EXPIRY_MARGIN_MS } from "@/constants";
+import { SPOTIFY_TIMEOUT_MS, TOKEN_EXPIRY_MARGIN_MS } from "@/constants";
 import { getEpochMilliseconds } from "@/oras/milliseconds";
 import { serverConfig } from "@/server/serverConfig";
 import { Spotify } from "@/models";
@@ -114,6 +114,12 @@ const exchange = async (args: {
       refresh_token,
     }),
     cache: "no-store",
+    /* Bounded for the same reason the API calls in spotifyApiClient.ts are, and this is
+       the worse of the two to leave open: every read in the folder waits on this one
+       before it can send anything, so a token endpoint that goes quiet stalls the
+       homepage panel and the lab playlist at once. A rejection here is already handled -
+       it throws, and each caller's own catch turns it into an offline shape. */
+    signal: AbortSignal.timeout(SPOTIFY_TIMEOUT_MS),
   });
 
   if (!response.ok) {

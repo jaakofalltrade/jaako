@@ -25,6 +25,26 @@ export const RECENT_SHOWN = 3;
 export const TOKEN_EXPIRY_MARGIN_MS = 60_000;
 
 /**
+ * How long any single call to Spotify is allowed to take before it is abandoned.
+ *
+ * A CEILING ON A HANG, NOT A PERFORMANCE TARGET. Spotify answers in well under a
+ * second; nothing here is expected to come close. What this exists for is the request
+ * that never answers at all - a stalled connection, a DNS timeout, a host that accepted
+ * the socket and went quiet. Without it a fetch rides the runtime's own default, which
+ * is measured in minutes, and every caller above it waits that long.
+ *
+ * Eight seconds is generous enough that a slow-but-working network is never cut off,
+ * and short enough that a visitor gets the offline card instead of a page that appears
+ * to be broken.
+ *
+ * It is a budget per REQUEST rather than per operation, so a call that mints a token
+ * and then retries a 401 can in principle spend it several times over. That is the
+ * uninteresting worst case: a 401 arriving at all means the network is working, and the
+ * hang this guards against does not compound.
+ */
+export const SPOTIFY_TIMEOUT_MS = 8_000;
+
+/**
  * The panel renders the cover at 76px, so the ~300px image is the right pick and
  * the 640px original is wasted bytes.
  */
