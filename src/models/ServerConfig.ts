@@ -56,4 +56,16 @@ export type ServerConfig = {
   // The key only. The from and to addresses are not secret and do not vary by
   // deployment, so they live in src/constants/contact.ts.
   resend_api_key: string;
+
+  /**
+   * last.fm, for /lab/deepcuts only — see docs/lab.md.
+   *
+   * A SECOND UPSTREAM, AND THE ONLY ONE ON THIS SITE THAT IS NOT SPOTIFY. Spotify has
+   * never exposed a play count and `popularity` is deprecated, so the number every card
+   * on that page is scored against has to come from somewhere else. Empty is a working
+   * state: the packs still list their songs and nothing is scored.
+   *
+   * No secret pair and no OAuth. It is one key on a query string, read server-side.
+   */
+  lastfm_api_key: string;
 };

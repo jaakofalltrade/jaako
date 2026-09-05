@@ -55,9 +55,28 @@ import { loadEnvLocal } from "./loadEnv.mjs";
 const PORT = 8888;
 const REDIRECT_URI = `http://127.0.0.1:${PORT}/callback`;
 
-/** The two sets. One token is minted for exactly one of them. */
+/**
+ * The two sets. One token is minted for exactly one of them.
+ *
+ * `playlist-read-private` IS THE ONE SCOPE HERE THAT IS NOT NAMED FOR WHAT IT UNLOCKS.
+ * /lab/deepcuts needs to list the playlists on this account, and the name suggests the
+ * scope only reaches the private ones. It does not: WITHOUT it, both
+ * GET /me/playlists and GET /users/{id}/playlists answer 403 — the second even for
+ * playlists that are public and open in a browser with no account at all. Measured
+ * against the live API on 2026-09-05 rather than read off the documentation.
+ *
+ * So it is not requested in order to reach private playlists, and the page it serves
+ * does not render them: deepcutsLibrary.ts keeps only what this account owns AND has
+ * made public, because that page is public and a private playlist's name is not. The
+ * scope is what Spotify charges for a list; the filter is ours.
+ *
+ * playlist-read-COLLABORATIVE is still never requested, for the same reason
+ * playlist-modify-private is not: nothing here has a use for it.
+ */
 const SCOPE_SETS = {
-  read: "user-read-currently-playing user-read-recently-played user-top-read",
+  read:
+    "user-read-currently-playing user-read-recently-played user-top-read " +
+    "playlist-read-private",
   write: "playlist-modify-public",
 };
 

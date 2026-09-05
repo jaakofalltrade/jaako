@@ -72,3 +72,30 @@ export const DEEPCUT_LADDER: DeepcutTier[] = [
   DeepcutTier.Deepcut,
   DeepcutTier.Unheard,
 ];
+
+/**
+ * The fewest plays a track can have and still land on each rung.
+ *
+ * ONE ORDER OF MAGNITUDE PER RUNG. The reasoning is written out in full at the top of
+ * src/utils/rarity.ts, which is the only thing that reads this: play counts are a power
+ * law spanning six or seven decades, and a logarithmic ladder is the only one whose
+ * steps are evenly spaced against that.
+ *
+ * `unheard` floors at zero rather than at some small number, so every non-negative
+ * count lands somewhere. Zero is a real answer - Last.fm knows the track and nobody has
+ * scrobbled it - and it is the genuine top of the ladder. A track Last.fm cannot match
+ * at all has no count and therefore no rung; see rarityOf.
+ *
+ * TUNING CONSTANTS, AND THE FIRST THING THAT WILL MOVE. docs/lab.md called the
+ * thresholds undecided and it was right to: where the ladder is ANCHORED depends on the
+ * kind of music being scored, and a playlist two decades quieter than these numbers
+ * assume comes out as five unheards. What is settled is the shape, one decade per rung.
+ * Move these; do not add rungs between them.
+ */
+export const DEEPCUT_TIER_FLOOR: Record<DeepcutTier, number> = {
+  [DeepcutTier.Chart]: 10_000_000,
+  [DeepcutTier.Rotation]: 1_000_000,
+  [DeepcutTier.Album]: 100_000,
+  [DeepcutTier.Deepcut]: 10_000,
+  [DeepcutTier.Unheard]: 0,
+};

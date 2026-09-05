@@ -29,8 +29,15 @@ const basic = Buffer.from(`${id}:${secret}`).toString("base64");
 /** What each token is FOR, so the check can say whether it is fit for that. */
 const EXPECTED = {
   SPOTIFY_REFRESH_TOKEN: {
-    label: "read  (now-playing, statistics, lab search)",
-    wants: ["user-read-currently-playing", "user-read-recently-played", "user-top-read"],
+    label: "read  (now-playing, statistics, lab search, deepcuts library)",
+    wants: [
+      "user-read-currently-playing",
+      "user-read-recently-played",
+      "user-top-read",
+      // Listing playlists at all, not just private ones. See SCOPE_SETS in
+      // spotify-token.mjs — /me/playlists is a 403 without it.
+      "playlist-read-private",
+    ],
   },
   SPOTIFY_WRITE_REFRESH_TOKEN: {
     label: "write (adding a track to the lab playlist)",

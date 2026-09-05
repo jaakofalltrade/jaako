@@ -155,7 +155,14 @@ const slotsReadout: MetaPair[] = [
 const deepcutsSpec: MetaPair[] = [
   { term: "pack", value: "5 cards" },
   { term: "packs", value: "1 / day" },
-  { term: "pulled from", value: "a playlist of mine" },
+  /* Was "a playlist of mine", which was the honest answer while the page could not
+     name one. The shelf lists them now, so the row points at it instead.
+
+     "shown" rather than "below" or "above". This readout is the last block on the page
+     and the shelf is several screens up from it, so "below" was simply wrong - but the
+     fix is not to write "above", which pins this string to a running order that a later
+     edit is free to change without ever opening this file. */
+  { term: "pulled from", value: "one of the playlists shown" },
   { term: "rarity", value: "fewest plays wins" },
   { term: "plays", value: "last.fm, not spotify" },
   { term: "thresholds", value: "undecided" },
@@ -302,28 +309,127 @@ export const DEEPCUTS_TEASER = {
    */
   lead: "Rip a pack and the songs almost nobody plays are the ones worth keeping. Five cards out of a playlist I actually listen to, scored on how few plays each track has, so a chart hit is the card you throw back and a track with four thousand plays is the pull.",
 
-  /* The wrapper. Printed on the foil, so these are read as packaging. */
-  pack_label: "deepcuts",
-  pack_series: "series 01",
-  pack_count: "5 cards",
-  /** On the tear strip, and it is the whole status: the pack does not open. */
+  /* pack_label, pack_series, pack_count, fan_note and card_back have gone with the
+     sealed hero pack and its fan of face-down cards. The shelf prints real names and
+     real counts on real wrappers now, so a made-up "series 01 / 5 cards" would be the
+     one invented thing left on a page otherwise made of live data.
+
+     The tear strip survived, because every pack on the shelf still wears it. */
+
+  /** On the tear strip. Still true of every pack: none of them opens into a rip yet. */
   rip_label: "tear here",
   rip_note: "sealed",
 
-  /** Under the fan of face-down cards behind the pack. */
-  fan_note: "Nothing has been pulled yet. Nothing can be.",
-  /** The monogram repeated across a card back, so the fan reads as a deck. */
-  card_back: "JK",
+  /* ---------------- the shelf, which is the live part ----------------
 
-  ladder_label: "what is in a pack",
+     THE ONE BLOCK ON THIS PAGE THAT IS NOT A TEASER, and it is here for the same
+     reason the playlist header on /lab/suggest was built before anything on that page
+     worked: it is the only thing about this app that can be true yet, and seeing what
+     a pack would be dealt out of is most of the pitch.
+
+     Every string below has to survive an empty shelf and a broken one, which are
+     different states and get different lines. See DeepcutsLibrary in models. */
+
+  shelf_label: "where a pack comes from",
   /**
-   * Says which direction is good once, in the legend, rather than trusting the order
-   * of the rungs to carry it. A ladder printed commonest-first looks like every other
-   * rarity ladder, and every other rarity ladder means the opposite of this one.
+   * Says what the list is and, in the second clause, what it is not. Without that
+   * clause a reader who has just been told about five rarity rungs looks at a row of
+   * playlists and reasonably assumes one of them has been scored.
+   */
+  shelf_note: "Read from Spotify: every playlist on my account that is public. A pack will be dealt out of one of them. None of them has been scored yet.",
+
+  /** How many tracks are on a playlist, printed as what a pack could draw from. */
+  shelf_count_one: "1 card",
+  shelf_count_many: "cards",
+  /* "open in spotify" USED TO BE HERE AND IS GONE. It sat under the count on every
+     pack, which was four words repeated nine times down a grid to say what the cursor
+     already says about a link, and it was the line that would not fit a pack's width
+     without breaking. The link itself moved into the opened pack; see dialog_spotify. */
+
+  /* ---------------- the pager ---------------- */
+
+  pager_label: "playlists",
+  pager_previous: "prev",
+  pager_next: "next",
+  /** {page} and {count} are filled in by Pagination. */
+  pager_page: "page {page} of {count}",
+
+  /**
+   * The read worked and nothing qualified: no public playlist on the account.
+   *
+   * A true sentence rather than an apology. Nothing is broken in this state, and the
+   * page saying "something went wrong" would be inventing a fault.
+   */
+  shelf_empty: "No public playlists on the account right now, so there is nothing to deal from.",
+
+  /**
+   * Read out, never seen. The skeleton is a row of shapes, and a shape says nothing to
+   * a reader who cannot see it.
+   */
+  loading_shelf: "Loading the playlists.",
+
+  /* ---------------- the two figures beside the title ----------------
+
+     BOTH ARE EMPTY TODAY AND BOTH SAY SO IN WORDS. Nothing opens a pack yet, so the
+     tables behind these are empty by construction rather than by accident, and the copy
+     is written for that state first: "most opened: 0" would be a number answering a
+     question about which playlist. See 002_deepcuts.sql. */
+
+  /* ACROSS EVERYONE, NOT THIS VISITOR. Both figures are counted over every pack anybody
+     has ever opened - the queries in server/deepcuts/store.ts group the whole table and
+     filter by no visitor at all. The labels say "by everyone" because "most opened" on
+     its own reads as a personal history, and a returning visitor seeing a playlist they
+     have never touched would reasonably conclude the page was broken. */
+  stat_most_opened: "most opened by everyone",
+  stat_rarest_card: "rarest card anyone pulled",
+  /** What either figure reads before anybody has opened anything. */
+  stat_none: "nothing yet",
+  /** The playlist has been ripped, but is no longer public, so the shelf cannot name it. */
+  stat_unknown_pack: "a playlist since made private",
+
+  /* ---------------- the tabs above the shelf ---------------- */
+
+  tabs_label: "how deepcuts works",
+  /* Ids rather than labels as the tab keys, so rewording a tab is not a state change. */
+  tab_legend_id: "legend",
+  tab_rules_id: "rules",
+  tab_legend: "legend",
+  tab_rules: "the rules, so far",
+  /** Before the play count on the rarest rung, which has no floor of its own. */
+  rung_under: "under",
+
+  /* ---------------- the opened pack ---------------- */
+
+  dialog_label: "opened",
+  dialog_close: "close",
+  dialog_loading: "Reading the pack.",
+  dialog_failed: "That pack would not open. Try again in a moment.",
+  /** Follows a count: "50 of 284 scored on last.fm plays". */
+  dialog_scored: "scored on last.fm plays",
+  /**
+   * No last.fm key on this deployment, so nothing can be scored.
+   *
+   * Names the reason rather than saying the rungs are unavailable. A visitor cannot fix
+   * it and is not being asked to; the sentence exists so the missing rungs read as a
+   * thing that is switched off rather than a thing that is broken.
+   */
+  dialog_unscored: "Play counts are not switched on here, so nothing below is scored.",
+  /** A track last.fm has never heard of. Not a rung, and never the rarest one. */
+  dialog_unmatched: "unmatched",
+  dialog_plays: "plays",
+  dialog_spotify: "open the playlist in spotify",
+
+  /**
+   * Says which direction is good once, at the top of the legend, rather than trusting
+   * the order of the rungs to carry it. A ladder printed commonest-first looks like
+   * every other rarity ladder, and every other rarity ladder means the opposite of this
+   * one.
+   *
+   * ladder_label and spec_label are gone: the two tabs are named "legend" and "the
+   * rules, so far", so a heading inside each panel would repeat the tab just clicked.
    */
   ladder_note: "Rarest at the bottom. The fewer plays a song has, the better the card.",
 
-  spec_label: "the rules, so far",
   spec: deepcutsSpec,
 
   /**

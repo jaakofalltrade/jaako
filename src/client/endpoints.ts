@@ -79,5 +79,9 @@ export const endpoints = {
       search: "/api/lab/suggest/search",
       add: "/api/lab/suggest/add",
     },
+    deepcuts: {
+      /** What is inside one pack. Takes ?id=<spotify playlist id>. */
+      pack: "/api/lab/deepcuts/pack",
+    },
   },
 } as const;

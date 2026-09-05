@@ -114,6 +114,47 @@ export const playlistTrackUris = (args: { id: string; limit: number }) =>
 export const playlistAdd = (args: { id: string }) => `/playlists/${args.id}/items`;
 
 /**
+ * Which account the token belongs to.
+ *
+ * Read for one field. "My playlists" cannot be answered by the library path below on
+ * its own — it returns followed playlists beside owned ones — so telling them apart
+ * means comparing each playlist's owner id against the id of whoever this token is.
+ *
+ * A CONSTANT WOULD HAVE DONE AND IS WORSE. Hard-coding the account name means a
+ * deployment whose credentials point somewhere else renders an empty shelf and gives
+ * nobody a reason why: every playlist is filtered out for belonging to the wrong
+ * person, silently, which is the same class of failure as a `fields` typo. Asking is
+ * one request, cached for the life of the process, and it cannot drift.
+ *
+ * Needs no scope. The id and display name are public profile fields, and this answers
+ * 200 on a token carrying nothing but the player scopes — measured, not assumed.
+ */
+export const profile = () => "/me";
+
+/**
+ * Every playlist on the account, one page at a time.
+ *
+ * NO `fields` PARAMETER, AND THAT IS NOT AN OMISSION. Spotify documents the projection
+ * for the /playlists/{id} family only; this path ignores one, so the response arrives
+ * whole. Sending a parameter that does nothing is how the next reader concludes it is
+ * doing something.
+ *
+ * NO FILTER PARAMETER EITHER, WHICH IS THE THING WORTH KNOWING BEFORE READING THE
+ * SERVICE. `limit` and `offset` are the only two this endpoint takes: there is no way
+ * to ask Spotify for the public ones, or for the owned ones. Every playlist in the
+ * library comes back and deepcutsLibrary.ts drops what does not belong on a public
+ * page. So `total` in the response counts the library rather than the answer.
+ *
+ * 403 WITHOUT playlist-read-private, whatever the playlists' own visibility. The scope
+ * buys the list, not the private entries on it; see SCOPE_SETS in
+ * scripts/spotify-token.mjs.
+ *
+ * `limit`: Spotify allows 1-50, default 20.
+ */
+export const myPlaylists = (args: { limit: number; offset: number }) =>
+  `/me/playlists?limit=${args.limit}&offset=${args.offset}`;
+
+/**
  * Track search.
  *
  * `type` is required by the API, so restricting it to tracks is not an extra guard,
@@ -142,4 +183,6 @@ export const spotifyEndpoints = {
   playlistAdd,
   search,
   track,
+  profile,
+  myPlaylists,
 };
