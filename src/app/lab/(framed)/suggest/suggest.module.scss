@@ -856,7 +856,20 @@
   --skeleton-bar: var(--space-10);
 
   gap: var(--space-3);
-  margin-top: 0;
+
+  /* THE ONE PLACE THE PLACEHOLDER DOES NOT COPY THE REAL LAYOUT, on purpose.
+
+     Zero is what .rows actually renders, and mirroring it put the title bar's bottom
+     edge flat against the first row's top edge. That is correct for the real thing and
+     wrong here: a heading in display type over a hairline header row separates itself,
+     and two identical grey bars touching do not - they read as one taller shape, and the
+     stack loses the heading it was drawing.
+
+     --space-3, the same gap the rows already keep between themselves, so the whole
+     placeholder is one even rhythm rather than a glued heading over a spaced list. It
+     costs half a rem of height against the board that replaces it, which is the smallest
+     unit this file has and the direction that grows the page rather than shrinking it. */
+  margin-top: var(--space-3);
 }
 
 /* ============================================================================
