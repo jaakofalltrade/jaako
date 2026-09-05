@@ -8,8 +8,12 @@ import type { LabApp, MetaPair } from "@/models";
  *
  * Same split as src/data/site.ts against src/constants/site.ts: sentences live here,
  * identifiers live there. The plan every one of these entries came out of is in
- * docs/lab.md, and the teaser blocks at the foot of this file hold the copy each lab
- * page renders.
+ * docs/lab.md, and the teaser blocks at the foot of this file hold the copy for the
+ * pages that are still teasers.
+ *
+ * An app that outgrows a teaser takes its copy with it: /lab/deepcuts started here and
+ * now owns src/data/deepcuts.ts, because a fixture of sample cards sitting beside its
+ * sentences is no longer a block of copy. The register row stays behind either way.
  *
  * Nothing here is a promise about a date. A status says where an app actually is, and
  * the index prints it out loud rather than implying a launch.
@@ -81,7 +85,7 @@ const deepcuts: LabApp = {
   index: "04",
   name: "deepcuts",
   blurb: "Rip a pack from my playlist. The fewer plays a song has, the rarer the card.",
-  status: LabStatus.Planned,
+  status: LabStatus.Building,
   shell: LabShell.Bare,
   href: routes.lab.deepcuts,
   look: "trading card pack",
@@ -137,30 +141,6 @@ const slotsReadout: MetaPair[] = [
  * cannot be discovered by trying, and those two were filling the table rather than
  * answering anything.
  */
-/*
- * Every row is a thing a visitor cannot work out by looking at the pack, which is the
- * same bar suggestSpec is held to below.
- *
- * "plays" names its source out loud. It is the one row here that corrects an
- * assumption rather than filling one in: a page about a Spotify playlist that scores
- * cards by play count implies Spotify supplies the counts, and Spotify has never
- * exposed them. Saying so on the teaser is cheaper than a visitor deciding later that
- * the numbers are made up.
- *
- * Nothing is derived from a constant, unlike suggestSpec, because none of these
- * numbers is enforced by anything yet. When a route starts counting packs, "packs"
- * becomes a reference to whatever constant it counts against — the same move, and for
- * the same reason, as the DAILY_ADD_CAP note above.
- */
-const deepcutsSpec: MetaPair[] = [
-  { term: "pack", value: "5 cards" },
-  { term: "packs", value: "1 / day" },
-  { term: "pulled from", value: "a playlist of mine" },
-  { term: "rarity", value: "fewest plays wins" },
-  { term: "plays", value: "last.fm, not spotify" },
-  { term: "thresholds", value: "undecided" },
-];
-
 const suggestSpec: MetaPair[] = [
   { term: "playlist", value: "public, one of mine" },
   { term: "adds", value: `${DAILY_ADD_CAP} per person per day` },
@@ -270,57 +250,3 @@ export const SUGGEST_TEASER = {
   footnote: "The one app in the lab that keeps this design, because it is about the music this site already talks about.",
 } as const;
 
-/**
- * /lab/deepcuts. A pack that is still sealed, in front of a fan nobody has turned over.
- *
- * The teaser is the wrapper. Slots stops its reels and roast leaves its agent
- * permanently mid-thought; this one just never gets opened, which is the same trick
- * and the cheapest of them to make true — an unopened pack is what an unbuilt pack app
- * actually is, so nothing here has to pretend.
- *
- * The ladder is printed in full underneath, and that is deliberate rather than a way
- * to fill the page. The one thing a visitor cannot guess about this app is that the
- * rarity runs backwards, and a legend where "unheard" beats "chart" explains the whole
- * joke without opening anything.
- */
-export const DEEPCUTS_TEASER = {
-  title: "deepcuts",
-  subtitle: "a pack, out of my playlist",
-  /**
-   * States the inversion in the first clause, because everything after it reads wrong
-   * to anyone still assuming the hits are the prize.
-   */
-  lead: "Rip a pack and the songs almost nobody plays are the ones worth keeping. Five cards out of a playlist I actually listen to, scored on how few plays each track has, so a chart hit is the card you throw back and a track with four thousand plays is the pull.",
-
-  /* The wrapper. Printed on the foil, so these are read as packaging. */
-  pack_label: "deepcuts",
-  pack_series: "series 01",
-  pack_count: "5 cards",
-  /** On the tear strip, and it is the whole status: the pack does not open. */
-  rip_label: "tear here",
-  rip_note: "sealed",
-
-  /** Under the fan of face-down cards behind the pack. */
-  fan_note: "Nothing has been pulled yet. Nothing can be.",
-  /** The monogram repeated across a card back, so the fan reads as a deck. */
-  card_back: "JK",
-
-  ladder_label: "what is in a pack",
-  /**
-   * Says which direction is good once, in the legend, rather than trusting the order
-   * of the rungs to carry it. A ladder printed commonest-first looks like every other
-   * rarity ladder, and every other rarity ladder means the opposite of this one.
-   */
-  ladder_note: "Rarest at the bottom. The fewer plays a song has, the better the card.",
-
-  spec_label: "the rules, so far",
-  spec: deepcutsSpec,
-
-  /**
-   * The honest note about where the numbers come from, expanded from the one-word
-   * spec row into the sentence that row cannot fit.
-   */
-  source_note: "Spotify does not publish play counts and never has, so the counts come from last.fm scrobbles. They are a decent proxy for how much of the world has heard a song, and they are not Spotify's streams.",
-
-  footnote: "Pack is not built yet. It stays shut.",
-} as const;

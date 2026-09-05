@@ -18,7 +18,12 @@
    thrown off one: every treatment below is a gradient inside a shape's own bounds,
    and there is no box-shadow on this page doing anything but sitting a card on a
    table. If a future tier wants to glow, that is a decision to argue for, not a thing
-   to reach for because the tier is called "unheard". */
+   to reach for because the tier is called "unheard".
+
+   THE WHOLE REVEAL LIVES IN THIS FILE. PackBoard holds one enum and hands down two
+   numbers; the tear, the spread and the five flips are all transitions keyed off
+   [data-state] and [data-revealed]. If the animation is wrong, it is wrong here, and
+   there is no timeline in the component to go and check against. */
 
 .app {
   /* Paper first: three warm neutrals, because everything else on the page is printed
@@ -45,6 +50,15 @@
   --dc-album: #7d8cb5;
   --dc-deepcut: #9a7bb8;
   --dc-unheard: #c08a5e;
+
+  /* The card's own geometry, declared once because the stack maths below needs it.
+     A card's distance from the middle of the fan is its position times this step, and
+     that is the only way five cards in normal flow can collapse into a pile without
+     anything measuring the DOM. */
+  --dc-card-w: 10.5rem;
+  --dc-card-h: 15.5rem;
+  --dc-gap: 0.75rem;
+  --dc-step: calc(var(--dc-card-w) + var(--dc-gap));
 
   --dc-display: var(--font-quicksand), "Helvetica Neue", Helvetica, sans-serif;
   --dc-mono: var(--font-geist-mono), ui-monospace, "Courier New", monospace;
@@ -137,103 +151,311 @@
   color: var(--dc-ink-soft);
 }
 
-/* ---------------- the pack, and the fan behind it ---------------- */
+/* The one thing on the page that is not the design.
 
-.table {
-  position: relative;
-  width: min(30rem, 100%);
-  margin: 3rem 0 0;
-  /* Room for the fan, which sits behind the pack and spreads wider than it. */
-  padding: 0 2rem;
+   A ruled note rather than a coloured banner: it is a caveat, not a warning, and this
+   palette has no alarm colour that would not look like a sixth rarity tier. */
+.sample {
+  max-width: 46ch;
+  margin: 1.5rem 0 0;
+  padding: 0.6rem 0.9rem;
+  border: 1px dashed var(--dc-hair);
+  border-radius: 0.4rem;
+  font-family: var(--dc-mono);
+  font-size: 0.7rem;
+  line-height: 1.7;
+  letter-spacing: 0.04em;
+  color: var(--dc-ink-soft);
+}
+
+/* ---------------- the board ---------------- */
+
+.board {
+  width: 100%;
+  margin-top: 2.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 2.5rem;
 }
 
+.table {
+  position: relative;
+  width: 100%;
+  /* Tall enough for a card plus the wrapper's overhang, so nothing below the board
+     moves when the pack tears away. */
+  min-height: calc(var(--dc-card-h) + 3rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The fan.
+
+   Normal flex flow, always. The pile is a transform applied to cards that are already
+   in their spread positions, rather than a second layout that has to be animated into
+   the first one: absolutely positioning a stack and then switching to flow would mean
+   no transition at all, since position is not an animatable property.
+
+   The perspective is on the container rather than on each card, so all five turn as if
+   seen from one pair of eyes. Per-card perspective makes the outer two look like they
+   are being flipped by someone standing in front of each of them. */
 .fan {
-  position: absolute;
-  /* Pinned to the pack's own box rather than laid out beside it: the cards are meant
-     to look like they are underneath the wrapper, not next to it. */
-  inset: 0 0 auto;
-  height: 17rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
+  gap: var(--dc-gap);
+  perspective: 1400px;
 }
 
 .card {
-  position: absolute;
-  top: 0;
-  width: 7.5rem;
-  height: 10.5rem;
-  border: 1px solid var(--dc-hair);
-  border-radius: 0.5rem;
-  background: var(--dc-card);
-  /* The only shadow on the page, and it is doing the one job a shadow is for here:
-     sitting a piece of card on a table. */
-  box-shadow: 0 8px 18px rgba(29, 26, 22, 0.1);
-  display: grid;
-  place-items: center;
-  overflow: hidden;
+  position: relative;
+  width: var(--dc-card-w);
+  height: var(--dc-card-h);
+  flex: none;
+  transition:
+    transform 620ms cubic-bezier(0.2, 0.9, 0.25, 1),
+    opacity 300ms ease;
+  /* Every card waits its turn, and the beat comes from REVEAL_STAGGER_MS through the
+     inline property on .board. The pile collapses in the same order it spreads. */
+  transition-delay: calc(var(--dc-turn) * var(--dc-stagger, 260ms));
 
-  /* Fanned by hand rather than by an nth-child formula. The angles are not on a
-     regular interval: a real fan is spread by a thumb and the outer cards travel
-     further than the inner ones.
+  /* Sealed: dragged back to the middle of the row and squared into a pile under the
+     wrapper. The offset is the card's distance from centre, which is why --dc-step
+     exists. */
+  transform:
+    translateX(calc((2 - var(--dc-turn)) * var(--dc-step)))
+    translateY(0.5rem)
+    rotate(calc((var(--dc-turn) - 2) * 1.5deg))
+    scale(0.94);
 
-     Each card drops a little as it goes out, so the tops describe an arc instead of a
-     straight line. Without it the fan reads as five rectangles leaning over, and the
-     spread has to be wide enough that the two inner cards are not swallowed whole by
-     the wrapper standing in front of them. */
-  &[data-position="0"] {
-    transform: translate(-10.5rem, 1.75rem) rotate(-19deg);
-  }
+  /* Open: back to where flow already put it, with a trace of rotation left in so the
+     spread does not read as a bar chart.
 
-  &[data-position="1"] {
-    transform: translate(-5.75rem, 0.45rem) rotate(-9deg);
-  }
-
-  &[data-position="2"] {
-    transform: translateY(-0.35rem) rotate(-1deg);
-  }
-
-  &[data-position="3"] {
-    transform: translate(5.75rem, 0.45rem) rotate(9deg);
-  }
-
-  &[data-position="4"] {
-    transform: translate(10.5rem, 1.75rem) rotate(19deg);
+     Kept under a degree. Cards are rectangles with long horizontal rules across them,
+     and past about that the row stops looking hand-dealt and starts looking like five
+     things that failed to line up. */
+  &[data-revealed="true"] {
+    transform: rotate(calc((var(--dc-turn) - 2) * 0.7deg));
   }
 }
 
-/* The back. A monogram tiled across the card, drawn with a repeating gradient behind
-   it so the surface has a weave rather than being a flat rectangle. */
-.cardBack {
+/* The turning part. The card itself never rotates in Y — it holds the position in the
+   fan — so the two jobs cannot fight over one transform. */
+.cardInner {
+  position: relative;
   width: 100%;
   height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 700ms cubic-bezier(0.3, 0.8, 0.3, 1);
+  transition-delay: calc(var(--dc-turn) * var(--dc-stagger, 260ms));
+
+  .card[data-revealed="true"] & {
+    transform: rotateY(180deg);
+  }
+}
+
+.cardBack,
+.cardFace {
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--dc-hair);
+  border-radius: 0.55rem;
+  background: var(--dc-card);
+  backface-visibility: hidden;
+  overflow: hidden;
+  /* The only shadow on the page, and it is doing the one job a shadow is for here:
+     sitting a piece of card on a table. */
+  box-shadow: 0 8px 18px rgba(29, 26, 22, 0.1);
+}
+
+/* The back. A monogram over a woven ground, so the pile reads as a deck rather than as
+   five blank rectangles. */
+.cardBack {
   display: grid;
   place-items: center;
-  font-family: var(--dc-mono);
-  font-size: 0.85rem;
-  /* Tracked out, but not so far that the second letter lands under the wrapper on the
-     cards that sit behind it. */
-  letter-spacing: 0.18em;
-  text-indent: 0.18em;
-  color: var(--dc-ink-soft);
-  opacity: 0.5;
   background:
     repeating-linear-gradient(
       45deg,
       transparent 0 6px,
       rgba(29, 26, 22, 0.045) 6px 7px
+    ),
+    var(--dc-card);
+}
+
+.cardBackMark {
+  font-family: var(--dc-mono);
+  font-size: 0.85rem;
+  letter-spacing: 0.18em;
+  text-indent: 0.18em;
+  color: var(--dc-ink-soft);
+  opacity: 0.5;
+}
+
+.cardFace {
+  transform: rotateY(180deg);
+  padding: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  text-align: left;
+}
+
+.cardArt {
+  position: relative;
+  display: block;
+  width: 100%;
+  /* Reserved whether or not there is an image, so nothing below shifts when a real
+     i.scdn.co URL finally arrives.
+
+     Landscape rather than square, and album art is square. The window crops it, which
+     is the trade a card makes: a square window on a card this size leaves about four
+     lines of room underneath, and the longest real track titles need three of them on
+     their own. The art is what the card looks like; the title is what it says. */
+  aspect-ratio: 4 / 3;
+  border-radius: 0.35rem;
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      var(--dc-board) 0 5px,
+      var(--dc-paper) 5px 10px
     );
 }
 
+.cardArtImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* The rung, in words, on every card. The foil says it too and the foil is decoration:
+   see the note at the top of Card.tsx about never carrying the tier in colour alone. */
+.cardTier {
+  font-family: var(--dc-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dc-ink-soft);
+}
+
+.cardTitle {
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.25;
+  /* The longest sample title wraps twice on purpose. Three lines is the ceiling, and
+     past it the card clips rather than growing and breaking the row. */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cardArtist {
+  font-size: 0.7rem;
+  line-height: 1.3;
+  color: var(--dc-ink-soft);
+}
+
+/* Pushed to the bottom of the face, so the number sits on the same line across all
+   five cards however long the titles above it run. */
+.cardPlays {
+  margin-top: auto;
+  padding-top: 0.4rem;
+  border-top: 1px solid var(--dc-hair);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem;
+}
+
+.cardPlaysValue {
+  font-family: var(--dc-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+}
+
+.cardPlaysLabel {
+  font-family: var(--dc-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dc-ink-soft);
+}
+
+/* The foils, per rung, on the face only.
+
+   A hairline in the tier's colour on the three common rungs, and an actual sheen on
+   the two rare ones. The gradient is confined to the card, which is the distinction
+   this file's header insists on: a foil catches the light, it does not emit any. */
+.card[data-tier="CHART"] .cardFace {
+  border-color: var(--dc-chart);
+}
+
+.card[data-tier="ROTATION"] .cardFace {
+  border-color: var(--dc-rotation);
+}
+
+.card[data-tier="ALBUM"] .cardFace {
+  border-color: var(--dc-album);
+}
+
+/* The two rare rungs get a heavier edge and a sheen across the face, and their tier
+   word goes dark in the rung's own hue.
+
+   That last part is doing more work than it looks. At the size a card actually renders,
+   a pale caption over a pale foil is the difference between "unheard" reading as a
+   grade and reading as a caption someone forgot to style, and the rarest card in the
+   pack is the one thing on this page that has to land at a glance. The word is still a
+   word, so the tier is not carried by colour: it is carried twice. */
+.card[data-tier="DEEPCUT"] .cardFace {
+  border-width: 2px;
+  border-color: var(--dc-deepcut);
+  background:
+    linear-gradient(
+      125deg,
+      rgba(154, 123, 184, 0.2) 0%,
+      rgba(255, 253, 248, 0.92) 44%,
+      rgba(154, 123, 184, 0.18) 100%
+    ),
+    var(--dc-card);
+}
+
+.card[data-tier="DEEPCUT"] .cardTier {
+  font-weight: 600;
+  color: #6d4f8a;
+}
+
+.card[data-tier="UNHEARD"] .cardFace {
+  border-width: 2px;
+  border-color: var(--dc-unheard);
+  background:
+    conic-gradient(
+      from 210deg,
+      rgba(192, 138, 94, 0.3),
+      rgba(230, 201, 164, 0.2),
+      rgba(154, 123, 184, 0.26),
+      rgba(207, 214, 217, 0.22),
+      rgba(192, 138, 94, 0.3)
+    ),
+    var(--dc-card);
+}
+
+.card[data-tier="UNHEARD"] .cardTier {
+  font-weight: 600;
+  color: #905f2e;
+}
+
+/* ---------------- the wrapper ---------------- */
+
 .pack {
-  position: relative;
-  z-index: 1;
+  position: absolute;
+  z-index: 2;
   width: 12rem;
   min-height: 16rem;
-  margin-top: 1.5rem;
   padding: 3rem 1.25rem 1.5rem;
   border-radius: 0.75rem;
   display: flex;
@@ -255,10 +477,21 @@
       var(--dc-foil) 100%
     );
   box-shadow: 0 14px 30px rgba(29, 26, 22, 0.16);
+  transition:
+    transform 520ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 380ms ease;
+
+  /* Torn off and thrown up out of the frame. It keeps its place in the tree so there
+     is something to animate; see the note in PackBoard about not unmounting it. */
+  .board[data-state="OPEN"] & {
+    transform: translateY(-5rem) rotate(-7deg) scale(0.92);
+    opacity: 0;
+    pointer-events: none;
+  }
 }
 
 /* The perforation. A dashed rule across the top of the wrapper, with the two words
-   that make the pack a teaser sitting on either side of it. */
+   that name the gesture sitting on either side of it. */
 .strip {
   position: absolute;
   inset: 0 0 auto;
@@ -298,12 +531,42 @@
   color: rgba(29, 26, 22, 0.6);
 }
 
-.fanNote {
-  margin-top: 1.5rem;
+/* ---------------- the control ---------------- */
+
+.action {
+  appearance: none;
+  padding: 0.7rem 1.6rem;
+  border: 1px solid var(--dc-ink);
+  border-radius: 999px;
+  background: var(--dc-ink);
+  color: var(--dc-paper);
   font-family: var(--dc-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.1em;
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 200ms ease, color 200ms ease, transform 200ms ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+/* Once the pack is open the button is no longer the thing on the page worth looking
+   at, so it stops competing with five cards for the eye. */
+.actionQuiet {
+  background: transparent;
   color: var(--dc-ink-soft);
+  border-color: var(--dc-hair);
+
+  &:hover {
+    color: var(--dc-ink);
+    border-color: var(--dc-ink-soft);
+  }
 }
 
 /* ---------------- the ladder ---------------- */
@@ -349,11 +612,8 @@
   border-bottom: 1px solid var(--dc-hair);
 }
 
-/* One swatch per rung, and the rarity is the swatch.
-
-   The two rare rungs are foils rather than flat colour: a deep cut gets a raked band
-   across it, and unheard gets the full sweep. Both are gradients confined to a 1rem
-   square, which is the distinction this file's header insists on. */
+/* One swatch per rung, and the rarity is the swatch. The two rare rungs are foils
+   rather than flat colour, matching the card faces above. */
 .rungSwatch {
   width: 1rem;
   height: 1rem;
@@ -443,52 +703,52 @@
   color: var(--dc-ink-soft);
 }
 
-.footnote {
-  max-width: 34ch;
-  margin: 3.5rem 0 0;
-  font-family: var(--dc-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--dc-ink-soft);
+/* Five cards across is 52rem of row, which is wider than a phone and wider than a lot
+   of laptops once the page padding is taken off. The row wraps rather than shrinking
+   the cards to illegibility.
+
+   The pile transform is dropped at the same time, and it has to be: it assumes every
+   card is on one line, and a wrapped row would send the outer two sideways into
+   nothing. Wrapped, the cards simply sit there and turn over in place, which is the
+   part of the reveal actually worth keeping. */
+@media (max-width: 60rem) {
+  .fan {
+    flex-wrap: wrap;
+  }
+
+  .card {
+    transform: none;
+  }
 }
 
-/* The fan is the first thing to break on a narrow screen: five cards spread across
-   17rem do not fit a phone, and the outer two would be cut off by the viewport rather
-   than tucked behind the pack. Tightening the spread keeps the shape. */
-@media (max-width: 34rem) {
+/* Reduced motion: no tear, no spread, no flip.
+
+   The cards are shown face up from the start rather than made to turn instantly,
+   because an instant flip is a flash of a monogram followed by a face, which is worse
+   than never having turned. The wrapper still leaves, because a packet sitting on top
+   of five face-up cards is not a static version of this page, it is a broken one. */
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .cardInner,
+  .pack,
+  .action {
+    transition: none;
+  }
+
   .card {
-    width: 6rem;
-    height: 8.5rem;
-
-    &[data-position="0"] {
-      transform: translate(-5.25rem, 1.35rem) rotate(-17deg);
-    }
-
-    &[data-position="1"] {
-      transform: translate(-2.75rem, 0.35rem) rotate(-8deg);
-    }
-
-    &[data-position="3"] {
-      transform: translate(2.75rem, 0.35rem) rotate(8deg);
-    }
-
-    &[data-position="4"] {
-      transform: translate(5.25rem, 1.35rem) rotate(17deg);
-    }
+    transform: none;
   }
 
-  .fan {
-    height: 14rem;
+  .cardInner,
+  .card[data-revealed="true"] .cardInner {
+    transform: none;
   }
 
-  .rung {
-    grid-template-columns: 1.5rem 1fr;
+  .cardBack {
+    display: none;
   }
 
-  /* The note drops under the label rather than beside it, so it keeps a readable
-     measure instead of wrapping every three words. */
-  .rungNote {
-    grid-column: 2;
+  .cardFace {
+    transform: none;
   }
 }
