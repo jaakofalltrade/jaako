@@ -1,4 +1,5 @@
 import "server-only";
+import { SPOTIFY_TIMEOUT_MS } from "@/constants";
 import { serverConfig } from "@/server/serverConfig";
 import { Spotify } from "@/models";
 import {
@@ -68,6 +69,15 @@ const send = async (args: {
     // Every cache in this folder has its own TTL and its own reasons. A second one
     // underneath, that none of them can see, would make staleness two numbers.
     cache: "no-store",
+    /* A REQUEST THAT NEVER ANSWERS USED TO WAIT FOREVER, and after /lab/suggest started
+       streaming that stopped being invisible. Every read in this folder is wrapped in a
+       try/catch that turns a failure into a quiet offline shape, so an error has always
+       been handled - but a fetch that simply never settles is not an error. It is a
+       promise nobody resolves, and the Suspense boundary above it sits on its skeleton
+       until the runtime's own default gives up, minutes later.
+       Last after the spread on purpose: no caller passes a signal today, and if one
+       ever does, this is the line to reconcile rather than the one to quietly lose. */
+    signal: AbortSignal.timeout(SPOTIFY_TIMEOUT_MS),
   });
 };
 
@@ -113,7 +123,8 @@ const createSpotifyApiClient = (args: { credential: Spotify.Credential }) => {
       const response = await request({ credential, path });
 
       if (response.status === 204) return null;
-      if (!response.ok) throw new Error(`GET ${path} failed: ${response.status}`);
+      if (!response.ok)
+        throw new Error(`GET ${path} failed: ${response.status}`);
 
       const text = await response.text();
       return text ? (JSON.parse(text) as T) : null;
@@ -139,7 +150,8 @@ const createSpotifyApiClient = (args: { credential: Spotify.Credential }) => {
         },
       });
 
-      if (!response.ok) throw new Error(`POST ${path} failed: ${response.status}`);
+      if (!response.ok)
+        throw new Error(`POST ${path} failed: ${response.status}`);
     },
   };
 };
