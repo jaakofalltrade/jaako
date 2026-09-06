@@ -61,6 +61,27 @@ export const LIBRARY_TTL_MS = 15 * 60 * 1000;
  */
 export const PACKS_PER_PAGE = 9;
 
+/**
+ * Playlists that are the site's own machinery rather than music.
+ *
+ * "Portfolio Playlist" and "Portfolio Playlist (Local Env)" are what /lab/suggest writes
+ * to: one per deployment, holding whatever visitors have added. They are public and
+ * owned by the account, so the shelf's filter has no way to tell them from a real
+ * playlist - and a pack dealt out of a list other visitors filled is a different app
+ * from a pack dealt out of jaako's.
+ *
+ * BY ID RATHER THAN BY NAME, because a name is editable in the Spotify client and a
+ * rename would quietly put the suggestion box back on the shelf. The configured suggest
+ * playlist is also excluded dynamically wherever this is used, so a deployment pointed
+ * at a third one drops that too without an edit here.
+ */
+export const EXCLUDED_PLAYLIST_IDS: readonly string[] = [
+  // Portfolio Playlist
+  "4eJiWoi2LBHIxFq2JqDvlo",
+  // Portfolio Playlist (Local Env)
+  "2CK3Ap0UNSCwatm9cIijx2",
+];
+
 /* ---------------- last.fm ---------------- */
 
 /**

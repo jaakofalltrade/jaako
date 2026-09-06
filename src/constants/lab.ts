@@ -31,39 +31,52 @@ export const LAB_STATUS_BADGE: Record<
  * end of the ladder is good. It has to answer that on its own, on a legend, with no
  * surrounding sentence to lean on.
  */
+/**
+ * The symbol is the set mark a card carries in its corner, and the run is the point of
+ * it: an open circle filling up, then a diamond, then stars. A reader who has seen two
+ * cards can order a third without reading a word, which is what a rarity mark is for.
+ */
 export const DEEPCUT_TIER: Record<
   DeepcutTier,
-  { label: string; note: string }
+  { label: string; note: string; symbol: string }
 > = {
   [DeepcutTier.Anthem]: {
+    symbol: "○",
     label: "anthem",
     note: "Everyone alive has heard this. Throw it straight back.",
   },
   [DeepcutTier.Chart]: {
+    symbol: "◔",
     label: "chart",
     note: "A hit. You will pull these constantly.",
   },
   [DeepcutTier.Rotation]: {
+    symbol: "◑",
     label: "rotation",
     note: "A song that had its year.",
   },
   [DeepcutTier.Album]: {
+    symbol: "◕",
     label: "album cut",
     note: "Never a single. Played by people who played the album.",
   },
   [DeepcutTier.Deepcut]: {
+    symbol: "●",
     label: "deep cut",
     note: "Thin numbers. The app is named after this rung for a reason.",
   },
   [DeepcutTier.Unheard]: {
+    symbol: "◆",
     label: "unheard",
     note: "Almost nobody has played this.",
   },
   [DeepcutTier.Ghost]: {
+    symbol: "✦",
     label: "ghost",
     note: "A few hundred people, ever, anywhere.",
   },
   [DeepcutTier.Lost]: {
+    symbol: "✷",
     label: "lost",
     note: "Barely a trace of anyone hearing it. The best thing in a pack.",
   },

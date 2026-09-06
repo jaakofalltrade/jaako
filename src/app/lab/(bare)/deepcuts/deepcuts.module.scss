@@ -1665,3 +1665,221 @@
   font-variant-numeric: tabular-nums;
   color: var(--dc-ink-soft);
 }
+
+/* ---------------- the cards a rip dealt ---------------- */
+
+.pulled {
+  flex: none;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.pulledLabel,
+.pulledNote {
+  margin: 0;
+  font-family: var(--dc-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dc-ink-soft);
+  text-align: center;
+}
+
+.pulledNote {
+  letter-spacing: 0.08em;
+  text-transform: none;
+  font-size: 0.75rem;
+  max-width: 34ch;
+}
+
+/* THE DECK. Every card in the same grid cell, so they sit on top of one another; the fan
+   and the depth come from the transforms Framer Motion is driving.
+
+   Sized by the grid rather than by the cards, because a stack of overlapping cards has no
+   height of its own and would collapse the panel around it.
+
+   NOT .pile, WHICH IS TAKEN. That is the scrolling track list further up this file, and
+   naming this one the same thing silently gave the list a 11rem grid with a 5:7 aspect
+   ratio: the table spilled out of a box the size of a playing card. */
+.deck {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  width: 11rem;
+  aspect-ratio: 5 / 7;
+  place-items: center;
+  /* The lean and the throw both travel past the cards' own box. */
+  overflow: visible;
+  perspective: 900px;
+}
+
+.pullSlot {
+  grid-area: 1 / 1;
+  width: 100%;
+  cursor: grab;
+  transform-style: preserve-3d;
+  touch-action: none;
+}
+
+/* Somebody who asked for no motion gets a row rather than a pile: a stack you have to
+   drag is motion as the only route through the content, which is the thing that setting
+   exists to spare them. All five readable at once, no dragging. */
+.pullList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+  gap: 0.6rem;
+  width: 100%;
+}
+
+.pullFlat {
+  display: block;
+}
+
+/* A CARD. The album cover is the face and everything else is printed over it. */
+.pull {
+  position: relative;
+  display: block;
+  aspect-ratio: 5 / 7;
+  border-radius: 0.45rem;
+  overflow: hidden;
+  background: var(--dc-board);
+  /* The rung, as the card's edge. A pile shows nothing but edges until you throw the
+     top one, so the border is where the rarity has to live. */
+  border: 2px solid var(--dc-hair);
+  box-shadow: 0 6px 18px rgba(29, 26, 22, 0.24);
+
+  &[data-tier="ANTHEM"] { border-color: var(--dc-anthem); }
+  &[data-tier="CHART"] { border-color: var(--dc-chart); }
+  &[data-tier="ROTATION"] { border-color: var(--dc-rotation); }
+  &[data-tier="ALBUM"] { border-color: var(--dc-album); }
+  &[data-tier="DEEPCUT"] { border-color: var(--dc-deepcut); }
+  &[data-tier="UNHEARD"] { border-color: var(--dc-unheard); }
+  &[data-tier="GHOST"] { border-color: var(--dc-ghost); }
+  &[data-tier="LOST"] { border-color: var(--dc-lost); }
+}
+
+.pullArt,
+.pullArtEmpty {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pullArtEmpty {
+  background:
+    repeating-linear-gradient(
+      45deg,
+      transparent 0 6px,
+      rgba(29, 26, 22, 0.06) 6px 7px
+    );
+}
+
+/* The set mark, in the corner a printed card carries one. */
+.pullMark {
+  position: absolute;
+  top: 0.35rem;
+  left: 0.35rem;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.35rem;
+  border-radius: 0.2rem;
+  /* Its own plate, because it sits over a photograph and a photograph can be any
+     colour. Legibility here cannot depend on the album art. */
+  background: rgba(29, 26, 22, 0.72);
+  color: #fff;
+}
+
+.pullSymbol {
+  font-size: 0.7rem;
+  line-height: 1;
+
+  .pull[data-tier="ANTHEM"] & { color: var(--dc-anthem); }
+  .pull[data-tier="CHART"] & { color: var(--dc-chart); }
+  .pull[data-tier="ROTATION"] & { color: var(--dc-rotation); }
+  .pull[data-tier="ALBUM"] & { color: var(--dc-album); }
+  .pull[data-tier="DEEPCUT"] & { color: var(--dc-deepcut); }
+  .pull[data-tier="UNHEARD"] & { color: var(--dc-unheard); }
+  .pull[data-tier="GHOST"] & { color: var(--dc-ghost); }
+  .pull[data-tier="LOST"] & { color: var(--dc-lost); }
+}
+
+.pullTier {
+  font-family: var(--dc-mono);
+  font-size: 0.48rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.pullShiny {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  z-index: 2;
+  padding: 0.15rem 0.35rem;
+  border-radius: 0.2rem;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--dc-ink);
+  font-family: var(--dc-mono);
+  font-size: 0.48rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* The song, over the foot of the cover. A scrim rather than a panel: the art should run
+   to the edge of the card the way a real one does. */
+.pullBody {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 1.5rem 0.5rem 0.45rem;
+  background: linear-gradient(
+    to top,
+    rgba(29, 26, 22, 0.92) 0%,
+    rgba(29, 26, 22, 0.72) 45%,
+    rgba(29, 26, 22, 0) 100%
+  );
+  color: #fff;
+}
+
+.pullTitle {
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.pullArtist,
+.pullPlays {
+  font-size: 0.56rem;
+  line-height: 1.25;
+  color: rgba(255, 255, 255, 0.78);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pullPlays {
+  font-family: var(--dc-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}

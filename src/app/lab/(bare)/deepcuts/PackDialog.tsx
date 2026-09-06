@@ -2,11 +2,12 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { fetchPack } from "@/client/deepcutsApi";
+import { fetchPack, ripPack } from "@/client/deepcutsApi";
 import { DEEPCUT_TIER } from "@/constants";
 import { compactCount } from "@/utils/format";
 import { DEEPCUTS_TEASER } from "@/data/lab";
-import type { DeepcutsPlaylist, PackContents } from "@/models";
+import type { DeepcutsPlaylist, PackCard, PackContents } from "@/models";
+import { CardStack } from "./CardStack";
 import { TiltedPack } from "./TiltedPack";
 import styles from "./deepcuts.module.scss";
 
@@ -96,9 +97,35 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
     return () => controller.abort();
   }, [playlist]);
 
+  /* The rip, stamped with its pack for the same reason the contents are: opening one
+     pack, closing it and opening another must not show the first one's cards under the
+     second one's name. */
+  const [pulled, setPulled] = useState<{
+    id: string;
+    cards: PackCard[];
+    error?: string;
+  } | null>(null);
+  const [ripping, setRipping] = useState(false);
+
   /* Only an answer stamped with the pack now on screen counts. Anything else is the
      previous pack's, still in flight or already landed, and it renders as loading. */
   const shown = playlist && result?.id === playlist.id ? result : null;
+  const pack = playlist && pulled?.id === playlist.id ? pulled : null;
+
+  const rip = async () => {
+    if (!playlist || ripping) return;
+
+    setRipping(true);
+    try {
+      const answer = await ripPack({ playlist_id: playlist.id });
+      setPulled({ id: playlist.id, cards: answer.cards, error: answer.error });
+    } catch (error) {
+      console.error("[deepcuts] rip failed:", error);
+      setPulled({ id: playlist.id, cards: [], error: DEEPCUTS_TEASER.rip_failed });
+    } finally {
+      setRipping(false);
+    }
+  };
 
   return (
     <dialog
@@ -181,16 +208,29 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
             </TiltedPack>
             </motion.div>
 
-            {/* Across the foot of the pack, as on the sketch. */}
-            <button type="button" className={styles.rip} disabled>
-              {DEEPCUTS_TEASER.rip_button}
+            {/* Across the foot of the pack, as on the sketch. It opens the pack now.
+                Disabled while the contents are still arriving, because the rip is dealt
+                from the same scored tracks the table below is waiting on, and while
+                last.fm is switched off, because nothing could be given a rung. */}
+            <button
+              type="button"
+              className={styles.rip}
+              onClick={rip}
+              disabled={ripping || !shown?.contents?.scored || Boolean(pack?.cards.length)}
+            >
+              {ripping ? DEEPCUTS_TEASER.rip_working : DEEPCUTS_TEASER.rip_button}
             </button>
 
-            <p className={styles.ripNote}>
-              {shown?.contents && !shown.contents.scored
-                ? DEEPCUTS_TEASER.rip_blocked_unscored
-                : DEEPCUTS_TEASER.rip_blocked}
-            </p>
+            {/* One line under the button, saying whichever thing is true. */}
+            {pack?.error ? (
+              <p className={styles.ripNote}>{pack.error}</p>
+            ) : shown?.contents && !shown.contents.scored ? (
+              <p className={styles.ripNote}>{DEEPCUTS_TEASER.rip_blocked_unscored}</p>
+            ) : null}
+
+            {/* The five cards, once they exist. Above the track list, because they are
+                what the reader just did and the list is reference. */}
+            {pack?.cards.length ? <CardStack cards={pack.cards} /> : null}
 
             {/* THE ONLY SCROLLING REGION ON THE SCREEN. Everything above it is fixed. */}
             <div className={styles.pile}>

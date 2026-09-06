@@ -174,3 +174,34 @@ export type PackContents = {
   /** The first SCORED_TRACK_LIMIT of them, in playlist order. */
   tracks: ScoredTrack[];
 };
+
+/* ---------------- an opened pack ---------------- */
+
+/**
+ * One card, as it comes out of a rip.
+ *
+ * A SCORED TRACK PLUS THE TWO THINGS THE DRAW DECIDED. The track and its rung were
+ * already facts about the song; `shiny` is the second roll, and `slot` is where in the
+ * pack it landed. Everything else is inherited, so a card renders from the same fields
+ * the table already prints.
+ */
+export type PackCard = {
+  track: ScoredTrack;
+  tier: DeepcutTier;
+  shiny: boolean;
+  /** 0-based. The last slot is the hit, which is why the order is worth keeping. */
+  slot: number;
+};
+
+/**
+ * What POST /api/lab/deepcuts/rip answers with.
+ *
+ * `cards` is empty only when the playlist had nothing scoreable on it, which the page
+ * renders as a refusal rather than as an empty pack.
+ */
+export type RipResponse = {
+  playlist_id: string;
+  cards: PackCard[];
+  /** A sentence written for the visitor. Present only when the rip could not happen. */
+  error?: string;
+};

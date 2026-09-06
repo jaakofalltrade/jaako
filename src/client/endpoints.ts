@@ -82,6 +82,8 @@ export const endpoints = {
     deepcuts: {
       /** What is inside one pack. Takes ?id=<spotify playlist id>. */
       pack: "/api/lab/deepcuts/pack",
+      /** Opening one. POST, same ?id=. */
+      rip: "/api/lab/deepcuts/rip",
     },
   },
 } as const;

@@ -429,6 +429,20 @@ export const DEEPCUTS_TEASER = {
      picture of a pack; a dead button with a sentence under it is a promise with a date
      on it. Same call slots makes with its lever, which does not pull. */
   rip_button: "rip the pack",
+  /** While the five cards are being dealt. */
+  rip_working: "ripping...",
+  /** The pack could not be opened at all. */
+  rip_failed: "That pack would not open. Try again in a moment.",
+  /** Too many rips too fast, from one address. */
+  rip_throttled: "Slow down a moment, then try again.",
+  /** Spotify answered but last.fm matched nothing, so no card has a rung. */
+  rip_unscoreable: "Nothing on this playlist could be scored, so there is nothing to deal.",
+  /** Above the dealt cards. */
+  pulled_label: "your pack",
+  /** Under them. Says the pack is stable rather than re-rollable. */
+  pulled_note: "The same pack all day. Opening it again deals these five, not five more.",
+  /** On a shiny card. */
+  shiny_badge: "shiny",
   /* Under the button. Why it will not press.
      NOT "rip_note", which is already taken by the word printed on the tear strip. Two
      different things called the same thing is how the strip ends up reading like an

@@ -1,5 +1,5 @@
 import { endpoints } from "@/client/endpoints";
-import type { PackContents } from "@/models";
+import type { PackContents, RipResponse } from "@/models";
 
 /**
  * The browser's call to our own deepcuts route.
@@ -30,4 +30,29 @@ export const fetchPack = async (args: {
   if (!response.ok) throw new Error(`pack ${response.status}`);
 
   return (await response.json()) as PackContents;
+};
+
+/**
+ * Opens a pack.
+ *
+ * POST, because a rip mints a visitor id and writes rows. It is still idempotent for the
+ * day - the draw is seeded, so posting twice deals the same five cards - but the tally
+ * is not, and a GET would be fetched by every prefetcher that saw the URL.
+ *
+ * Returns the body on a refusal as well as a success, because the route puts a sentence
+ * written for the visitor in `error` and that sentence is the whole point of the refusal.
+ * Only a response that is not JSON at all throws.
+ */
+export const ripPack = async (args: {
+  playlist_id: string;
+  signal?: AbortSignal;
+}): Promise<RipResponse> => {
+  const { playlist_id, signal } = args;
+
+  const response = await fetch(
+    `${endpoints.lab.deepcuts.rip}?id=${encodeURIComponent(playlist_id)}`,
+    { method: "POST", signal }
+  );
+
+  return (await response.json()) as RipResponse;
 };

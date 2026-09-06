@@ -1,8 +1,14 @@
 import "server-only";
-import { LIBRARY_MAX_PAGES, LIBRARY_READ_LIMIT, LIBRARY_TTL_MS } from "@/constants";
+import {
+  EXCLUDED_PLAYLIST_IDS,
+  LIBRARY_MAX_PAGES,
+  LIBRARY_READ_LIMIT,
+  LIBRARY_TTL_MS,
+} from "@/constants";
 import { Spotify } from "@/models";
 import type { DeepcutsLibrary } from "@/models";
 import { getEpochMilliseconds } from "@/oras/milliseconds";
+import { serverConfig } from "@/server/serverConfig";
 import { spotifyEndpoints } from "@/server/endpoints";
 import { uniqueBy } from "@/utils/collection";
 import { hasCredentials } from "./spotifyAccessTokens";
@@ -164,7 +170,22 @@ const allPlaylists = async (): Promise<Spotify.SimplePlaylistResponse[]> => {
 export const isOwnPublicPlaylist = (args: {
   playlist: Spotify.SimplePlaylistResponse;
   owner: string;
-}): boolean => args.playlist.owner?.id === args.owner && args.playlist.public === true;
+}): boolean => {
+  const { playlist, owner } = args;
+
+  if (playlist.owner?.id !== owner) return false;
+  if (playlist.public !== true) return false;
+
+  /* The suggestion box is public and owned by this account, so nothing above can tell
+     it from music. A pack dealt out of a list other visitors filled is a different app.
+     The configured id as well as the fixed list, so a deployment pointed somewhere else
+     drops its own without an edit to the constant. */
+  if (!playlist.id) return false;
+  if (playlist.id === serverConfig.spotify_playlist_id) return false;
+  if (EXCLUDED_PLAYLIST_IDS.includes(playlist.id)) return false;
+
+  return true;
+};
 
 /**
  * Every playlist this account owns and has made public, in Spotify's own order.

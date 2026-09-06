@@ -17,12 +17,14 @@ import { isOwnPublicPlaylist } from "@/server/spotify/deepcutsLibrary";
  */
 
 const OWNER = "happyfrappyloco";
+/** Any id that is not one of the site's own. */
+const MUSIC = "4DXwAIwLlrtTIXUgNudTgU";
 
 describe("isOwnPublicPlaylist", () => {
   it("keeps a public playlist owned by the account", () => {
     expect(
       isOwnPublicPlaylist({
-        playlist: { owner: { id: OWNER }, public: true },
+        playlist: { id: MUSIC, owner: { id: OWNER }, public: true },
         owner: OWNER,
       })
     ).toBe(true);
@@ -31,7 +33,7 @@ describe("isOwnPublicPlaylist", () => {
   it("drops a private playlist, however clearly it is owned", () => {
     expect(
       isOwnPublicPlaylist({
-        playlist: { owner: { id: OWNER }, public: false },
+        playlist: { id: MUSIC, owner: { id: OWNER }, public: false },
         owner: OWNER,
       })
     ).toBe(false);
@@ -44,7 +46,7 @@ describe("isOwnPublicPlaylist", () => {
   it("drops a playlist whose visibility Spotify would not answer", () => {
     expect(
       isOwnPublicPlaylist({
-        playlist: { owner: { id: OWNER }, public: null },
+        playlist: { id: MUSIC, owner: { id: OWNER }, public: null },
         owner: OWNER,
       })
     ).toBe(false);
@@ -52,7 +54,7 @@ describe("isOwnPublicPlaylist", () => {
 
   it("drops a playlist with no public field at all", () => {
     expect(
-      isOwnPublicPlaylist({ playlist: { owner: { id: OWNER } }, owner: OWNER })
+      isOwnPublicPlaylist({ playlist: { id: MUSIC, owner: { id: OWNER } }, owner: OWNER })
     ).toBe(false);
   });
 
@@ -62,14 +64,38 @@ describe("isOwnPublicPlaylist", () => {
   it("drops a public playlist owned by somebody else", () => {
     expect(
       isOwnPublicPlaylist({
-        playlist: { owner: { id: "someone-else" }, public: true },
+        playlist: { id: MUSIC, owner: { id: "someone-else" }, public: true },
         owner: OWNER,
       })
     ).toBe(false);
   });
 
   it("drops a playlist with no owner", () => {
-    expect(isOwnPublicPlaylist({ playlist: { public: true }, owner: OWNER })).toBe(false);
+    expect(isOwnPublicPlaylist({ playlist: { id: MUSIC, public: true }, owner: OWNER })).toBe(false);
+  });
+
+  /* THE SUGGESTION BOX IS PUBLIC AND OWNED BY THIS ACCOUNT, so nothing else in this
+     function can tell it from music. A pack dealt out of a list other visitors filled is
+     a different app, and by id rather than by name because a rename in the Spotify
+     client would quietly put it back on the shelf. */
+  it("drops the playlists the suggestion box writes to", () => {
+    for (const id of ["4eJiWoi2LBHIxFq2JqDvlo", "2CK3Ap0UNSCwatm9cIijx2"]) {
+      expect(
+        isOwnPublicPlaylist({
+          playlist: { id, owner: { id: OWNER }, public: true },
+          owner: OWNER,
+        }),
+        id
+      ).toBe(false);
+    }
+  });
+
+  /* A playlist with no id cannot be checked against that list, and the mapper drops it
+     anyway: the id is the one field a row cannot be drawn without. */
+  it("drops a playlist with no id", () => {
+    expect(
+      isOwnPublicPlaylist({ playlist: { owner: { id: OWNER }, public: true }, owner: OWNER })
+    ).toBe(false);
   });
 
   /* Compared on the id rather than the display name, which two accounts can share. A
@@ -77,7 +103,7 @@ describe("isOwnPublicPlaylist", () => {
   it("ignores the display name entirely", () => {
     expect(
       isOwnPublicPlaylist({
-        playlist: { owner: { id: "someone-else", display_name: "jaako" }, public: true },
+        playlist: { id: MUSIC, owner: { id: "someone-else", display_name: "jaako" }, public: true },
         owner: OWNER,
       })
     ).toBe(false);
