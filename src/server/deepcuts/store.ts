@@ -197,7 +197,11 @@ const cardsFor = async (args: { visitor_id: string }): Promise<CollectedCard[]> 
       tier: string;
       shiny: boolean;
       play_count: number | null;
-      ripped_at: string;
+      /* A Date, not a string, and the driver is what decides that: @neondatabase's
+         serverless client parses timestamptz into a Date before this sees it. Declaring
+         it as a string typechecks and lies, which is the kind of lie that survives until
+         somebody calls a string method on it. */
+      ripped_at: Date;
     }>`
       select
         card.id, card.track_uri, card.title, card.artist, card.album_art,
@@ -209,32 +213,34 @@ const cardsFor = async (args: { visitor_id: string }): Promise<CollectedCard[]> 
       limit ${COLLECTION_LIMIT}
     `;
 
-    return (
-      rows
-        /* A row naming a rung this deploy no longer has is dropped rather than rendered.
-           Same narrowing the rarest-card query does, and the same reason: `tier` is text
-           so that adding a rung is a deploy rather than a migration, and the cost of that
-           is a row an older deploy wrote. */
-        .filter((row) => isTier(row.tier))
-        .map((row) => ({
-          id: String(row.id),
-          uri: row.track_uri,
-          title: row.title,
-          artist: row.artist,
-          album_art: row.album_art,
-          /* Empty rather than null for a row written before 003 added the column: the
-             card renders without a link, and the type stays the one ScoredTrack uses. */
-          url: row.track_url ?? "",
-          tier: row.tier as DeepcutTier,
-          shiny: row.shiny,
-          play_count: row.play_count,
-          ripped_at: row.ripped_at,
-        }))
-        .map(({ play_count, ripped_at, ...card }) => ({
-          ...card,
-          plays: play_count,
-          pulled_at: new Date(ripped_at).toISOString(),
-        }))
+    /* ONE PASS, AND flatMap RATHER THAN filter-THEN-CAST. `isTier` is a type guard, but
+       it guards `row.tier` and not `row`, so a `.filter()` in front of a `.map()` narrows
+       nothing and the map has to assert the rung back - which is the assertion the guard
+       existed to avoid. Returning [] for a row that fails the check does the same job and
+       actually narrows.
+
+       A row naming a rung this deploy no longer has is dropped rather than rendered:
+       `tier` is text so that adding a rung is a deploy rather than a migration, and the
+       cost of that is a row an older deploy wrote. */
+    return rows.flatMap((row) =>
+      isTier(row.tier)
+        ? [
+            {
+              id: String(row.id),
+              uri: row.track_uri,
+              title: row.title,
+              artist: row.artist,
+              album_art: row.album_art,
+              /* Empty rather than null for a row written before 003 added the column:
+                 the card renders without a link, and the type stays ScoredTrack's. */
+              url: row.track_url ?? "",
+              tier: row.tier,
+              shiny: row.shiny,
+              plays: row.play_count,
+              pulled_at: row.ripped_at.toISOString(),
+            },
+          ]
+        : []
     );
   } catch (error) {
     console.error("[deepcuts] collection failed:", error);

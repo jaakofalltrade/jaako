@@ -1616,10 +1616,19 @@
   transition: background-position 650ms ease;
 }
 
-/* Both, so the sweep exists for a keyboard as well as a mouse. */
+/* Hover, plus the binder's focus ring, so the sweep exists for a keyboard on the one
+   surface a keyboard can reach.
+
+   IT USED TO LIST `.pullSlot:focus-within` AS WELL AND THAT SELECTOR COULD NEVER MATCH.
+   A card in the deck is a draggable <li> with no tabindex, no role and nothing focusable
+   inside it, so focus-within is not a state it can enter. Keeping the rule implied a
+   keyboard path that does not exist. The binder's cards are anchors and genuinely do
+   focus, which is why that half stays.
+
+   The deck itself is still mouse and touch only: throwing a card is a drag and there is
+   no keyboard equivalent for it. That is a real gap and a bigger one than a selector. */
 .pull:hover::before,
-.binderLink:focus-visible .pull::before,
-.pullSlot:focus-within .pull::before {
+.binderLink:focus-visible .pull::before {
   background-position: 100% 100%;
 }
 
@@ -1631,8 +1640,7 @@
   }
 
   .pull:hover::before,
-  .binderLink:focus-visible .pull::before,
-  .pullSlot:focus-within .pull::before {
+  .binderLink:focus-visible .pull::before {
     background-position: -100% -100%;
   }
 }

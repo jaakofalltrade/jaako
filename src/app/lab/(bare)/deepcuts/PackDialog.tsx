@@ -132,13 +132,28 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
    *   tearing  the pack has come forward and the top is coming away
    *   flashing white, covering the swap from wrapper to cards
    *   opened   the pack is gone and the cards are out
+   *
+   * STAMPED WITH ITS PACK, LIKE THE OTHER TWO, AND IT WAS NOT. As a bare phase it
+   * survived the dialog closing, so ripping one pack and then opening a DIFFERENT one
+   * left it reading "opened": the wrapper is suppressed at that phase and so is the
+   * button, while the cards belong to the other playlist and do not render. The dialog
+   * came up holding a close button and a link to Spotify and nothing else. Reproduced
+   * by hand - rip "Sorry You're Not a Winner", close, open "coding".
+   *
+   * The id is the fix rather than an effect that clears on `playlist`: this file already
+   * stamps its other two pieces of state for exactly this reason, and a derived phase
+   * cannot be forgotten the way a reset can.
    */
-  const [phase, setPhase] = useState<"idle" | "tearing" | "flashing" | "opened">("idle");
+  const [ripping, setRipping] = useState<{
+    id: string;
+    phase: "idle" | "tearing" | "flashing" | "opened";
+  } | null>(null);
 
   /* Only an answer stamped with the pack now on screen counts. Anything else is the
      previous pack's, still in flight or already landed, and it renders as loading. */
   const shown = playlist && result?.id === playlist.id ? result : null;
   const pack = playlist && pulled?.id === playlist.id ? pulled : null;
+  const phase = playlist && ripping?.id === playlist.id ? ripping.phase : "idle";
 
   const rip = async () => {
     if (!playlist || phase !== "idle") return;
@@ -151,8 +166,8 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
 
        The timers drive the visible beats, the promise resolves whenever it resolves, and
        Promise.all below is what makes the slower of the two the one that decides. */
-    setPhase("tearing");
-    window.setTimeout(() => setPhase("flashing"), RIP_FORWARD_MS + RIP_TEAR_MS);
+    setRipping({ id, phase: "tearing" });
+    window.setTimeout(() => setRipping({ id, phase: "flashing" }), RIP_FORWARD_MS + RIP_TEAR_MS);
 
     const sequence = new Promise<void>((resolve) =>
       window.setTimeout(resolve, RIP_SEQUENCE_MS)
@@ -176,7 +191,7 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
     setPulled({ id, cards: answer.cards, error: answer.error });
     /* Back to idle when the rip was refused, so the button can be pressed again. A pack
        that failed to open is still a sealed pack. */
-    setPhase(answer.cards.length ? "opened" : "idle");
+    setRipping({ id, phase: answer.cards.length ? "opened" : "idle" });
   };
 
   return (
