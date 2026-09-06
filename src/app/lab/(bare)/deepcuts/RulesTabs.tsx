@@ -3,12 +3,12 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { DEEPCUT_TIER } from "@/constants";
+import { DEEPCUT_LADDER, DEEPCUT_TIER_FLOOR, DeepcutTier } from "@/models";
 import { DEEPCUTS_TEASER } from "@/data/lab";
 import { Tabs } from "@/design-system/core/Tabs";
 import { CardGallery } from "./CardGallery";
 import { Collection } from "./Collection";
 import styles from "./deepcuts.module.scss";
-import { DEEPCUT_LADDER, DEEPCUT_TIER_FLOOR } from "@/models";
 
 /**
  * The legend and the rules, as two tabs above the shelf.
@@ -45,6 +45,37 @@ export type RulesTabsProps = {
   packs: ReactNode;
 };
 
+/**
+ * One rung of the ladder.
+ *
+ * ITS OWN COMPONENT SO THE MAP READS AS A LIST. Inlined, this was fifteen lines of JSX
+ * inside a .map() inside a tab inside a component, and the shape of the ladder - eight
+ * of these, in order - was the one thing that could not be seen at a glance.
+ */
+const Tier = ({ tier }: { tier: DeepcutTier }) => {
+  const rung = DEEPCUT_TIER[tier];
+  const floor = DEEPCUT_TIER_FLOOR[tier];
+
+  /* The band, in plays. "under 5,000" for the rarest rung rather than "0 plays and up",
+     which is arithmetically the same and reads backwards: the top of this ladder is
+     defined by how FEW plays a track has. */
+  const band =
+    floor === 0
+      ? `${DEEPCUTS_TEASER.rung_under} ${DEEPCUT_TIER_FLOOR[
+          DEEPCUT_LADDER[DEEPCUT_LADDER.length - 2]
+        ].toLocaleString()}`
+      : `${floor.toLocaleString()}+`;
+
+  return (
+    <li className={styles.rung} data-tier={tier}>
+      <span className={styles.rungSwatch} aria-hidden="true" />
+      <span className={styles.rungLabel}>{rung.label}</span>
+      <span className={styles.rungPlays}>{band}</span>
+      <span className={styles.rungNote}>{rung.note}</span>
+    </li>
+  );
+};
+
 export const RulesTabs = ({ packs }: RulesTabsProps) => {
   /* Typed as a plain string rather than inferred. DEEPCUTS_TEASER is `as const`, so the
      inferred state type would be the literal "legend" and setting it to the rules tab
@@ -68,28 +99,9 @@ export const RulesTabs = ({ packs }: RulesTabsProps) => {
           rungs are interchangeable, and the entire app is about which one you landed
           on. */}
       <ol className={styles.rungs}>
-        {DEEPCUT_LADDER.map((tier) => {
-          const rung = DEEPCUT_TIER[tier];
-          const floor = DEEPCUT_TIER_FLOOR[tier];
-
-          return (
-          <li key={tier} className={styles.rung} data-tier={tier}>
-            <span className={styles.rungSwatch} aria-hidden="true" />
-            <span className={styles.rungLabel}>{rung.label}</span>
-
-            {/* The band, in plays. "under 10,000" for the rarest rung rather than
-                "0 plays and up", which is arithmetically the same and reads backwards:
-                the top of this ladder is defined by how FEW plays a track has. */}
-            <span className={styles.rungPlays}>
-              {floor === 0
-                ? `${DEEPCUTS_TEASER.rung_under} ${DEEPCUT_TIER_FLOOR[DEEPCUT_LADDER[DEEPCUT_LADDER.length - 2]].toLocaleString()}`
-                : `${floor.toLocaleString()}+`}
-            </span>
-
-            <span className={styles.rungNote}>{rung.note}</span>
-          </li>
-          );
-          })}
+        {DEEPCUT_LADDER.map((tier) => (
+          <Tier key={tier} tier={tier} />
+        ))}
       </ol>
     </>
   );

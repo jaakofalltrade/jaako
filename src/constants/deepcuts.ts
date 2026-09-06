@@ -211,48 +211,6 @@ export const SHINY_ODDS: Partial<Record<DeepcutTier, number>> = {
   [DeepcutTier.Lost]: 0.0025,
 };
 
-/* ---------------- opening one, as a sequence ----------------
-
-   The rip is four beats rather than a state change, and the timings are here rather than
-   in the component so the whole sequence can be read as one thing. They are milliseconds
-   and they add up: the pack comes forward, tears, flashes, and the cards arrive. */
-
-/** The pack scales up and settles before anything happens to it. */
-export const RIP_FORWARD_MS = 260;
-
-/** The top of the wrapper comes away. The longest beat, because it is the one being watched. */
-export const RIP_TEAR_MS = 420;
-
-/** White, and brief. Long enough to hide the swap from pack to cards, short enough not to blind. */
-export const RIP_FLASH_MS = 260;
-
-/**
- * How many sparkles come off the pack, and how long one lives.
- *
- * TWENTY IS A BURST AND NOT A SNOWSTORM. Each is an animated element with its own
- * transform, so the count is a frame budget as much as a look: this many is comfortably
- * inside a frame on a phone, and three times as many would be a particle system asking
- * for a canvas.
- *
- * THE LIFETIME OUTLASTS THE FLASH ON PURPOSE. The flash is over in 260ms, which is about
- * how long a swap should be hidden for. Sparkles that ended with it would look like part
- * of the same white wipe; running on for three times as long means they are still in the
- * air while the first cards land, and the burst reads as coming OFF the cards rather than
- * covering them.
- */
-export const SPARKLE_COUNT = 20;
-export const SPARKLE_MS = 780;
-
-/**
- * The floor on the whole sequence, and the reason it is a floor rather than a total.
- *
- * The animation and the network request start together and the cards cannot appear until
- * BOTH are done. On a warm cache the request beats the animation and this is what the
- * visitor waits for; on a cold playlist the request is slower and the animation waits
- * instead, holding on the flash rather than cutting to cards halfway through a tear.
- */
-export const RIP_SEQUENCE_MS = RIP_FORWARD_MS + RIP_TEAR_MS + RIP_FLASH_MS;
-
 /* ---------------- the collection ---------------- */
 
 /**

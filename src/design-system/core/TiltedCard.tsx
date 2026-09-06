@@ -4,25 +4,36 @@ import { useRef } from "react";
 import type { ReactNode } from "react";
 import type { SpringOptions } from "motion/react";
 import { motion, useMotionValue, useReducedMotion, useSpring } from "motion/react";
-import styles from "./deepcuts.module.scss";
 
-export type TiltedPackProps = {
+export type TiltedCardProps = {
   children: ReactNode;
-  /** Extra class on the tilting element, so the pack keeps its own look. */
-  className?: string;
-  /** Passed through to the tilting element, which is where data-plain has to land. */
-  plain?: boolean;
+  /**
+   * SHIPS NO STYLING, LIKE Pagination AND Tabs. Both classes come from the caller: the
+   * outer one carries the perspective, the inner one is whatever is being tilted. A
+   * shared component that reached for an app's stylesheet would drag that app's cascade
+   * into every other page that used it, which is the rule every bare lab module states
+   * in its own header.
+   */
+  classNames?: { stage?: string; card?: string };
+  /**
+   * Copied onto the tilting element verbatim.
+   *
+   * The tilt has no opinion about what is on the card, but the caller's CSS usually does
+   * - deepcuts marks a wrapper with no cover art this way - and the tilting element is
+   * the only one a caller cannot reach to put an attribute on.
+   */
+  dataAttributes?: Record<string, string | undefined>;
 };
 
 /**
- * The opened pack, tilting toward the pointer.
+ * Anything, tilting toward the pointer.
  *
  * ADAPTED FROM react-bits' TiltedCard (reactbits.dev/components/tilted-card), and
  * adapted rather than copied for one reason: that component is built around an
- * `imageSrc` and renders an <img> with an optional overlay. A pack here is not an image.
- * It is a composed object - serrated edge, crimp band, tear strip, printed cover, name,
- * count - and swapping it for a flat picture to use the component as published would
- * throw away everything that makes it read as a wrapper.
+ * `imageSrc` and renders an <img> with an optional overlay. Its first caller here is a
+ * foil pack - serrated edge, crimp band, tear strip, printed cover, name, count - and
+ * flattening that into a picture to use the component as published would throw away
+ * everything that makes it read as a wrapper. So this takes children instead.
  *
  * So what is taken is the MECHANIC, which is the part worth having: pointer position
  * mapped to a rotation about both axes, each on a spring, plus a scale on hover. The
@@ -56,7 +67,7 @@ const SPRING: SpringOptions = {
 const ROTATE_AMPLITUDE = 12;
 const SCALE_ON_HOVER = 1.04;
 
-export const TiltedPack = ({ children, className, plain }: TiltedPackProps) => {
+export const TiltedCard = ({ children, classNames, dataAttributes }: TiltedCardProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const still = useReducedMotion();
 
@@ -89,7 +100,7 @@ export const TiltedPack = ({ children, className, plain }: TiltedPackProps) => {
      driving a transform that never moves. */
   if (still) {
     return (
-      <div className={className} data-plain={plain ? "" : undefined}>
+      <div className={classNames?.card} {...dataAttributes}>
         {children}
       </div>
     );
@@ -99,15 +110,15 @@ export const TiltedPack = ({ children, className, plain }: TiltedPackProps) => {
     /* The perspective lives on the parent, which is what makes the rotation read as
        depth rather than as a skew. */
     <div
-      className={styles.tiltStage}
+      className={classNames?.stage}
       onMouseMove={onMouseMove}
       onMouseEnter={() => scale.set(SCALE_ON_HOVER)}
       onMouseLeave={rest}
     >
       <motion.div
         ref={ref}
-        className={className}
-        data-plain={plain ? "" : undefined}
+        className={classNames?.card}
+        {...dataAttributes}
         style={{ rotateX, rotateY, scale, transformStyle: "preserve-3d" }}
       >
         {children}

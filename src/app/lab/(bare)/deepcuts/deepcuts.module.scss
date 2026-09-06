@@ -1562,6 +1562,64 @@
   &[data-tier="LOST"] { border-color: var(--dc-lost); }
 }
 
+/* ---------------- the bloom on the rare end ----------------
+
+   THE THREE RAREST RUNGS LIGHT UP, AND THE NO-GLOW RULE IS STILL INTACT. The rule at the
+   top of this file bans light thrown off a surface, and only /lab/slots is exempt. This
+   obeys it the same way the shiny foil does: everything below is INSIDE the card's own
+   bounds. A radial wash of the rung's colour behind the artwork, and a lit inner rim at
+   the edge. Nothing bleeds onto the paper, nothing is a box-shadow spreading outward,
+   and deleting the whole block changes no other element's appearance.
+
+   From a foot away it reads as a card that is glowing. What it is not is a card lighting
+   up the page around it - that would be an outer glow, and it would need the rule
+   overturned rather than obeyed.
+
+   ::after IS TAKEN BY .shiny AND ::before BY THE GLARE, so this rides on .pullArt's own
+   stacking instead: a wash element of its own would be a fourth layer competing for the
+   same two pseudo-elements. */
+
+.pull[data-tier="UNHEARD"],
+.pull[data-tier="GHOST"],
+.pull[data-tier="LOST"] {
+  /* The lit rim. Inset, so it is a bevel on the card rather than a halo around it. */
+  box-shadow:
+    0 6px 18px rgba(29, 26, 22, 0.24),
+    inset 0 0 0 1px color-mix(in srgb, var(--bloom) 60%, transparent),
+    inset 0 0 22px -6px var(--bloom);
+}
+
+.pull[data-tier="UNHEARD"],
+.face[data-tier="UNHEARD"] { --bloom: var(--dc-unheard); }
+
+.pull[data-tier="GHOST"],
+.face[data-tier="GHOST"] { --bloom: var(--dc-ghost); }
+
+.pull[data-tier="LOST"],
+.face[data-tier="LOST"] { --bloom: var(--dc-lost); }
+
+/* The set tab prints the same three rungs as faces rather than as dealt cards, and a
+   catalogue that showed a duller ghost than the pack does would be lying about the card
+   it is there to describe. Same rim, no wash: a gallery face has no artwork behind it. */
+.face[data-tier="UNHEARD"],
+.face[data-tier="GHOST"],
+.face[data-tier="LOST"] {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--bloom) 60%, transparent),
+    inset 0 0 26px -6px var(--bloom);
+}
+
+/* The wash, behind the artwork and over the board. Clipped by .pull's own overflow, so
+   the corners stay square with the card and nothing escapes the radius. */
+.pull[data-tier="UNHEARD"] .pullArt,
+.pull[data-tier="GHOST"] .pullArt,
+.pull[data-tier="LOST"] .pullArt,
+.pull[data-tier="UNHEARD"] .pullArtEmpty,
+.pull[data-tier="GHOST"] .pullArtEmpty,
+.pull[data-tier="LOST"] .pullArtEmpty {
+  box-shadow: inset 0 0 40px -8px var(--bloom);
+}
+
 /* ---------------- the glare ----------------
 
    ADAPTED FROM react-bits' GlareHover (reactbits.dev/animations/glare-hover). The

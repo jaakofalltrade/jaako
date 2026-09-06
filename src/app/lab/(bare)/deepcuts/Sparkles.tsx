@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "motion/react";
-import { SPARKLE_COUNT, SPARKLE_MS } from "@/constants";
 import styles from "./deepcuts.module.scss";
 
 /**
@@ -32,21 +31,43 @@ import styles from "./deepcuts.module.scss";
 /** Never repeats a direction, never makes a wheel. See above. */
 const GOLDEN_ANGLE = 137.5;
 
-export const Sparkles = () => (
+export type SparklesProps = {
+  /** How many. Twenty is a burst; this many is a burst you cannot miss. */
+  count?: number;
+  /** How long one lives, in milliseconds. */
+  lifetime?: number;
+  /** How far the near and far rings travel, in pixels. */
+  travel?: { near: number; far: number };
+  /** Pixel size of the near and far sparkles. Near is the bigger of the two. */
+  size?: { near: number; far: number };
+};
+
+/**
+ * The numbers live here rather than in src/constants, because nothing outside this
+ * component has an opinion about them: a count and four lengths are how this burst is
+ * drawn, not facts about the app. They are props with defaults so a caller that wants a
+ * smaller burst can ask for one without a second component.
+ */
+export const Sparkles = ({
+  count = 32,
+  lifetime = 1100,
+  travel = { near: 200, far: 340 },
+  size = { near: 26, far: 14 },
+}: SparklesProps) => (
   <div className={styles.sparkles} aria-hidden="true">
-    {Array.from({ length: SPARKLE_COUNT }, (_, index) => {
+    {Array.from({ length: count }, (_, index) => {
       const angle = (index * GOLDEN_ANGLE * Math.PI) / 180;
       /* Two rings rather than one circle: a single radius reads as an expanding hoop.
          The odd ones travel further, and the size runs the other way, so the near
          sparkles are the big ones and the far ones are specks. */
-      const distance = index % 2 ? 190 : 120;
-      const size = index % 2 ? 9 : 15;
+      const distance = index % 2 ? travel.far : travel.near;
+      const width = index % 2 ? size.far : size.near;
 
       return (
         <motion.span
           key={index}
           className={styles.sparkle}
-          style={{ width: size, height: size }}
+          style={{ width, height: width }}
           initial={{ x: 0, y: 0, scale: 0, opacity: 0, rotate: 0 }}
           animate={{
             x: Math.cos(angle) * distance,
@@ -59,7 +80,7 @@ export const Sparkles = () => (
             rotate: index % 2 ? 140 : -110,
           }}
           transition={{
-            duration: SPARKLE_MS / 1000,
+            duration: lifetime / 1000,
             /* Staggered by a hair, so the burst has an edge to it rather than every
                sparkle leaving on the same frame. */
             delay: (index % 5) * 0.035,

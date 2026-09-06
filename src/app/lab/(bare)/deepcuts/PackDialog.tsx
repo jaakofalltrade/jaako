@@ -3,18 +3,39 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { remoteService } from "@/client/remoteService";
-import {
-  RIP_FLASH_MS,
-  RIP_FORWARD_MS,
-  RIP_SEQUENCE_MS,
-  RIP_TEAR_MS,
-} from "@/constants";
 import { DEEPCUTS_TEASER } from "@/data/lab";
 import type { DeepcutsPlaylist, PackCard } from "@/models";
+import { TiltedCard } from "@/design-system/core/TiltedCard";
 import { CardStack } from "./CardStack";
 import { Sparkles } from "./Sparkles";
-import { TiltedPack } from "./TiltedPack";
+
 import styles from "./deepcuts.module.scss";
+
+/* ---------------- the rip, as a sequence ----------------
+
+   THE TIMINGS LIVE HERE, NOT IN src/constants. Nothing outside this component has an
+   opinion about how long a wrapper takes to tear: they are four numbers describing one
+   animation, in the only file that runs it. They are milliseconds and they add up - the
+   pack comes forward, tears, flashes, and the cards arrive. */
+
+/** The pack scales up and settles before anything happens to it. */
+const RIP_FORWARD_MS = 260;
+
+/** The top of the wrapper comes away. The longest beat, because it is the one being watched. */
+const RIP_TEAR_MS = 420;
+
+/** White, and brief. Long enough to hide the swap from pack to cards, short enough not to blind. */
+const RIP_FLASH_MS = 260;
+
+/**
+ * The floor on the whole sequence, and the reason it is a floor rather than a total.
+ *
+ * The animation and the network request start together and the cards cannot appear until
+ * BOTH are done. On a warm cache the request beats the animation and this is what the
+ * visitor waits for; on a cold playlist the request is slower and the animation waits
+ * instead, holding on the flash rather than cutting to cards halfway through a tear.
+ */
+const RIP_SEQUENCE_MS = RIP_FORWARD_MS + RIP_TEAR_MS + RIP_FLASH_MS;
 
 export type PackDialogProps = {
   /** The pack that was clicked. Null when nothing is open. */
@@ -228,7 +249,10 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
               transition={{ type: "spring", stiffness: 320, damping: 26, mass: 0.7 }}
               className={styles.openedShell}
             >
-            <TiltedPack className={styles.opened} plain={!playlist.cover}>
+            <TiltedCard
+              classNames={{ stage: styles.tiltStage, card: styles.opened }}
+              dataAttributes={{ "data-plain": playlist.cover ? undefined : "" }}
+            >
               {/* THE TEAR. The serrated top and the crimp band come away together,
                   because on a real pack they are one strip of foil: it is pulled off in
                   one piece along the perforation, not peeled in layers. */}
@@ -278,7 +302,7 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
               </span>
 
               <span className={styles.shelfFoot} aria-hidden="true" />
-            </TiltedPack>
+            </TiltedCard>
             </motion.div>
             ) : null}
 
