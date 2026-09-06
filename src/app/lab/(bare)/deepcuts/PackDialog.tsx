@@ -4,16 +4,15 @@ import { useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { fetchPack, ripPack } from "@/client/deepcutsApi";
 import {
-  DEEPCUT_TIER,
   RIP_FLASH_MS,
   RIP_FORWARD_MS,
   RIP_SEQUENCE_MS,
   RIP_TEAR_MS,
 } from "@/constants";
-import { compactCount } from "@/utils/format";
 import { DEEPCUTS_TEASER } from "@/data/lab";
 import type { DeepcutsPlaylist, PackCard, PackContents } from "@/models";
 import { CardStack } from "./CardStack";
+import { Sparkles } from "./Sparkles";
 import { TiltedPack } from "./TiltedPack";
 import styles from "./deepcuts.module.scss";
 
@@ -46,13 +45,26 @@ export type PackDialogProps = {
  * None of that is visible, and dropping it to avoid the word "modal" would trade real
  * accessibility for a label.
  *
- * WHAT DID GO IS THE MODAL'S LOOK. The dialog paints nothing now: no panel, no border,
- * no shadow, no scrollbar of its own. The pack and the list are the only things on
- * screen, over a blurred page.
+ * WHAT DID GO IS THE MODAL'S LOOK. The dialog paints nothing: no panel, no border, no
+ * shadow, no scrollbar of its own. The pack is the only thing on screen, over a blurred
+ * page.
  *
- * ONLY THE SONG LIST SCROLLS. The pack, the rip button and the notes are fixed and the
- * cards take whatever height is left. Scrolling the lot meant the pack you had just
- * opened slid off the top the moment you looked at what was inside it.
+ * A SEALED PACK SHOWS NOTHING OF WHAT IS INSIDE IT, WHICH IS THE POINT OF ONE. This
+ * panel used to carry the whole scored playlist under the wrapper - every track, its
+ * rung, its odds - so a reader could study the contents and then open a pack whose
+ * surprise had already been spent. Reading the list through the foil is not a feature.
+ * What is left is the wrapper, the button, one line saying why the button might not
+ * work, and afterwards the five cards.
+ *
+ * THE CONTENTS ARE STILL FETCHED, AND NOT OUT OF INERTIA. Two things want them: the
+ * button has to know whether the playlist can be scored at all before it offers to open
+ * one, and the rip reads the very same cache - so this request is what makes the rip land
+ * inside the tear animation rather than after it. What changed is that nothing renders
+ * them.
+ *
+ * The pull odds that used to sit in that table are not lost: the rate the hit slot lands
+ * on each rung is on the cards tab, where it belongs, and it is a property of the ladder
+ * rather than of any one playlist.
  */
 export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
   const ref = useRef<HTMLDialogElement>(null);
@@ -264,6 +276,14 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
               ) : null}
             </AnimatePresence>
 
+            {/* THE SPARKS, WHICH OUTLIVE THE FLASH. Mounted from the flash and kept
+                through `opened` rather than swapped out with the white, so they are still
+                travelling while the first cards land - which is what makes them read as
+                coming off the cards instead of being part of the wipe. Each sparkle
+                animates once and ends at zero opacity, so the layer costs nothing after
+                that beyond being mounted. */}
+            {(phase === "flashing" || phase === "opened") && !still ? <Sparkles /> : null}
+
             {/* The flash. Covers the moment the wrapper is replaced by the cards, which
                 is the one frame where both would otherwise be on screen at once. */}
             <AnimatePresence>
@@ -297,139 +317,38 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
               </button>
             ) : null}
 
-            {/* One line under the button, saying whichever thing is true. */}
+
+            {/* ONE LINE UNDER THE BUTTON, SAYING WHICHEVER THING IS TRUE. It is the only
+                thing the panel says about the contents now, and each branch is a reason
+                the button will not work rather than a description of what is inside. */}
             {pack?.error ? (
               <p className={styles.ripNote}>{pack.error}</p>
+            ) : shown?.failed ? (
+              <p className={styles.ripNote}>{DEEPCUTS_TEASER.dialog_failed}</p>
             ) : shown?.contents && !shown.contents.scored ? (
               <p className={styles.ripNote}>{DEEPCUTS_TEASER.rip_blocked_unscored}</p>
+            ) : !shown?.contents && phase === "idle" ? (
+              /* The button is disabled until the scoring lands, so something has to say
+                 why it is disabled. */
+              <p className={styles.ripNote}>{DEEPCUTS_TEASER.dialog_loading}</p>
             ) : null}
 
-            {/* The five cards, once they exist. Above the track list, because they are
-                what the reader just did and the list is reference. */}
+            {/* The five cards, once they exist. */}
             {pack?.cards.length ? (
               <CardStack cards={pack.cards} playlistName={playlist.name} />
             ) : null}
 
-            {/* THE ONLY SCROLLING REGION ON THE SCREEN. Everything above it is fixed. */}
-            <div className={styles.pile}>
-              {shown?.failed ? (
-                <p className={styles.dialogNote}>{DEEPCUTS_TEASER.dialog_failed}</p>
-              ) : !shown?.contents ? (
-                <p className={styles.dialogNote}>{DEEPCUTS_TEASER.dialog_loading}</p>
-              ) : (
-                <>
-                  {/* Says what was scored and what was not, before the list rather than
-                      after it. A reader who scrolls fifty rows and only then learns the
-                      playlist has three hundred songs has been misled for fifty rows. */}
-                  <p className={styles.dialogNote}>
-                    {shown.contents.scored
-                      ? `${shown.contents.tracks.length} of ${shown.contents.track_count} ${DEEPCUTS_TEASER.dialog_scored}`
-                      : DEEPCUTS_TEASER.dialog_unscored}
-                  </p>
-
-                  {/* A TABLE, BECAUSE IT IS ONE NOW. Three columns of the same kind of fact
-                  per row is what a table is for, and the list of stacked spans it
-                  replaced was a table drawn without saying so - which cost a screen
-                  reader the column headings and cost the layout its alignment. */}
-              <table className={styles.cards}>
-                <thead>
-                  <tr>
-                    <th scope="col">{DEEPCUTS_TEASER.col_track}</th>
-                    <th scope="col">{DEEPCUTS_TEASER.col_card}</th>
-                    <th scope="col" className={styles.colChance}>
-                      {DEEPCUTS_TEASER.col_chance}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {shown.contents.tracks.map((track, index) => (
-                    <tr
-                      key={track.uri || `${track.title}-${index}`}
-                      className={styles.card}
-                      data-tier={track.tier ?? undefined}
-                    >
-                      <td>
-                        <span className={styles.cardTrack}>
-                          {/* The record it came off. Album art, so the exact host check
-                              is i.scdn.co rather than the playlist cover's wider one;
-                              pickAlbumArt in the mappers is the one that knows which. */}
-                          {track.album_art ? (
-                            /* eslint-disable-next-line @next/next/no-img-element */
-                            <img
-                              className={styles.cardArt}
-                              src={track.album_art}
-                              alt=""
-                              width={72}
-                              height={72}
-                            />
-                          ) : (
-                            /* Never a broken image, and never a gap: a track with no
-                               artwork keeps the column aligned with a quiet square. */
-                            <span className={styles.cardArtEmpty} aria-hidden="true" />
-                          )}
-
-                          <span className={styles.cardMain}>
-                            <span className={styles.cardTitle}>{track.title}</span>
-                            <span className={styles.cardArtist}>{track.artist}</span>
-                          </span>
-                        </span>
-                      </td>
-
-                      <td>
-                        <span className={styles.cardTierCell}>
-                          <span className={styles.cardSwatch} aria-hidden="true" />
-                          {/* A rung with no count behind it is not a rung. Both are
-                              absent together, which is what rarityOf guarantees. */}
-                          <span className={styles.cardTier}>
-                            {track.tier
-                              ? DEEPCUT_TIER[track.tier].label
-                              : DEEPCUTS_TEASER.dialog_unmatched}
-                          </span>
-                        </span>
-                      </td>
-
-                      <td className={styles.colChance}>
-                        {/* ZERO IS NOT A NUMBER TO PRINT HERE. It means the hit slot
-                            cannot reach this rung on this playlist, so the track can
-                            still be dealt - it just can never be the card the pack was
-                            opened for. "0.0%" would read as "you will never see this",
-                            which is the opposite of what it says. */}
-                        <span
-                          className={`${styles.cardChance} ${track.chance === 0 ? styles.cardChanceNone : ""}`}
-                        >
-                          {track.chance === null
-                            ? ""
-                            : track.chance === 0
-                              ? DEEPCUTS_TEASER.chance_common_only
-                              : `${track.chance.toFixed(1)}%`}
-                        </span>
-                        {/* The plays sit under the chance, abbreviated: a column of
-                            1,333,333 and 847,201 is unreadable at a glance and the exact
-                            digit was never the point. */}
-                        {track.plays !== null ? (
-                          <span className={styles.cardPlays}>
-                            {compactCount(track.plays)} {DEEPCUTS_TEASER.dialog_plays}
-                          </span>
-                        ) : null}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              <p className={styles.dialogNote}>{DEEPCUTS_TEASER.chance_note}</p>
-
-                  <a
-                    className={styles.dialogOpen}
-                    href={playlist.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {DEEPCUTS_TEASER.dialog_spotify}
-                  </a>
-                </>
-              )}
-            </div>
+            {/* The playlist itself, which is not a spoiler: the wrapper already carries
+                its name and its count, and this is the same link the shelf used to
+                offer. It sits last so it is the quietest thing on the panel. */}
+            <a
+              className={styles.dialogOpen}
+              href={playlist.url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {DEEPCUTS_TEASER.dialog_spotify}
+            </a>
           </div>
         ) : null}
       </AnimatePresence>

@@ -87,6 +87,12 @@ export const ripPack = async (args: {
         artist: card.track.artist,
         tier: card.tier,
         play_count: card.track.plays,
+        /* The face goes down with the rest, so the collection tab can render the card
+           without asking Spotify about a song it already knows. `shiny` especially: it
+           is a roll made once in drawPack and is in no other column. */
+        album_art: card.track.album_art,
+        track_url: card.track.url,
+        shiny: card.shiny,
       })),
     });
   } catch (error) {

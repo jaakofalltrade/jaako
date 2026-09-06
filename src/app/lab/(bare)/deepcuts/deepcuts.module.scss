@@ -1050,17 +1050,11 @@
 }
 
 
-.dialogNote {
-  margin: 0;
-  font-family: var(--dc-mono);
-  font-size: 0.65rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--dc-ink-soft);
-}
-
+/* The playlist itself, at the foot of the opened pack. Centred rather than ranged left
+   as it was, because the panel it used to sit in is gone and everything left on the
+   stage is on the pack's own axis. */
 .dialogOpen {
-  align-self: flex-start;
+  align-self: center;
   font-family: var(--dc-mono);
   font-size: 0.65rem;
   letter-spacing: 0.12em;
@@ -1073,181 +1067,6 @@
   &:focus-visible {
     color: var(--dc-ink);
   }
-}
-
-/* ---------------- the cards inside a pack ---------------- */
-
-/* THE TABLE. Three columns of the same kind of fact per row, which is what the stacked
-   spans this replaced were pretending not to be. */
-.cards {
-  width: 100%;
-  border-collapse: collapse;
-  /* FIXED, NOT AUTO, AND THE CHANCE COLUMN IS WHY. Left to size itself a table gives the
-     longest content the room it asks for, so one track called "Serpentskirt - Remastered
-     2024" pushed the rung and the chance off the right edge of the panel entirely. Fixed
-     layout means the two narrow columns are declared and the title takes what is left,
-     which is also the only arrangement where the decimals line up. */
-  table-layout: fixed;
-
-  th:nth-child(2),
-  td:nth-child(2) {
-    width: 7.5rem;
-  }
-
-  /* 7rem rather than 6: the column holds "common only" as well as a percentage, and
-     .colChance is nowrap, so a narrower one pushes the phrase out of the table. */
-  th:nth-child(3),
-  td:nth-child(3) {
-    width: 7rem;
-  }
-
-  th {
-    padding: 0 0 0.5rem;
-    border-bottom: 1px solid var(--dc-hair);
-    text-align: left;
-    font-family: var(--dc-mono);
-    font-size: 0.58rem;
-    font-weight: 500;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--dc-ink-soft);
-  }
-
-  td {
-    padding: 0.6rem 0.6rem 0.6rem 0;
-    border-bottom: 1px solid var(--dc-hair);
-    /* Middle, not top: the row is now as tall as an album cover, and a rung floating at
-       the ceiling of it reads as belonging to the row above. */
-    vertical-align: middle;
-  }
-
-  td:last-child,
-  th:last-child {
-    padding-right: 0;
-  }
-}
-
-/* The chance column, ranged right so the decimals line up down the table. */
-.colChance {
-  text-align: right;
-  white-space: nowrap;
-}
-
-.card {
-  /* Nothing of its own: the row is drawn by the cell rules above. The class is here for
-     the data-tier hook the swatch reads. */
-}
-
-.cardTierCell {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.cardSwatch {
-  flex: none;
-  width: 0.7rem;
-  height: 0.7rem;
-  border-radius: 0.15rem;
-  border: 1px solid var(--dc-hair);
-  /* An unmatched track has no rung and gets no colour rather than a grey one, which
-     would read as a tier of its own. */
-  background: transparent;
-
-  .card[data-tier="ANTHEM"] & { background: var(--dc-anthem); }
-  .card[data-tier="CHART"] & { background: var(--dc-chart); }
-  .card[data-tier="ROTATION"] & { background: var(--dc-rotation); }
-  .card[data-tier="ALBUM"] & { background: var(--dc-album); }
-  .card[data-tier="DEEPCUT"] & { background: var(--dc-deepcut); }
-
-  .card[data-tier="UNHEARD"] & {
-    background: linear-gradient(125deg, var(--dc-unheard) 0%, #e6c9a4 48%, var(--dc-unheard) 100%);
-  }
-
-  .card[data-tier="GHOST"] & {
-    background: conic-gradient(from 210deg, var(--dc-ghost), #e6c9a4, var(--dc-deepcut), #cfd6d9, var(--dc-ghost));
-  }
-
-  .card[data-tier="LOST"] & {
-    background: conic-gradient(from 30deg, var(--dc-lost), #f0d3ad, var(--dc-deepcut), #b9d7dd, #f0d3ad, var(--dc-lost));
-  }
-}
-
-/* The record, then what is on it. */
-.cardTrack {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  min-width: 0;
-}
-
-.cardArt,
-.cardArtEmpty {
-  flex: none;
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: 0.2rem;
-  object-fit: cover;
-  box-shadow: inset 0 0 0 1px var(--dc-hair);
-}
-
-/* A track with no artwork keeps the column aligned rather than leaving a hole, and gets
-   the page's own quiet surface instead of a broken image. */
-.cardArtEmpty {
-  background: var(--dc-board);
-}
-
-.cardMain {
-  display: block;
-  min-width: 0;
-  /* The art is a fixed 2.25rem; this takes what is left, which is what gives the title
-     something definite to be truncated against. */
-  flex: 1;
-}
-
-.cardTitle,
-.cardArtist {
-  /* A long title truncates rather than wrapping to three lines and pushing the rung out
-     of alignment with the rows above it. Blocks rather than inline spans: a fixed table
-     cell gives them a definite width to be clipped against, which an inline box would
-     simply overflow. */
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.cardTitle {
-  font-size: 0.92rem;
-  /* Bold, because the song is the subject of the row and everything else on it - the
-     artist, the rung, the odds, the count - is a fact about the song. */
-  font-weight: 600;
-  line-height: 1.3;
-}
-
-.cardArtist {
-  font-size: 0.75rem;
-  color: var(--dc-ink-soft);
-}
-
-
-.cardTier {
-  font-family: var(--dc-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  /* "album cut" is two words and one rung. Broken across lines it reads as two. */
-  white-space: nowrap;
-}
-
-.cardPlays {
-  display: block;
-  font-family: var(--dc-mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-variant-numeric: tabular-nums;
-  color: var(--dc-ink-soft);
 }
 
 /* The one sentence at the top of the legend tab, saying which end of the ladder is
@@ -1406,72 +1225,6 @@
   margin: 0;
   font-size: 0.8rem;
   line-height: 1.45;
-  color: var(--dc-ink-soft);
-}
-
-
-
-/* THE PILE OF CARDS, AND THE ONLY THING ON THE SCREEN THAT SCROLLS.
-
-   The pack, its button and the notes above are all `flex: none`, so this takes whatever
-   height is left and keeps its overflow to itself. Before this the dialog itself
-   scrolled, which meant the pack you had just watched fly across the screen slid off the
-   top the moment you read what was inside it.
-
-   The surface starts here rather than on the frame, because this is the only part of the
-   opened pack that is a sheet of paper: the cards are dealt onto it. */
-.pile {
-  flex: 1;
-  min-height: 0;
-  width: 100%;
-  overflow-y: auto;
-  padding: 1.25rem 1.4rem 1.4rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  background: var(--dc-card);
-  border: 1px solid var(--dc-hair);
-  border-radius: 0.6rem;
-  box-shadow: 0 16px 40px rgba(29, 26, 22, 0.22);
-  /* Keeps the momentum scroll inside the list rather than handing it to the page behind
-     once the last card is reached. */
-  overscroll-behavior: contain;
-
-  /* NO SCROLLBAR, AND STILL SCROLLABLE. Two declarations because no single one is
-     supported everywhere: the standard property for Firefox, the pseudo-element for
-     everything on Blink and WebKit. Neither touches whether the box scrolls, only
-     whether the browser paints a track down the side of it.
-
-     Worth knowing what this costs: the bar is also an affordance, and hiding it means
-     nothing on screen says there is more below. The list is paid for here by the cards
-     being cut off mid-row at the bottom edge, which is the other way a reader learns a
-     box scrolls. If that stops being obvious, a fade at the foot is the fix rather than
-     giving the bar back. */
-  scrollbar-width: none;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
-}
-
-/* .cardRarity and .cardPercent went with the stacked spans the table replaced: one was
-   the column wrapper, the other the "rarer than 87%" line that became a chance. */
-
-/* The chance, and the play count under it. Stacked rather than side by side: the
-   abbreviated count is the evidence for the percentage, so it reads as a subordinate
-   line rather than a second column. */
-.cardChance {
-  display: block;
-  font-family: var(--dc-mono);
-  font-size: 0.78rem;
-  font-variant-numeric: tabular-nums;
-  color: var(--dc-ink);
-}
-
-/* "common only", where the others carry a percentage. Set back to the soft ink so a
-   column of figures still scans as a column of figures and the words do not read as the
-   loudest thing in it. */
-.cardChanceNone {
   color: var(--dc-ink-soft);
 }
 
@@ -1719,11 +1472,14 @@
   padding: 0;
   list-style: none;
   display: grid;
-  /* THE SIZE THE WRAPPER WAS, near enough. The deck lands in the space the pack just
-     vacated, so anything much smaller reads as the cards having shrunk on the way out
-     rather than come out. `.opened` is 16rem at 11/16; this is 15rem at 5/7, which is
-     the same height to within a few pixels. */
-  width: 15rem;
+  /* BIGGER THAN THE WRAPPER, WHICH IS THE RIGHT WAY ROUND. It was 15rem, matched to the
+     pack it replaces, on the argument that anything smaller reads as the cards having
+     shrunk on the way out. True, and it stopped one step short: the panel no longer has
+     a track list under it, so the deck is the only thing on the stage and it was sitting
+     in the middle of an empty screen at the size of the box it came from. A card you have
+     just pulled is the thing you hold up to look at. 20rem is about as far as this can go
+     before the throw arc runs past a laptop's viewport. */
+  width: 20rem;
   aspect-ratio: 5 / 7;
   place-items: center;
   /* The lean and the throw both travel past the cards' own box. */
@@ -1930,6 +1686,82 @@
     rgba(255, 255, 255, 0) 100%
   );
   pointer-events: none;
+}
+
+/* ---------------- the binder ----------------
+
+   The collection tab: the same card faces the deck deals, laid out flat.
+
+   A GRID AND NOT A PILE, WHICH IS THE ONE DESIGN DECISION HERE. The deck is a stack you
+   throw through, and that is right for five cards you have just been dealt - it is how a
+   pack is read. It is wrong for two hundred you are looking for one of, where the whole
+   job is scanning. Same faces, no stacking, no drag. */
+
+.binder {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  /* auto-fill rather than a fixed count, so the row breaks on the container and not on a
+     media query. 9rem is about as small as a card can be and still have its title read. */
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+  gap: 1rem;
+}
+
+.binderSlot {
+  /* The face sizes itself to its slot; the slot holds the proportions. Same 5:7 as the
+     deck, so a card is the same shape wherever it is looked at. */
+  aspect-ratio: 5 / 7;
+}
+
+/* Wraps the whole face, so the card IS the link rather than carrying one. No underline
+   and no colour of its own: a card that turned blue would stop being a card. */
+.binderLink {
+  display: block;
+  height: 100%;
+  text-decoration: none;
+  color: inherit;
+
+  &:focus-visible {
+    outline: 2px solid var(--dc-ink);
+    outline-offset: 3px;
+    border-radius: 0.5rem;
+  }
+}
+
+/* ---------------- the sparkles ----------------
+
+   Still not a glow, and this is the second-hardest case for that rule after the shiny
+   foil. A spark in the world is light, and the way it is usually drawn on the web is a
+   white dot with a large soft box-shadow - which is exactly the thing this page does not
+   do. So each one is a SHAPE with a hard edge, clipped to a four-pointed star and filled
+   with a gradient that stops inside its own bounds. Nothing bleeds past an edge and
+   nothing lights anything else. */
+
+.sparkles {
+  /* Fixed and covering, like .flash, because the pack it bursts from has been scaled and
+     tilted by this point and is not where the layout says it is. */
+  position: fixed;
+  inset: 0;
+  /* Above the flash, so the burst is visible through the white rather than under it. */
+  z-index: 6;
+  pointer-events: none;
+}
+
+.sparkle {
+  position: absolute;
+  /* The same centre the flash's gradient uses, which is where the pack sits. */
+  left: 50%;
+  top: 42%;
+  display: block;
+  /* A four-pointed star: the points at the compass positions, the waist pulled in to 42%
+     so the arms are thin. Written out rather than a font glyph or an SVG, because it is
+     eight coordinates and either of those is a request. */
+  clip-path: polygon(
+    50% 0%, 58% 42%, 100% 50%, 58% 58%,
+    50% 100%, 42% 58%, 0% 50%, 42% 42%
+  );
+  background: radial-gradient(circle at 50% 50%, #fffdf8 0%, var(--dc-lost) 70%, var(--dc-unheard) 100%);
 }
 
 /* The link under the deck, for whichever card is face up. Its own line rather than part

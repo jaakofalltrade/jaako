@@ -324,20 +324,35 @@ machine's counter it wants a value with a long TTL rather than a daily one.
 
 Open, and none of it blocking:
 
-- ~~**The thresholds.**~~ *Settled, as a formula rather than invented bands.* **One rung
-  per order of magnitude, across eight rungs**: 100m+ plays is `anthem`, 10m `chart`, 1m
-  `rotation`, 100k `album cut`, 10k `deep cut`, 1k `unheard`, 100 `ghost`, under 100
-  `lost`. It was five and both ends carried too much - measured on a real playlist of
-  Filipino oldies, 20 tracks landed on the old bottom rung that now split across three. Play counts are a power law spanning six or seven
-  decades, so a logarithmic ladder is the only one whose steps are evenly spaced against
-  the data - split 0 to 50m into five equal slices and the first slice swallows nearly
-  every song ever recorded. `DEEPCUT_TIER_FLOOR` in `src/constants/lab.ts`, applied by
-  `rarityOf` in `src/utils/rarity.ts`.
+- ~~**The thresholds.**~~ *Settled, and settled by measurement.* **5m+ scrobbles is
+  `anthem`, 1m `chart`, 200k `rotation`, 30k `album cut`, 8k `deep cut`, 2k `unheard`,
+  200 `ghost`, under 200 `lost`.** `DEEPCUT_TIER_FLOOR` in `src/constants/lab.ts`,
+  applied by `rarityOf` in `src/utils/rarity.ts`.
 
-  What is still open is where the ladder is **anchored**, which depends on the kind of
-  music being scored: a playlist two decades quieter than these numbers assume comes out
-  as five unheards. Move the floors when there is real data; do not add rungs between
-  them.
+  It went through two wrong answers first. Five rungs carried too much at both ends -
+  measured on a playlist of Filipino oldies, 20 tracks landed on the old bottom rung that
+  now split across three. Eight rungs one order of magnitude apart replaced it, on the
+  sound argument that play counts are a power law and a log ladder is the only one with
+  evenly spaced steps against one.
+
+  **What that missed is the range, and `pnpm ladder:spread` is what found it.** Eight
+  decade-wide rungs need seven decades to fill. Sampling 1,097 matched tracks across 60
+  playlists through the app's own route, the account's entire catalogue spans about four -
+  a p5 of 8.8k scrobbles to a maximum of 46.7m - because **these are last.fm scrobbles,
+  not Spotify streams**, and a scrobble is only reported by the minority of listeners who
+  run a client that reports one. Spotify's API publishes no play counts at all, so there
+  is nothing to convert against. The old ladder floored `chart` at 100m and `anthem` at
+  500m: **two of the eight rungs could not be reached by any song on the account** and
+  were dealt to nobody while being printed in the legend.
+
+  So the floors are chosen by **share** instead - each a quantile of that measured
+  distribution, rounded to a printable number, so the rungs fall away the way a card set
+  does: 28.8% `anthem`, 26.1% `chart`, 21.2% `rotation`, 11.5% `album cut`, 7.6%
+  `deep cut`, 2.6% `unheard`, 1.5% `ghost`, 0.6% `lost`. Monotone, nothing empty. What it
+  gives up is legibility of the rule itself, and that is a real cost: "one rung per order
+  of magnitude" is checkable by eye and "the 71st percentile of one person's playlists" is
+  not. Re-run the script before moving them, and move the whole set - the shares are what
+  is being preserved, not any one number.
 - **Which playlist.** *Half answered.* The page now reads the account's public
   playlists from Spotify and prints one pack per playlist, so "a playlist of mine" is a
   shelf a visitor can see rather than a phrase. What is still open is which one a RIP

@@ -102,7 +102,7 @@ export const LASTFM_TIMEOUT_MS = 8_000;
  * SIX HOURS, WHICH IS THE LONGEST TTL IN THE REPO AND THE EASIEST TO JUSTIFY. This is a
  * count of every scrobble on last.fm for one track since it was first uploaded. A song
  * with four million plays does not become a song with four million and one in any sense
- * this page can render, and the rung it lands on is a whole order of magnitude wide.
+ * this page can render, and the rung it lands on is a whole band wide.
  */
 export const PLAY_COUNT_TTL_MS = 6 * 60 * 60 * 1000;
 
@@ -215,6 +215,23 @@ export const RIP_TEAR_MS = 420;
 export const RIP_FLASH_MS = 260;
 
 /**
+ * How many sparkles come off the pack, and how long one lives.
+ *
+ * TWENTY IS A BURST AND NOT A SNOWSTORM. Each is an animated element with its own
+ * transform, so the count is a frame budget as much as a look: this many is comfortably
+ * inside a frame on a phone, and three times as many would be a particle system asking
+ * for a canvas.
+ *
+ * THE LIFETIME OUTLASTS THE FLASH ON PURPOSE. The flash is over in 260ms, which is about
+ * how long a swap should be hidden for. Sparkles that ended with it would look like part
+ * of the same white wipe; running on for three times as long means they are still in the
+ * air while the first cards land, and the burst reads as coming OFF the cards rather than
+ * covering them.
+ */
+export const SPARKLE_COUNT = 20;
+export const SPARKLE_MS = 780;
+
+/**
  * The floor on the whole sequence, and the reason it is a floor rather than a total.
  *
  * The animation and the network request start together and the cards cannot appear until
@@ -223,3 +240,20 @@ export const RIP_FLASH_MS = 260;
  * instead, holding on the flash rather than cutting to cards halfway through a tear.
  */
 export const RIP_SEQUENCE_MS = RIP_FORWARD_MS + RIP_TEAR_MS + RIP_FLASH_MS;
+
+/* ---------------- the collection ---------------- */
+
+/**
+ * How many cards the collection tab reads back.
+ *
+ * A RENDERING LIMIT, NOT A RULE ABOUT COLLECTING. Nothing is deleted and nothing stops
+ * being yours at two hundred; this is the point past which one query behind one page
+ * returning every row it finds stops being a good idea. A visitor ripping daily for a
+ * year has eighteen hundred cards, and a page that renders eighteen hundred card faces
+ * with artwork on each is a page that takes a second to paint.
+ *
+ * Rarest first, so the cap cuts the common end - which is the right end to lose. Somebody
+ * past this many cards is missing chart hits from the bottom of their binder, never the
+ * ghost they are here to look at.
+ */
+export const COLLECTION_LIMIT = 200;

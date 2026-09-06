@@ -16,7 +16,10 @@ const app = LAB_APP[LabAppId.Deepcuts];
 
 export const metadata: Metadata = {
   title: "deepcuts · lab · jaako andes",
-  description: "Rip a pack from my playlist. The fewer plays a song has, the rarer the card. Not built yet.",
+  /* "Not built yet" was true for most of this page's life and is not any more: packs
+     open, cards are dealt and kept. A description is the one string that follows a link
+     into somebody else's feed, so a stale one is stale everywhere at once. */
+  description: "Rip a pack from my playlist. The fewer plays a song has, the rarer the card.",
 };
 
 /**

@@ -6,6 +6,7 @@ import { DEEPCUT_LADDER, DEEPCUT_TIER, DEEPCUT_TIER_FLOOR } from "@/constants";
 import { DEEPCUTS_TEASER } from "@/data/lab";
 import { Tabs } from "@/design-system/core/Tabs";
 import { CardGallery } from "./CardGallery";
+import { Collection } from "./Collection";
 import styles from "./deepcuts.module.scss";
 
 /**
@@ -16,7 +17,7 @@ import styles from "./deepcuts.module.scss";
  * thing being explained would have pushed the shelf off the first screen entirely. A
  * tab strip is one block tall and holds both.
  *
- * FOUR TABS NOW, AND THE PACKS ARE ONE OF THEM. The shelf used to sit below this block
+ * FIVE TABS NOW, AND THE PACKS ARE ONE OF THEM. The shelf used to sit below this block
  * as its own section; it is the first tab instead, and the default. What that buys is a
  * page that fits: a masthead, one strip, and one thing under it, rather than four
  * stacked blocks a reader has to scroll past to reach the subject.
@@ -26,9 +27,10 @@ import styles from "./deepcuts.module.scss";
  * print behind all three.
  *
  * The floors are printed on the legend now, which they were not when they were
- * undecided. They are a formula rather than five invented bands - one order of
- * magnitude per rung - and a legend that shows the numbers is what lets somebody check
- * a card against it. See src/utils/rarity.ts.
+ * undecided. They are quantiles of the account's measured catalogue, rounded to numbers
+ * a legend can print, and a legend that shows them is what lets somebody check a card
+ * against it. See DEEPCUT_TIER_FLOOR for the measurement and `pnpm ladder:spread` for
+ * the script that took it.
  */
 export type RulesTabsProps = {
   /**
@@ -119,6 +121,18 @@ export const RulesTabs = ({ packs }: RulesTabsProps) => {
              means, the cards say what one looks like, and the rules are the small print
              behind both. */
           { id: DEEPCUTS_TEASER.tab_cards_id, label: DEEPCUTS_TEASER.tab_cards, panel: <CardGallery /> },
+          /* And straight after the set, because the only difference between them is
+             whose: one is every card that exists, the next is the ones you have. Reading
+             them in that order is what makes the second one mean anything.
+
+             `active` is passed rather than the panel being unmounted, because Tabs keeps
+             every panel mounted - see the pager it was changed for - so this is how the
+             binder knows to re-read after somebody has been off opening a pack. */
+          {
+            id: DEEPCUTS_TEASER.tab_collection_id,
+            label: DEEPCUTS_TEASER.tab_collection,
+            panel: <Collection active={tab === DEEPCUTS_TEASER.tab_collection_id} />,
+          },
           { id: DEEPCUTS_TEASER.tab_rules_id, label: DEEPCUTS_TEASER.tab_rules, panel: rules },
         ]}
         value={tab}

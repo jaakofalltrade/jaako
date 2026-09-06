@@ -165,7 +165,10 @@ const deepcutsSpec: MetaPair[] = [
   { term: "pulled from", value: "one of the playlists shown" },
   { term: "rarity", value: "fewest plays wins" },
   { term: "plays", value: "last.fm, not spotify" },
-  { term: "thresholds", value: "undecided" },
+  /* Was "undecided", which it was for a long time and is not any more. The number is
+     the top of the ladder, and it names its own units: five million SCROBBLES is not
+     five million streams, and the row above is the one that says so. */
+  { term: "thresholds", value: "8 rungs, 5m scrobbles down" },
 ];
 
 const suggestSpec: MetaPair[] = [
@@ -333,11 +336,14 @@ export const DEEPCUTS_TEASER = {
   /* shelf_label is gone: the tab is called "the packs" and a heading under it saying
      "where a pack comes from" is the same words twice. */
   /**
-   * Says what the list is and, in the second clause, what it is not. Without that
-   * clause a reader who has just been told about five rarity rungs looks at a row of
-   * playlists and reasonably assumes one of them has been scored.
+   * Says what the list is and where it came from.
+   *
+   * IT USED TO END "none of them has been scored yet", which was the honest sentence
+   * while nothing could be opened and is simply false now: clicking a pack scores it
+   * against last.fm and ripping one deals five cards. A note that describes an older
+   * version of the page is worse than no note.
    */
-  shelf_note: "Read from Spotify: every playlist on my account that is public. A pack will be dealt out of one of them. None of them has been scored yet.",
+  shelf_note: "Read from Spotify: every playlist on my account that is public. Click one to open it, and the songs are scored against last.fm on the way.",
 
   /** How many tracks are on a playlist, printed as what a pack could draw from. */
   shelf_count_one: "1 card",
@@ -395,10 +401,16 @@ export const DEEPCUTS_TEASER = {
   tab_packs_id: "packs",
   tab_legend_id: "legend",
   tab_cards_id: "cards",
+  tab_collection_id: "collection",
   tab_rules_id: "rules",
   tab_packs: "the packs",
   tab_legend: "legend",
-  tab_cards: "the cards",
+  tab_cards: "the set",
+  /* "mine" rather than "collection", because it sits beside a tab showing every card
+     that exists and the whole distinction between the two is whose. One word carries it;
+     "my collection" beside "the set" makes the reader parse two nouns to find the one
+     difference. */
+  tab_collection: "mine",
   tab_rules: "the rules, so far",
   /** Before the play count on the rarest rung, which has no floor of its own. */
   rung_under: "under",
@@ -409,18 +421,6 @@ export const DEEPCUTS_TEASER = {
   dialog_close: "close",
   dialog_loading: "Reading the pack.",
   dialog_failed: "That pack would not open. Try again in a moment.",
-  /** Follows a count: "50 of 284 scored on last.fm plays". */
-  dialog_scored: "scored on last.fm plays",
-  /**
-   * No last.fm key on this deployment, so nothing can be scored.
-   *
-   * Names the reason rather than saying the rungs are unavailable. A visitor cannot fix
-   * it and is not being asked to; the sentence exists so the missing rungs read as a
-   * thing that is switched off rather than a thing that is broken.
-   */
-  dialog_unscored: "Play counts are not switched on here, so nothing below is scored.",
-  /** A track last.fm has never heard of. Not a rung, and never the rarest one. */
-  dialog_unmatched: "unmatched",
   dialog_plays: "plays",
   dialog_spotify: "open the playlist in spotify",
 
@@ -454,18 +454,18 @@ export const DEEPCUTS_TEASER = {
   /** When the deployment cannot score what it would deal. */
   rip_blocked_unscored: "The rip needs play counts, and last.fm is not switched on here.",
 
-  /* The table's column heads. "pull odds" rather than "chance", because the number is
-     the hit slot alone and "chance" let a reader take it for the chance of seeing the
-     song at all - which is a different, much larger and much less interesting number. */
-  col_track: "track",
-  col_card: "card",
-  col_chance: "pull odds",
-  /** For a rung the hit slot cannot reach on this playlist. Not a zero: see pullChance. */
-  chance_common_only: "common only",
-  /* Under the table. Says what the odds are on, and what the other four slots do, once
-     rather than as an asterisk on every row. */
-  chance_note:
-    "The odds are on the pull: the one card a pack rolls a rung for. Four more come off the playlist at random beside it, so a track with no odds here can still turn up in a pack.",
+  /* THE PULL ODDS, ON THE CARDS TAB. They used to be a column in a table under the pack,
+     printed per track: the chance that this exact song was the one card the pack rolled a
+     rung for. That table is gone - a sealed pack does not list its own contents - and the
+     figure moved here, where it is about the RUNG rather than about a track, and is the
+     same on every playlist.
+
+     "of pulls" rather than "chance", because "chance" invited being read as the chance of
+     seeing the card at all, which is a different, much larger and much less interesting
+     number. */
+  gallery_of_pulls: "of pulls",
+  /** For the rungs above album cut, which the hit slot never rolls. Not a zero. */
+  gallery_common_only: "common slots only",
   /** The pack's own line under its name, in the opened panel. */
   dialog_pack_meta: "in the pack",
 
@@ -486,7 +486,29 @@ export const DEEPCUTS_TEASER = {
    * Above the gallery. Says what the tab is for, given the legend next to it already
    * lists the same eight rungs: that one is thresholds, this one is faces.
    */
-  cards_note: "Every card in the set, and the three that can come out shiny. Nothing here has been pulled: the rip is not built.",
+  cards_note: "Every card in the set, and the three that can come out shiny. What is in the set, not what anybody has pulled. The tab beside this one is that.",
+
+  /* ---------------- the collection ---------------- */
+
+  /** Between the fetch and the answer. Never seen for long, and never for a cold start. */
+  collection_loading: "Reading your cards.",
+  /**
+   * Nobody has opened a pack in this browser.
+   *
+   * AN INVITATION, NOT AN APOLOGY. This is the common case, not a failure: it is what
+   * every first-time visitor sees, and what an unreachable database collapses to. It
+   * names the one thing that fills the tab and does not explain a mechanism nobody has
+   * asked about yet.
+   */
+  collection_empty: "Nothing yet. Open a pack and the cards you pull are kept here, rarest first.",
+  /** Follows a count and precedes the rung: "12 cards pulled here, rarest first. Best so far: ghost". */
+  collection_count: "cards pulled here, rarest first. Best so far:",
+  /**
+   * Under the binder. Says out loud what "yours" means, because the honest scope of it
+   * is narrower than the word suggests and a visitor who loses a binder to a cleared
+   * cookie should have been told first.
+   */
+  collection_note: "Kept against this browser rather than an account, so clearing cookies clears the binder. A card keeps the artwork and the play count it was pulled with.",
   /** Precedes the odds: "shiny 0.50%". */
   shiny_label: "shiny",
   /** For a rung that cannot roll shiny at all. */
@@ -505,5 +527,8 @@ export const DEEPCUTS_TEASER = {
    */
   source_note: "Spotify does not publish play counts and never has, so the counts come from last.fm scrobbles. They are a decent proxy for how much of the world has heard a song, and they are not Spotify's streams.",
 
-  footnote: "Pack is not built yet. It stays shut.",
+  /* The line under everything. It said "pack is not built yet, it stays shut" for as
+     long as that was true, which was most of this app's life. Packs open now, so what
+     the last line owes a reader is the one rule that is not visible from the page. */
+  footnote: "One pack a day per playlist. Open the same one again and it deals the same five cards.",
 } as const;

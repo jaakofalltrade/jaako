@@ -84,6 +84,9 @@ export const endpoints = {
       pack: "/api/lab/deepcuts/pack",
       /** Opening one. POST, same ?id=. */
       rip: "/api/lab/deepcuts/rip",
+      /** Every card this browser has pulled, rarest first. Takes no parameters: who is
+          asking comes from the visitor cookie, and could not come from anywhere else. */
+      cards: "/api/lab/deepcuts/cards",
     },
   },
 } as const;

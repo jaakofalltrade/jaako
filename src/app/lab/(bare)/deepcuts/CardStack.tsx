@@ -3,10 +3,9 @@
 import { useState } from "react";
 import { motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import type { PanInfo } from "motion/react";
-import { DEEPCUT_TIER } from "@/constants";
 import { DEEPCUTS_TEASER } from "@/data/lab";
 import type { PackCard } from "@/models";
-import { compactCount } from "@/utils/format";
+import { CardFace } from "./CardFace";
 import styles from "./deepcuts.module.scss";
 
 export type CardStackProps = {
@@ -70,36 +69,14 @@ const Card = ({
   const rotateX = useTransform(y, [-240, 240], [14, -14]);
 
   const face = (
-    <span className={`${styles.pull} ${card.shiny ? styles.shiny : ""}`} data-tier={card.tier}>
-      {card.track.album_art ? (
-        /* The album cover is the card. Host-checked in the mapper; the CSP is the second
-           lock. */
-        /* eslint-disable-next-line @next/next/no-img-element */
-        <img className={styles.pullArt} src={card.track.album_art} alt="" width={320} height={320} />
-      ) : (
-        <span className={styles.pullArtEmpty} aria-hidden="true" />
-      )}
-
-      {/* The rung, as a symbol and a word, in the corner a card carries its set mark. */}
-      <span className={styles.pullMark}>
-        <span className={styles.pullSymbol} aria-hidden="true">
-          {DEEPCUT_TIER[card.tier].symbol}
-        </span>
-        <span className={styles.pullTier}>{DEEPCUT_TIER[card.tier].label}</span>
-      </span>
-
-      {card.shiny ? <span className={styles.pullShiny}>{DEEPCUTS_TEASER.shiny_badge}</span> : null}
-
-      <span className={styles.pullBody}>
-        <span className={styles.pullTitle}>{card.track.title}</span>
-        <span className={styles.pullArtist}>{card.track.artist}</span>
-        {card.track.plays !== null ? (
-          <span className={styles.pullPlays}>
-            {compactCount(card.track.plays)} {DEEPCUTS_TEASER.dialog_plays}
-          </span>
-        ) : null}
-      </span>
-    </span>
+    <CardFace
+      title={card.track.title}
+      artist={card.track.artist}
+      album_art={card.track.album_art}
+      plays={card.track.plays}
+      tier={card.tier}
+      shiny={card.shiny}
+    />
   );
 
   if (still) return <li className={styles.pullFlat}>{face}</li>;

@@ -14,34 +14,34 @@ import { DeepcutTier } from "@/models";
  */
 
 /**
- * ONE RUNG PER ORDER OF MAGNITUDE, WHICH IS THE FORMULA.
+ * THE RUNGS ARE QUANTILES OF A MEASURED CATALOGUE, AND THEY DID NOT START THAT WAY.
  *
- * `docs/lab.md` left the thresholds undecided and warned against inventing five bands.
- * This is the smallest rule that is not an invention: play counts are distributed like
- * every other attention statistic, which is to say a power law spanning six or seven
- * decades, and the only scale on which such a distribution has evenly spaced steps is a
- * logarithmic one.
+ * `docs/lab.md` left the thresholds undecided and warned against inventing five bands,
+ * so the first rule here was the smallest one that was not an invention: one rung per
+ * order of magnitude. Play counts are a power law like every other attention statistic,
+ * and a logarithmic ladder is the only one whose steps are evenly spaced against one.
+ * Linear bands are certainly wrong - split zero to fifty million into eight equal slices
+ * and the first swallows very nearly every song ever recorded.
  *
- * So the rung is the exponent:
+ * WHAT THAT RULE MISSED IS THE RANGE. Eight rungs a decade apart need seven decades to
+ * fill. `pnpm ladder:spread` measured 1,097 matched tracks across 60 playlists and found
+ * the catalogue spans about four, from a p5 of 8.8k scrobbles to a maximum of 46.7m -
+ * because these are LAST.FM SCROBBLES, a sampled fraction of the streams a song actually
+ * has, and Spotify publishes no counts to calibrate against. Two rungs, `chart` and
+ * `anthem`, floored above anything that exists on the account. They were printed in the
+ * legend, weighted in the hit slot, and dealt to nobody, ever.
  *
- *     plays        exponent   rung
- *     10,000,000+     7+      chart      everyone has heard it
- *      1,000,000       6      rotation   a song that had its year
- *        100,000       5      album cut  never a single
- *         10,000       4      deep cut   thin numbers
- *     under 10,000    <4      unheard    almost nobody has played this
+ * So the floors are chosen by SHARE instead: each one a quantile of that distribution,
+ * rounded to a number a legend can print, so the rungs fall away the way a card set does
+ * - 28.8% anthem down to 0.6% lost, monotonically, with nothing empty. The table is in
+ * DEEPCUT_TIER_FLOOR beside the numbers.
  *
- * WHY LINEAR BANDS WOULD NOT WORK, since that is the obvious alternative. Split zero to
- * fifty million into five equal slices and the first slice is nought to ten million,
- * which swallows very nearly every song ever recorded. Four of the five rungs would be
- * unreachable and the fifth would be everything. The distribution is the reason, not a
- * preference.
- *
- * THESE ARE STILL TUNING CONSTANTS AND THEY WILL MOVE. What is fixed is the shape - one
- * decade per rung - and what is open is where the ladder is anchored, because that
- * depends on the kind of music on the playlist. A list of Filipino indie would sit two
- * decades lower than a list of stadium rock and would come out as five unheards. When
- * there is enough real data to see that, move DEEPCUT_TIER_FLOOR; the shape stays.
+ * WHAT THAT GIVES UP, said plainly: "one rung per order of magnitude" is a sentence
+ * anybody can check against a play count, and "the 71st percentile of one person's
+ * playlists" is not. The floors are still round numbers and the ladder is still
+ * monotonic, so nothing a reader does with it changes; what changes is that the rule
+ * behind them is now empirical, which means it is only as good as the sample. Re-run the
+ * script before moving them.
  */
 
 /**

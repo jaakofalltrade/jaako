@@ -1,28 +1,27 @@
 import "server-only";
-import { DEEPCUT_LADDER } from "@/constants";
+import { COLLECTION_LIMIT, DEEPCUT_LADDER } from "@/constants";
 import { DeepcutTier } from "@/models";
-import type { DeepcutsStats, MostOpenedPack, RarestCard } from "@/models";
+import type { CollectedCard, DeepcutsStats, MostOpenedPack, RarestCard } from "@/models";
 import { isEnumValue } from "@/utils/enum";
 import { hasDatabase, sql } from "@/server/db";
 
 /**
- * The three queries /lab/deepcuts makes against Neon, and only those.
+ * Every query /lab/deepcuts makes against Neon, and only those.
  *
  * The same shape as src/server/suggest/store.ts and for the same reason: nothing else
  * in the app writes SQL, so swapping the backing store stays a one-file change.
  *
- * NOTHING CALLS recordRip YET AND THAT IS EXPECTED, NOT AN OVERSIGHT. The rip is not
- * built. What is built is the shelf, which says which playlists a pack could come out
- * of, and the two figures at the top of the page, which are the reads below against an
- * empty table. Both come back null today and the page prints "nothing yet". The writer
- * is here so the rip has somewhere to land rather than needing a migration on the day
- * it is written; see 002_deepcuts.sql, which says the same thing about the schema.
+ * Three things live here. `stats` answers the two figures beside the title, `recordRip`
+ * writes down an opened pack, and `cardsFor` reads one visitor's collection back out.
  *
  * READS DEGRADE, AS EVERYWHERE ELSE. A database that cannot be reached leaves the two
- * lines reading "nothing yet" rather than taking the page down, which is the same
- * answer an empty table gives. That collapse is deliberate: the distinction between
- * "nobody has opened a pack" and "we could not ask" is real, and it is not a
- * distinction worth putting in front of a visitor on a page about trading cards.
+ * lines reading "nothing yet" and the collection empty, rather than taking the page
+ * down - which is the same answer an empty table gives. That collapse is deliberate: the
+ * distinction between "nobody has opened a pack" and "we could not ask" is real, and it
+ * is not a distinction worth putting in front of a visitor on a page about trading cards.
+ *
+ * WRITES DO NOT DEGRADE, and the split is the repo's standing rule. `recordRip` throws
+ * and lets its caller decide what a failure costs; only the reads swallow.
  */
 
 /** Where a rung sits on the ladder, 0 for the commonest. See pack_card.tier_rank. */
@@ -107,8 +106,6 @@ const stats = async (): Promise<DeepcutsStats> => {
 /**
  * Records one opened pack and the cards that came out of it.
  *
- * NO CALLER YET. See the header: the rip is not built, and this is where it will write.
- *
  * ONE ROUND TRIP PER STATEMENT AND NO TRANSACTION, which is a limitation of the HTTP
  * driver rather than a choice - see src/server/db/index.ts. A rip whose cards fail to
  * insert would leave a counted pack with nothing in it, which skews "most opened" by one
@@ -127,6 +124,13 @@ const recordRip = async (args: {
     artist: string;
     tier: DeepcutTier;
     play_count: number | null;
+    /* THE FACE, ADDED WITH THE COLLECTION TAB. A card is a thing that happened and keeps
+       what was printed on it, so the artwork and the link are stored rather than looked
+       up again later; `shiny` is not stored for looks at all, but because it is a coin
+       flipped once and unrecoverable from anything else in the row. See 003. */
+    album_art: string | null;
+    track_url: string;
+    shiny: boolean;
   }[];
 }): Promise<void> => {
   const { playlist_id, visitor_id, cards } = args;
@@ -144,16 +148,102 @@ const recordRip = async (args: {
      leaves a prefix of the pack rather than an arbitrary subset of it. */
   for (const card of cards) {
     await sql`
-      insert into pack_card (rip_id, track_uri, title, artist, tier, tier_rank, play_count)
+      insert into pack_card (
+        rip_id, track_uri, title, artist, tier, tier_rank, play_count,
+        album_art, track_url, shiny
+      )
       values (
         ${rip.id}, ${card.track_uri}, ${card.title}, ${card.artist},
-        ${card.tier}, ${tierRank(card.tier)}, ${card.play_count}
+        ${card.tier}, ${tierRank(card.tier)}, ${card.play_count},
+        ${card.album_art}, ${card.track_url}, ${card.shiny}
       )
     `;
+  }
+};
+
+/**
+ * One visitor's collection, rarest first.
+ *
+ * SCOPED TO THE COOKIE, WHICH IS THE WHOLE SECURITY MODEL AND IT IS A THIN ONE. The
+ * visitor id is an unguessable uuid in an httpOnly cookie, so a person cannot read
+ * somebody else's collection by asking - but they also cannot prove a collection is
+ * theirs. Clearing cookies loses the binder; a shared browser shares it. That is the same
+ * bargain the suggestion box makes, and the right one here: the alternative is accounts,
+ * for a page about opening card packs.
+ *
+ * ORDERED BY tier_rank RATHER THAN BY THE TIER TEXT, for the reason 002 wrote the column:
+ * the ladder is a design decision that lives in DEEPCUT_LADDER, and teaching Postgres a
+ * second copy of it is how the two come to disagree. Ties break on the most recent pull,
+ * so a new ghost sits above an old one.
+ *
+ * CAPPED, because this is one query behind a page that renders every row it gets, and a
+ * visitor who rips daily for a year has eighteen hundred cards. The cap is a rendering
+ * limit rather than a rule about collecting; nothing is deleted.
+ *
+ * READS DEGRADE, as everywhere else here: an unreachable database is an empty binder and
+ * a page that still works, not a page that fails.
+ */
+const cardsFor = async (args: { visitor_id: string }): Promise<CollectedCard[]> => {
+  if (!hasDatabase()) return [];
+
+  try {
+    const rows = await sql<{
+      id: string;
+      track_uri: string;
+      title: string;
+      artist: string;
+      album_art: string | null;
+      track_url: string | null;
+      tier: string;
+      shiny: boolean;
+      play_count: number | null;
+      ripped_at: string;
+    }>`
+      select
+        card.id, card.track_uri, card.title, card.artist, card.album_art,
+        card.track_url, card.tier, card.shiny, card.play_count, rip.ripped_at
+      from pack_card as card
+      join pack_rip as rip on rip.id = card.rip_id
+      where rip.visitor_id = ${args.visitor_id}
+      order by card.tier_rank desc, rip.ripped_at desc, card.id desc
+      limit ${COLLECTION_LIMIT}
+    `;
+
+    return (
+      rows
+        /* A row naming a rung this deploy no longer has is dropped rather than rendered.
+           Same narrowing the rarest-card query does, and the same reason: `tier` is text
+           so that adding a rung is a deploy rather than a migration, and the cost of that
+           is a row an older deploy wrote. */
+        .filter((row) => isTier(row.tier))
+        .map((row) => ({
+          id: String(row.id),
+          uri: row.track_uri,
+          title: row.title,
+          artist: row.artist,
+          album_art: row.album_art,
+          /* Empty rather than null for a row written before 003 added the column: the
+             card renders without a link, and the type stays the one ScoredTrack uses. */
+          url: row.track_url ?? "",
+          tier: row.tier as DeepcutTier,
+          shiny: row.shiny,
+          play_count: row.play_count,
+          ripped_at: row.ripped_at,
+        }))
+        .map(({ play_count, ripped_at, ...card }) => ({
+          ...card,
+          plays: play_count,
+          pulled_at: new Date(ripped_at).toISOString(),
+        }))
+    );
+  } catch (error) {
+    console.error("[deepcuts] collection failed:", error);
+    return [];
   }
 };
 
 export const deepcutsStore = {
   stats,
   recordRip,
+  cardsFor,
 };

@@ -217,3 +217,46 @@ export type RipResponse = {
   /** A sentence written for the visitor. Present only when the rip could not happen. */
   error?: string;
 };
+
+/* ---------------- what somebody has kept ---------------- */
+
+/**
+ * One card in a visitor's collection, read back out of Neon.
+ *
+ * NOT A PackCard, AND THE DIFFERENCE IS TIME. A PackCard is a card being dealt: it hangs
+ * off a live ScoredTrack, so its play count and its artwork are whatever Spotify and
+ * last.fm say right now. This is a card that was dealt - a row written at the moment it
+ * came out of a wrapper, keeping what was printed on it then. Reusing PackCard would
+ * have meant either re-fetching every song on a collection page or lying about which
+ * shape the numbers came from.
+ *
+ * That is also why `plays` is a number frozen at deal time rather than a fresh count. A
+ * card in a binder does not get rarer because the world listened to the song again.
+ */
+export type CollectedCard = {
+  /** Neon's own row id, as text. Two identical cards from two rips are two entries. */
+  id: string;
+  /** `spotify:track:<22 chars>`, or empty for a local file. */
+  uri: string;
+  title: string;
+  artist: string;
+  album_art: string | null;
+  /** Empty when the row predates the column, or when Spotify offered no link. */
+  url: string;
+  tier: DeepcutTier;
+  shiny: boolean;
+  /** What the rung was decided from. Null for a row written before the count was known. */
+  plays: number | null;
+  /** ISO 8601. When the pack this came out of was opened. */
+  pulled_at: string;
+};
+
+/**
+ * What GET /api/lab/deepcuts/cards answers with.
+ *
+ * An empty list is the ordinary answer, not a failure: it is what every browser that has
+ * never opened a pack gets, and the tab renders an invitation rather than an error.
+ */
+export type CollectionResponse = {
+  cards: CollectedCard[];
+};

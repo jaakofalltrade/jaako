@@ -15,7 +15,8 @@
     "token:check": "node scripts/token-scopes.mjs",
     "playlist:id": "node scripts/playlist-id.mjs",
     "lastfm:check": "node scripts/lastfm-check.mjs",
-    "build-icons": "node scripts/build-icons.mjs"
+    "build-icons": "node scripts/build-icons.mjs",
+    "ladder:spread": "node scripts/ladder-spread.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",

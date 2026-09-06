@@ -1,5 +1,5 @@
 import { endpoints } from "@/client/endpoints";
-import type { PackContents, RipResponse } from "@/models";
+import type { CollectedCard, CollectionResponse, PackContents, RipResponse } from "@/models";
 
 /**
  * The browser's call to our own deepcuts route.
@@ -55,4 +55,39 @@ export const ripPack = async (args: {
   );
 
   return (await response.json()) as RipResponse;
+};
+
+/**
+ * Every card this browser has pulled.
+ *
+ * NO ARGUMENT FOR WHO IS ASKING, and that absence is the point: the route reads the
+ * visitor cookie, which the browser attaches on its own and no script can read. A
+ * visitor id in this signature would be a visitor id in a URL, which is an enumeration
+ * of everybody's collections.
+ *
+ * SWALLOWS, WHERE fetchPack THROWS. The distinction the header draws is what the caller
+ * can do about a failure, and the collection tab is a page of cards that either has cards
+ * on it or does not. An empty binder is already a state it renders - it is what every
+ * browser that has never opened a pack sees - so a failed read collapsing into the same
+ * empty list costs a visitor nothing they could act on.
+ *
+ * `no-store`, because a collection changes the moment a pack is opened and this is
+ * refetched precisely when the reader has come to look at it.
+ */
+export const fetchCollection = async (args?: { signal?: AbortSignal }): Promise<CollectedCard[]> => {
+  try {
+    const response = await fetch(endpoints.lab.deepcuts.cards, {
+      cache: "no-store",
+      signal: args?.signal,
+    });
+
+    if (!response.ok) return [];
+
+    return ((await response.json()) as CollectionResponse).cards;
+  } catch (error) {
+    // An abort is a caller tidying up, not a failure worth logging.
+    if (args?.signal?.aborted) return [];
+    console.error("[deepcuts] collection failed:", error);
+    return [];
+  }
 };
