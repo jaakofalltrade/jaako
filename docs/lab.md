@@ -324,9 +324,11 @@ machine's counter it wants a value with a long TTL rather than a daily one.
 
 Open, and none of it blocking:
 
-- ~~**The thresholds.**~~ *Settled, as a formula rather than five bands.* **One rung per
-  order of magnitude**: 10m+ plays is `chart`, 1m `rotation`, 100k `album cut`, 10k
-  `deep cut`, under 10k `unheard`. Play counts are a power law spanning six or seven
+- ~~**The thresholds.**~~ *Settled, as a formula rather than invented bands.* **One rung
+  per order of magnitude, across eight rungs**: 100m+ plays is `anthem`, 10m `chart`, 1m
+  `rotation`, 100k `album cut`, 10k `deep cut`, 1k `unheard`, 100 `ghost`, under 100
+  `lost`. It was five and both ends carried too much - measured on a real playlist of
+  Filipino oldies, 20 tracks landed on the old bottom rung that now split across three. Play counts are a power law spanning six or seven
   decades, so a logarithmic ladder is the only one whose steps are evenly spaced against
   the data - split 0 to 50m into five equal slices and the first slice swallows nearly
   every song ever recorded. `DEEPCUT_TIER_FLOOR` in `src/constants/lab.ts`, applied by
@@ -438,12 +440,19 @@ navigating; the Spotify link moved inside the panel. The contents come from
 `GET /api/lab/deepcuts/pack?id=`, which **checks the id against the shelf** - without
 that it is an open proxy for reading any playlist on Spotify through the owner's token.
 
-**Rarity also prints as a percentile.** Each card shows the rung and "rarer than N% of
-this playlist", counted against the other scored songs in the same pack. A percentile is
-checkable by counting; a normalised 0-100 "rarity index" would be another unitless score,
-which is the exact objection this document raises against Spotify's `popularity`. The
-label always names the playlist, because the same song is rarer than 90% of a chart list
-and 10% of a crate-digging one.
+**A card prints the chance of pulling it.** The songs in an opened pack are a table:
+track, rung, and the chance with the play count abbreviated underneath. The chance is a
+projection under the draw model rather than a measurement, and the note under the table
+says so. It briefly printed a percentile instead - "rarer than 87% of this playlist" -
+which is checkable by counting and answers a question nobody asked. On a 40 track
+playlist the commons price at 10.5% and the one deep cut at 58.8%, because the hit slot
+never rolls a common rung; a uniform draw would price them identically.
+
+**The match rate is measured, and it is 100%.** Across four playlists and 192 scored
+tracks, every one matched on last.fm. That includes both cases `trackMatch` exists for:
+"Destiny - Extended Mix" by "Zero 7, Sia, Sophie Barker" resolves to Zero 7 / Destiny at
+3.7m plays, and "A New Kind Of Love - Demo" loses its suffix. `pnpm lastfm:check` is what
+reports it.
 
 **A pack opens into the wrapper itself, with a rip button that does not press yet.** The
 panel renders the same pack at a larger size rather than a heading beside a cover, and
