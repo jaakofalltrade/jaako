@@ -1729,8 +1729,8 @@
   z-index: 2;
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.15rem 0.35rem;
+  gap: 0.3rem;
+  padding: 0.2rem 0.45rem;
   border-radius: 0.2rem;
   /* Its own plate, because it sits over a photograph and a photograph can be any
      colour. Legibility here cannot depend on the album art. */
@@ -1739,7 +1739,7 @@
 }
 
 .pullSymbol {
-  font-size: 0.7rem;
+  font-size: 0.85rem;
   line-height: 1;
 
   .pull[data-tier="DIAMOND"] & { color: var(--dc-diamond); }
@@ -1754,7 +1754,7 @@
 
 .pullTier {
   font-family: var(--dc-mono);
-  font-size: 0.48rem;
+  font-size: 0.62rem;
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -1765,27 +1765,35 @@
   top: 0.35rem;
   right: 0.35rem;
   z-index: 2;
-  padding: 0.15rem 0.35rem;
+  padding: 0.2rem 0.45rem;
   border-radius: 0.2rem;
   background: rgba(255, 255, 255, 0.92);
   color: var(--dc-ink);
   font-family: var(--dc-mono);
-  font-size: 0.48rem;
+  font-size: 0.62rem;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 /* The song, over the foot of the cover. A scrim rather than a panel: the art should run
-   to the edge of the card the way a real one does. */
+   to the edge of the card the way a real one does.
+
+   THE TYPE IS SET FOR THE DECK, WHICH IS THE BIGGER OF THE TWO PLACES THIS FACE RENDERS.
+   A dealt card is 20rem wide and a card in the binder is about half that, and the sizes
+   below are fixed rems rather than relative to the card - so the binder's type is
+   proportionally larger than the deck's rather than smaller. That is the right way round
+   for a grid somebody is scanning for one title, and it is the reason these are not in
+   cqw: container-relative sizing would shrink exactly the place that needs to stay
+   readable. */
 .pullBody {
   position: absolute;
   inset: auto 0 0;
   z-index: 2;
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
-  padding: 1.5rem 0.5rem 0.45rem;
+  gap: 0.15rem;
+  padding: 1.9rem 0.6rem 0.55rem;
   background: linear-gradient(
     to top,
     rgba(29, 26, 22, 0.92) 0%,
@@ -1796,7 +1804,7 @@
 }
 
 .pullTitle {
-  font-size: 0.72rem;
+  font-size: 0.92rem;
   font-weight: 600;
   line-height: 1.2;
   display: -webkit-box;
@@ -1807,7 +1815,7 @@
 
 .pullArtist,
 .pullPlays {
-  font-size: 0.56rem;
+  font-size: 0.72rem;
   line-height: 1.25;
   color: rgba(255, 255, 255, 0.78);
   overflow: hidden;
