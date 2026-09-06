@@ -130,10 +130,10 @@ export const SCORING_CONCURRENCY = 10;
 
 /* ---------------- the draw ----------------
 
-   NONE OF THIS IS BUILT. The rip does not exist; what these describe is the model in the
-   pack-odds write-up, and the only thing reading them today is the chance printed on each
-   card. That figure is therefore a projection from a design rather than a measurement,
-   and the column heading says so. */
+   THESE ARE LIVE. utils/packDraw.ts deals against them and server/deepcuts/rip.ts writes
+   the result down. They are also what the chance on each card is computed from, which is
+   why that figure is a projection from the model rather than a count of rips: it says
+   what the draw WOULD do, and the draw does exactly that. */
 
 /** Five cards to a pack. */
 export const PACK_SIZE = 5;
@@ -189,8 +189,8 @@ export const HIT_SLOT_ODDS: Partial<Record<DeepcutTier, number>> = {
  * rarest thing the app can produce by some distance. At one pack a day it is not a card
  * anybody should expect to see.
  *
- * NOTHING ROLLS THESE YET. The rip is not built. They are here because the cards tab
- * prints them, and because inventing the number at the point of use is how it ends up
+ * ROLLED BY drawPack, ONCE THE RUNG IS DECIDED, and printed by the cards tab. One
+ * constant for both, because inventing the number at the point of use is how it ends up
  * different in the copy and in the code.
  */
 export const SHINY_ODDS: Partial<Record<DeepcutTier, number>> = {
@@ -198,3 +198,28 @@ export const SHINY_ODDS: Partial<Record<DeepcutTier, number>> = {
   [DeepcutTier.Ghost]: 0.005,
   [DeepcutTier.Lost]: 0.0025,
 };
+
+/* ---------------- opening one, as a sequence ----------------
+
+   The rip is four beats rather than a state change, and the timings are here rather than
+   in the component so the whole sequence can be read as one thing. They are milliseconds
+   and they add up: the pack comes forward, tears, flashes, and the cards arrive. */
+
+/** The pack scales up and settles before anything happens to it. */
+export const RIP_FORWARD_MS = 260;
+
+/** The top of the wrapper comes away. The longest beat, because it is the one being watched. */
+export const RIP_TEAR_MS = 420;
+
+/** White, and brief. Long enough to hide the swap from pack to cards, short enough not to blind. */
+export const RIP_FLASH_MS = 260;
+
+/**
+ * The floor on the whole sequence, and the reason it is a floor rather than a total.
+ *
+ * The animation and the network request start together and the cards cannot appear until
+ * BOTH are done. On a warm cache the request beats the animation and this is what the
+ * visitor waits for; on a cold playlist the request is slower and the animation waits
+ * instead, holding on the flash rather than cutting to cards halfway through a tear.
+ */
+export const RIP_SEQUENCE_MS = RIP_FORWARD_MS + RIP_TEAR_MS + RIP_FLASH_MS;

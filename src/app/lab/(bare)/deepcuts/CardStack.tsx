@@ -11,6 +11,8 @@ import styles from "./deepcuts.module.scss";
 
 export type CardStackProps = {
   cards: PackCard[];
+  /** The pack these came out of. The wrapper is gone by now, so the deck has to say. */
+  playlistName: string;
 };
 
 /**
@@ -106,8 +108,13 @@ const Card = ({
     <motion.li
       className={styles.pullSlot}
       style={{ x, y, rotateX, rotateY, zIndex: offset }}
-      animate={{ rotate: LEAN[offset % LEAN.length], y: offset * -4 }}
-      transition={SPRING}
+      /* POPPING OUT, ONE AFTER THE OTHER. They arrive from nothing rather than fading in,
+         because what just happened is five cards coming out of a torn wrapper. The
+         stagger runs up the pile - offset 0 is the card at the back - so the hit slot,
+         which sits in front, is the last thing to land. */
+      initial={{ scale: 0.35, opacity: 0, y: 30 }}
+      animate={{ rotate: LEAN[offset % LEAN.length], y: offset * -4, scale: 1, opacity: 1 }}
+      transition={{ ...SPRING, delay: offset * 0.07 }}
       drag
       dragConstraints={{ top: 0, right: 0, bottom: 0, left: 0 }}
       dragElastic={0.6}
@@ -125,11 +132,12 @@ const Card = ({
   );
 };
 
-export const CardStack = ({ cards }: CardStackProps) => {
+export const CardStack = ({ cards, playlistName }: CardStackProps) => {
   const still = useReducedMotion();
 
-  /* The order is state because throwing a card changes it. Seeded from the deal, so the
-     hit slot starts on top - it is the last card dealt and the one worth seeing first. */
+  /* The order is state because throwing a card changes it. Reversed off the deal so the
+     hit slot lands at index 0: it is the last card dealt, and the front of the pile is
+     the one worth seeing first. */
   const [order, setOrder] = useState(() => [...cards].reverse());
 
   const sendToBack = (slot: number) =>
@@ -140,23 +148,49 @@ export const CardStack = ({ cards }: CardStackProps) => {
       return thrown ? [...next, thrown] : current;
     });
 
+  /* THE CARD THE READER IS ACTUALLY LOOKING AT, which is the FIRST of the array and not
+     the last: each card's z-index is its offset, offset counts down the array, so index
+     0 carries the highest one and sits in front. Reading from the other end pointed this
+     link at the card at the very back of the pile, which is the one nobody can see. It
+     moves every time a card is thrown, and that is what makes a single link under a pile
+     worth having rather than a static one. */
+  const top = order[0];
+
   return (
     <div className={styles.pulled}>
-      <p className={styles.pulledLabel}>{DEEPCUTS_TEASER.pulled_label}</p>
+      <p className={styles.pulledLabel}>
+        {DEEPCUTS_TEASER.pulled_label} {DEEPCUTS_TEASER.pulled_from} {playlistName}
+      </p>
 
       <ul className={still ? styles.pullList : styles.deck} data-count={order.length}>
         {order.map((card, index) => (
           <Card
             key={card.slot}
             card={card}
-            /* Later in the array is nearer the top of the pile, so the last one drawn
-               here is the first one seen. */
+            /* Counts down the array, and it is the z-index too: index 0 gets the
+               highest offset, so the first card drawn here is the one in front. */
             offset={order.length - 1 - index}
             onThrow={() => sendToBack(card.slot)}
             still={Boolean(still)}
           />
         ))}
       </ul>
+
+      {/* FOLLOWS THE TOP CARD. Shuffling the deck changes which song this opens, which is
+          the only sensible reading of a single link under a pile: it belongs to the card
+          you can see. Keyed on the uri so the label animates when the card beneath it
+          changes rather than swapping text in place. */}
+      {top?.track.url ? (
+        <a
+          key={top.track.uri}
+          className={styles.pullOpen}
+          href={top.track.url}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {DEEPCUTS_TEASER.card_open_spotify}
+        </a>
+      ) : null}
 
       <p className={styles.pulledNote}>{DEEPCUTS_TEASER.pulled_note}</p>
     </div>

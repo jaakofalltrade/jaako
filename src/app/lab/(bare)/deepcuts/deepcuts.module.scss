@@ -1710,7 +1710,11 @@
   padding: 0;
   list-style: none;
   display: grid;
-  width: 11rem;
+  /* THE SIZE THE WRAPPER WAS, near enough. The deck lands in the space the pack just
+     vacated, so anything much smaller reads as the cards having shrunk on the way out
+     rather than come out. `.opened` is 16rem at 11/16; this is 15rem at 5/7, which is
+     the same height to within a few pixels. */
+  width: 15rem;
   aspect-ratio: 5 / 7;
   place-items: center;
   /* The lean and the throw both travel past the cards' own box. */
@@ -1882,4 +1886,57 @@
   font-family: var(--dc-mono);
   letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+/* ---------------- the rip ---------------- */
+
+/* The strip that comes away. Wraps the serrated edge and the crimp band together, because
+   on a real pack they are one piece of foil pulled off along the perforation - not two
+   things peeled in sequence.
+
+   Absolutely positioned like the two it contains, so wrapping them changed nothing about
+   where they sit. It exists to give both a single transform to leave on. */
+.tearStrip {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 3;
+  display: block;
+  /* The tear travels up and out of the wrapper, which clips it. */
+  transform-origin: 50% 0;
+}
+
+/* The flash. Covers the one frame where the wrapper and the cards would both be on
+   screen, which is the frame that would give the trick away.
+
+   Fixed rather than absolute: it has to cover the pack wherever the pack happens to be,
+   and the pack has been scaled and tilted by then. */
+.flash {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  background: radial-gradient(
+    60% 45% at 50% 42%,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 255, 255, 0.7) 45%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  pointer-events: none;
+}
+
+/* The link under the deck, for whichever card is face up. Its own line rather than part
+   of the card, because the card is a photograph with type over it and one more line of
+   type on it would be the line too many. */
+.pullOpen {
+  font-family: var(--dc-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dc-ink-soft);
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--dc-ink);
+  }
 }

@@ -6,7 +6,7 @@ import { lastfmService } from "@/server/lastfm";
 import { spotifyEndpoints } from "@/server/endpoints";
 import { spotifyRead } from "@/server/spotify/spotifyApiClient";
 import { hasCredentials } from "@/server/spotify/spotifyAccessTokens";
-import { artistNames, pickAlbumArt } from "@/server/spotify/mappers";
+import { artistNames, pickAlbumArt, toItemUrl } from "@/server/spotify/mappers";
 import { pullChance, rarityOf } from "@/utils/rarity";
 import { primaryArtist } from "@/utils/trackMatch";
 
@@ -70,6 +70,7 @@ export const packContents = async (args: {
         title: entry.item?.name ?? "unknown",
         artist: artistNames(entry.item?.artists),
         album_art: pickAlbumArt(entry.item?.album?.images),
+        url: toItemUrl(entry.item ?? {}),
         matchArtist: primaryArtist(entry.item?.artists),
       })),
     });
@@ -116,6 +117,7 @@ const scoreAll = async (args: {
     title: string;
     artist: string;
     album_art: string | null;
+    url: string;
     matchArtist: string;
   }[];
 }): Promise<Omit<ScoredTrack, "chance">[]> => {
@@ -138,6 +140,7 @@ const scoreAll = async (args: {
             title: track.title,
             artist: track.artist,
             album_art: track.album_art,
+            url: track.url,
             plays,
             /* Null for a track last.fm could not match, and the panel renders that as
                "unmatched" rather than as the rarest rung. See rarityOf: guessing here

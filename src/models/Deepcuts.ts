@@ -69,11 +69,11 @@ export type DeepcutsLibrary = DeepcutsPlaylist[] | null;
 
 /* ---------------- what the rip records, and what the page prints of it ----------------
 
-   NONE OF THIS HAS DATA YET, WHICH IS THE POINT OF MODELLING IT AS NULLABLE THROUGHOUT.
-   The rip is not built: the shelf above says which playlists a pack could come out of,
-   and nothing opens one. The two figures at the top of the page are queries against an
-   empty table, and every shape below is arranged so that "empty" is a value the page can
-   render rather than a case it has to guard. See 002_deepcuts.sql. */
+   EVERY FIELD BELOW IS NULLABLE AND THAT IS STILL RIGHT, though no longer for the reason
+   first written here. It said the rip was not built and the tables were empty by
+   construction; the rip works now and the tables fill up. What has not changed is that a
+   fresh deployment, or a fresh Neon branch, starts empty - so "nothing yet" stays a state
+   the page renders rather than a case it guards. See 002_deepcuts.sql. */
 
 /**
  * The playlist that has been ripped most often.
@@ -104,8 +104,8 @@ export type RarestCard = {
 /**
  * The two lines beside the title.
  *
- * Both nullable, and both are null today. A null renders the "nothing yet" copy rather
- * than a zero: nobody has opened a pack, and "most opened: 0" would be a number
+ * Both nullable. A null renders the "nothing yet" copy rather than a zero: on a
+ * deployment where nobody has opened a pack, "most opened: 0" would be a number
  * answering a question about which playlist.
  */
 export type DeepcutsStats = {
@@ -138,17 +138,26 @@ export type ScoredTrack = {
    * art was arriving on every track and being dropped on the floor.
    */
   album_art: string | null;
+  /**
+   * The public Spotify page for the track. Host-checked, like every other link the site
+   * renders from a third party.
+   *
+   * Free to carry, as the art was: `external_urls` is already on the playlist projection.
+   * A card in an opened pack links out through this, so somebody who pulls something good
+   * can go and listen to it.
+   */
+  url: string;
   /** Global scrobbles on last.fm. Not Spotify streams; the page says so. */
   plays: number | null;
   tier: DeepcutTier | null;
   /**
    * The chance this song lands in a pack, as a percentage with one decimal.
    *
-   * A PROJECTION, NOT A MEASUREMENT. The rip is not built; this is the odds under the
-   * model the pack-odds write-up settles on, and the column heading beside it says so.
-   * It replaced a percentile - "rarer than 87% of this playlist" - which was checkable
-   * by counting and answered a question nobody asked. Somebody holding a pack wants to
-   * know whether they were lucky.
+   * A PROJECTION RATHER THAN A TALLY. It is the odds under the model the draw actually
+   * implements - four commons and a hit slot - computed from the playlist's own make-up
+   * rather than counted from rips that have happened. It replaced a percentile, "rarer
+   * than 87% of this playlist", which was checkable by counting and answered a question
+   * nobody asked. Somebody holding a pack wants to know whether they were lucky.
    *
    * Null for a track with no rung, which is the same set of tracks that are not in the
    * pool at all.

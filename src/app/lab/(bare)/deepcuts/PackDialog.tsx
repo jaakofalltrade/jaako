@@ -3,7 +3,13 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { fetchPack, ripPack } from "@/client/deepcutsApi";
-import { DEEPCUT_TIER } from "@/constants";
+import {
+  DEEPCUT_TIER,
+  RIP_FLASH_MS,
+  RIP_FORWARD_MS,
+  RIP_SEQUENCE_MS,
+  RIP_TEAR_MS,
+} from "@/constants";
 import { compactCount } from "@/utils/format";
 import { DEEPCUTS_TEASER } from "@/data/lab";
 import type { DeepcutsPlaylist, PackCard, PackContents } from "@/models";
@@ -105,7 +111,17 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
     cards: PackCard[];
     error?: string;
   } | null>(null);
-  const [ripping, setRipping] = useState(false);
+  /**
+   * WHERE IN THE SEQUENCE THE PACK IS, and it is a phase rather than a boolean because
+   * the rip is four beats: forward, tear, flash, cards. A boolean can say "busy" and
+   * cannot say which of those is on screen.
+   *
+   *   idle     the wrapper, sealed, with a live button
+   *   tearing  the pack has come forward and the top is coming away
+   *   flashing white, covering the swap from wrapper to cards
+   *   opened   the pack is gone and the cards are out
+   */
+  const [phase, setPhase] = useState<"idle" | "tearing" | "flashing" | "opened">("idle");
 
   /* Only an answer stamped with the pack now on screen counts. Anything else is the
      previous pack's, still in flight or already landed, and it renders as loading. */
@@ -113,18 +129,34 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
   const pack = playlist && pulled?.id === playlist.id ? pulled : null;
 
   const rip = async () => {
-    if (!playlist || ripping) return;
+    if (!playlist || phase !== "idle") return;
 
-    setRipping(true);
-    try {
-      const answer = await ripPack({ playlist_id: playlist.id });
-      setPulled({ id: playlist.id, cards: answer.cards, error: answer.error });
-    } catch (error) {
+    const id = playlist.id;
+
+    /* THE ANIMATION AND THE REQUEST START TOGETHER AND THE CARDS WAIT FOR BOTH. Running
+       them in series would mean staring at a torn pack while last.fm is asked fifty
+       questions; running the animation alone would cut to cards that are not there yet.
+
+       The timers drive the visible beats, the promise resolves whenever it resolves, and
+       Promise.all below is what makes the slower of the two the one that decides. */
+    setPhase("tearing");
+    window.setTimeout(() => setPhase("flashing"), RIP_FORWARD_MS + RIP_TEAR_MS);
+
+    const sequence = new Promise<void>((resolve) =>
+      window.setTimeout(resolve, RIP_SEQUENCE_MS)
+    );
+
+    const dealt = ripPack({ playlist_id: id }).catch((error: unknown) => {
       console.error("[deepcuts] rip failed:", error);
-      setPulled({ id: playlist.id, cards: [], error: DEEPCUTS_TEASER.rip_failed });
-    } finally {
-      setRipping(false);
-    }
+      return { playlist_id: id, cards: [], error: DEEPCUTS_TEASER.rip_failed };
+    });
+
+    const [answer] = await Promise.all([dealt, sequence]);
+
+    setPulled({ id, cards: answer.cards, error: answer.error });
+    /* Back to idle when the rip was refused, so the button can be pressed again. A pack
+       that failed to open is still a sealed pack. */
+    setPhase(answer.cards.length ? "opened" : "idle");
   };
 
   return (
@@ -157,24 +189,46 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
               {DEEPCUTS_TEASER.dialog_close}
             </button>
 
-            {/* Arrives from slightly back and below, then leans toward the pointer once
-                it is there. Two separate motions on two elements: this one owns the
-                entrance, TiltedPack owns the tilt. Putting both on one element means the
-                entrance transform and the tilt transform fight over the same property. */}
+            {/* THE PACK IS GONE ONCE IT IS OPEN. A torn wrapper sitting above the cards
+                it produced is litter: the thing the reader wanted is the cards, and the
+                pack has done its job. AnimatePresence is what lets it leave rather than
+                vanish. */}
+            <AnimatePresence>
+              {phase !== "opened" ? (
             <motion.div
+              key="pack"
               initial={still ? false : { scale: 0.82, y: 26, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={still ? undefined : { scale: 0.9, y: 12, opacity: 0 }}
+              /* Forward on the rip, which is the first beat: the wrapper comes toward
+                 the reader before anything happens to it. */
+              animate={{
+                scale: phase === "idle" ? 1 : 1.12,
+                y: 0,
+                opacity: 1,
+              }}
+              exit={still ? undefined : { scale: 1.3, opacity: 0 }}
               transition={{ type: "spring", stiffness: 320, damping: 26, mass: 0.7 }}
               className={styles.openedShell}
             >
             <TiltedPack className={styles.opened} plain={!playlist.cover}>
-              <span className={styles.shelfTeeth} aria-hidden="true" />
+              {/* THE TEAR. The serrated top and the crimp band come away together,
+                  because on a real pack they are one strip of foil: it is pulled off in
+                  one piece along the perforation, not peeled in layers. */}
+              <motion.span
+                className={styles.tearStrip}
+                animate={
+                  phase === "idle" || still
+                    ? { y: 0, rotate: 0, opacity: 1 }
+                    : { y: -64, rotate: -9, opacity: 0 }
+                }
+                transition={{ duration: RIP_TEAR_MS / 1000, ease: [0.4, 0, 0.2, 1] }}
+              >
+                <span className={styles.shelfTeeth} aria-hidden="true" />
 
-              <span className={styles.shelfStrip}>
-                <span className={styles.stripLabel}>{DEEPCUTS_TEASER.rip_label}</span>
-                <span className={styles.stripNote}>{DEEPCUTS_TEASER.rip_note}</span>
-              </span>
+                <span className={styles.shelfStrip}>
+                  <span className={styles.stripLabel}>{DEEPCUTS_TEASER.rip_label}</span>
+                  <span className={styles.stripNote}>{DEEPCUTS_TEASER.rip_note}</span>
+                </span>
+              </motion.span>
 
               {playlist.cover ? (
                 <span className={styles.openedArt} aria-hidden="true">
@@ -207,19 +261,41 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
               <span className={styles.shelfFoot} aria-hidden="true" />
             </TiltedPack>
             </motion.div>
+              ) : null}
+            </AnimatePresence>
+
+            {/* The flash. Covers the moment the wrapper is replaced by the cards, which
+                is the one frame where both would otherwise be on screen at once. */}
+            <AnimatePresence>
+              {phase === "flashing" && !still ? (
+                <motion.div
+                  key="flash"
+                  className={styles.flash}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: RIP_FLASH_MS / 1000, ease: "easeOut" }}
+                  aria-hidden="true"
+                />
+              ) : null}
+            </AnimatePresence>
 
             {/* Across the foot of the pack, as on the sketch. It opens the pack now.
                 Disabled while the contents are still arriving, because the rip is dealt
                 from the same scored tracks the table below is waiting on, and while
                 last.fm is switched off, because nothing could be given a rung. */}
-            <button
-              type="button"
-              className={styles.rip}
-              onClick={rip}
-              disabled={ripping || !shown?.contents?.scored || Boolean(pack?.cards.length)}
-            >
-              {ripping ? DEEPCUTS_TEASER.rip_working : DEEPCUTS_TEASER.rip_button}
-            </button>
+            {/* Goes with the pack. A button offering to open something that is already
+                open is a control with nothing left to do. */}
+            {phase !== "opened" ? (
+              <button
+                type="button"
+                className={styles.rip}
+                onClick={rip}
+                disabled={phase !== "idle" || !shown?.contents?.scored}
+              >
+                {phase === "idle" ? DEEPCUTS_TEASER.rip_button : DEEPCUTS_TEASER.rip_working}
+              </button>
+            ) : null}
 
             {/* One line under the button, saying whichever thing is true. */}
             {pack?.error ? (
@@ -230,7 +306,9 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
 
             {/* The five cards, once they exist. Above the track list, because they are
                 what the reader just did and the list is reference. */}
-            {pack?.cards.length ? <CardStack cards={pack.cards} /> : null}
+            {pack?.cards.length ? (
+              <CardStack cards={pack.cards} playlistName={playlist.name} />
+            ) : null}
 
             {/* THE ONLY SCROLLING REGION ON THE SCREEN. Everything above it is fixed. */}
             <div className={styles.pile}>

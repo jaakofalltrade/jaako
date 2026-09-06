@@ -443,6 +443,10 @@ export const DEEPCUTS_TEASER = {
   pulled_note: "The same pack all day. Opening it again deals these five, not five more.",
   /** On a shiny card. */
   shiny_badge: "shiny",
+  /** Under the deck, for whichever card is on top. It changes as the deck is shuffled. */
+  card_open_spotify: "open this track in spotify",
+  /** Above the deck once the pack is gone, in place of the wrapper. */
+  pulled_from: "out of",
   /* Under the button. Why it will not press.
      NOT "rip_note", which is already taken by the word printed on the tear strip. Two
      different things called the same thing is how the strip ends up reading like an
