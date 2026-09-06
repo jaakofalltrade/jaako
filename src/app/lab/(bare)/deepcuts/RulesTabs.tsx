@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { ReactNode } from "react";
 import { DEEPCUT_LADDER, DEEPCUT_TIER, DEEPCUT_TIER_FLOOR } from "@/constants";
 import { DEEPCUTS_TEASER } from "@/data/lab";
 import { Tabs } from "@/design-system/core/Tabs";
@@ -15,20 +16,43 @@ import styles from "./deepcuts.module.scss";
  * thing being explained would have pushed the shelf off the first screen entirely. A
  * tab strip is one block tall and holds both.
  *
- * THE LEGEND IS THE DEFAULT TAB AND THAT IS THE WHOLE ORDERING DECISION. The one thing
- * a visitor cannot guess about this app is that the rarity runs backwards, and the
- * ladder is what says so. The rules are the small print.
+ * FOUR TABS NOW, AND THE PACKS ARE ONE OF THEM. The shelf used to sit below this block
+ * as its own section; it is the first tab instead, and the default. What that buys is a
+ * page that fits: a masthead, one strip, and one thing under it, rather than four
+ * stacked blocks a reader has to scroll past to reach the subject.
+ *
+ * The order is the reading order. The packs are what the page is; the legend says what
+ * the rungs on them mean; the cards show what one looks like; the rules are the small
+ * print behind all three.
  *
  * The floors are printed on the legend now, which they were not when they were
  * undecided. They are a formula rather than five invented bands - one order of
  * magnitude per rung - and a legend that shows the numbers is what lets somebody check
  * a card against it. See src/utils/rarity.ts.
  */
-export const RulesTabs = () => {
+export type RulesTabsProps = {
+  /**
+   * The shelf of packs, rendered on the server and handed down as an element.
+   *
+   * A PROP RATHER THAN AN IMPORT, because the shelf is an async server component reading
+   * Spotify and this file is a client component holding tab state. An element can cross
+   * that boundary; the component that produces it cannot. The page builds it, wraps it
+   * in its own Suspense boundary, and passes the result through.
+   */
+  packs: ReactNode;
+};
+
+export const RulesTabs = ({ packs }: RulesTabsProps) => {
   /* Typed as a plain string rather than inferred. DEEPCUTS_TEASER is `as const`, so the
      inferred state type would be the literal "legend" and setting it to the rules tab
      would not typecheck. */
-  const [tab, setTab] = useState<string>(DEEPCUTS_TEASER.tab_legend_id);
+  /* THE PACKS ARE THE DEFAULT, and that reverses an earlier call. The legend opened
+     first on the argument that the one thing a visitor cannot guess is that rarity runs
+     backwards. That was right when the tabs sat above a shelf which was itself on
+     screen; now the shelf is inside them, and opening on an explanation of a thing the
+     reader cannot see is the wrong way round. The legend is one click away and the
+     lead paragraph above already states the inversion. */
+  const [tab, setTab] = useState<string>(DEEPCUTS_TEASER.tab_packs_id);
 
   const legend = (
     <>
@@ -89,6 +113,7 @@ export const RulesTabs = () => {
     <div className={styles.explain}>
       <Tabs
         items={[
+          { id: DEEPCUTS_TEASER.tab_packs_id, label: DEEPCUTS_TEASER.tab_packs, panel: packs },
           { id: DEEPCUTS_TEASER.tab_legend_id, label: DEEPCUTS_TEASER.tab_legend, panel: legend },
           /* Between the legend and the rules on purpose. The legend says what a rung
              means, the cards say what one looks like, and the rules are the small print

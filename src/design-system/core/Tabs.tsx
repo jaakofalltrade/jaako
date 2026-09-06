@@ -122,23 +122,34 @@ export const Tabs = ({ items, value, onChange, label, classNames = {} }: TabsPro
         })}
       </div>
 
-      {/* ONLY THE OPEN PANEL IS RENDERED, rather than all of them with the closed ones
-          hidden. These panels are static copy, so there is no state in a closed one to
-          preserve, and not rendering it keeps it out of the accessibility tree and out
-          of a find-in-page. */}
-      {open ? (
+      {/* EVERY PANEL IS RENDERED AND THE CLOSED ONES ARE HIDDEN, which is the opposite
+          of what this did. It used to render only the open one, on the reasoning that
+          panels are static copy so there is no state in a closed one to preserve.
+
+          That stopped being true the moment a panel had a pager in it: unmounting threw
+          the page number away, so paging to the fifth screen of packs, glancing at the
+          legend and coming back put you on the first. Hiding costs rendering panels
+          nobody has opened; unmounting costs their state, and state is the more
+          expensive thing to lose.
+
+          `hidden` rather than display:none in CSS, because the attribute takes the panel
+          out of the accessibility tree and out of tab order as well as out of sight, and
+          it cannot be defeated by a caller's own class. */}
+      {items.map((item) => (
         <div
+          key={item.id}
           role="tabpanel"
-          id={panelId(open.id)}
-          aria-labelledby={tabId(open.id)}
+          id={panelId(item.id)}
+          aria-labelledby={tabId(item.id)}
           className={classNames.panel}
+          hidden={item.id !== open?.id}
           /* Focusable, because the panel is what Tab reaches after the strip and a
              reader needs somewhere to land to read it. */
           tabIndex={0}
         >
-          {open.panel}
+          {item.panel}
         </div>
-      ) : null}
+      ))}
     </div>
   );
 };

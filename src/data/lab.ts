@@ -330,7 +330,8 @@ export const DEEPCUTS_TEASER = {
      Every string below has to survive an empty shelf and a broken one, which are
      different states and get different lines. See DeepcutsLibrary in models. */
 
-  shelf_label: "where a pack comes from",
+  /* shelf_label is gone: the tab is called "the packs" and a heading under it saying
+     "where a pack comes from" is the same words twice. */
   /**
    * Says what the list is and, in the second clause, what it is not. Without that
    * clause a reader who has just been told about five rarity rungs looks at a row of
@@ -391,9 +392,11 @@ export const DEEPCUTS_TEASER = {
 
   tabs_label: "how deepcuts works",
   /* Ids rather than labels as the tab keys, so rewording a tab is not a state change. */
+  tab_packs_id: "packs",
   tab_legend_id: "legend",
   tab_cards_id: "cards",
   tab_rules_id: "rules",
+  tab_packs: "the packs",
   tab_legend: "legend",
   tab_cards: "the cards",
   tab_rules: "the rules, so far",

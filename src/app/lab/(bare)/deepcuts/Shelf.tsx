@@ -29,8 +29,10 @@ export const Shelf = ({ library }: ShelfProps) => {
   if (!library) return null;
 
   return (
-    <section className={styles.shelf}>
-      <h2 className={styles.shelfHead}>{DEEPCUTS_TEASER.shelf_label}</h2>
+    /* No heading. The tab that was clicked to get here is called "the packs", and a
+       heading under it saying "where a pack comes from" is the same words twice. Same
+       edit the legend and the rules took when they became tabs. */
+    <div className={styles.shelf}>
       <p className={styles.shelfNote}>{DEEPCUTS_TEASER.shelf_note}</p>
 
       {library.length === 0 ? (
@@ -40,6 +42,6 @@ export const Shelf = ({ library }: ShelfProps) => {
       ) : (
         <PackShelf playlists={library} />
       )}
-    </section>
+    </div>
   );
 };

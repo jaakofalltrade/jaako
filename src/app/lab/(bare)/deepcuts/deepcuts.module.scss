@@ -454,24 +454,20 @@
    the cover included: it is a printed surface under a sheen, which is what art on a
    real wrapper is. */
 
+/* Inside a tab panel now, so the panel owns the width and the space above. What is left
+   is the block's own business: the note, then the grid. */
 .shelf {
-  width: min(52rem, 100%);
-  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-.shelfHead {
-  margin: 0 0 0.4rem;
-  font-family: var(--dc-mono);
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--dc-ink-soft);
-}
+
+/* .shelfHead went with the tab that replaced it: the strip already says "the packs". */
 
 .shelfNote {
   max-width: 46ch;
-  margin: 0 0 1.75rem;
+  margin: 0;
   font-size: 0.9rem;
   line-height: 1.5;
   color: var(--dc-ink-soft);

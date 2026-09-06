@@ -40,12 +40,10 @@ export const metadata: Metadata = {
  * strip and the card-back weave both survive on the shelf, so nothing about the look
  * went with them.
  *
- * The ladder stays, and it is the one block here that has to. The single thing a
- * visitor cannot guess about this app is that the rarity runs backwards, and a legend
- * where "unheard" beats "chart" explains the whole joke without opening anything. It
- * has moved ABOVE the shelf and folded together with the rules into a tab strip, for
- * the reason written at the point of use: an explanation that arrives after somebody
- * has opened a pack has arrived too late.
+ * EVERYTHING BELOW THE MASTHEAD IS ONE TAB STRIP. The shelf, the ladder, the card set
+ * and the rules were four blocks stacked down the page, which meant the subject of the
+ * app was the first of four things to scroll past rather than the thing you landed on.
+ * They are four panels of one strip now, with the packs open first.
  */
 
 /*
@@ -155,17 +153,17 @@ const DeepcutsPage = () => {
         </Suspense>
       </div>
 
-      {/* ABOVE THE PACKS, WHICH IS WHERE THE EXPLANATION BELONGS ON THIS PARTICULAR
-          page. Normally a legend goes under the thing it labels; here the thing it
-          labels is a grid of sealed wrappers, and the single fact a visitor cannot
-          guess - that the rarity runs backwards - has to arrive before they open one.
-          Two stacked sections would have pushed the shelf off the first screen, so the
-          two are tabs. */}
-      <RulesTabs />
-
-      <Suspense fallback={<ShelfSkeleton />}>
-        <ShelfBlock library={library} />
-      </Suspense>
+      {/* ONE STRIP, FOUR PANELS, AND THE SHELF IS THE FIRST OF THEM. It used to be its
+          own section below this block, which meant the page was a masthead and then four
+          things stacked down it. The Suspense boundary comes with it: the shelf still
+          streams behind its skeleton, inside the tab rather than beside it. */}
+      <RulesTabs
+        packs={
+          <Suspense fallback={<ShelfSkeleton />}>
+            <ShelfBlock library={library} />
+          </Suspense>
+        }
+      />
 
       <p className={styles.footnote}>{DEEPCUTS_TEASER.footnote}</p>
     </div>
