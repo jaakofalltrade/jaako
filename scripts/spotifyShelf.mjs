@@ -21,8 +21,14 @@ const bail = (message) => {
   process.exit(1);
 };
 
-/** A fresh access token from the refresh token in .env.local. */
-const accessToken = async () => {
+/**
+ * A fresh access token from the refresh token in .env.local.
+ *
+ * Exported because backfill-card-art.mjs wants the token and not the shelf. Read-only
+ * credentials either way: this is the same refresh token the site uses to LIST things,
+ * and nothing in scripts/ holds a write scope.
+ */
+export const spotifyAccessToken = async () => {
   const {
     SPOTIFY_CLIENT_ID: id,
     SPOTIFY_CLIENT_SECRET: secret,
@@ -52,7 +58,7 @@ const accessToken = async () => {
  * hard way and this has to match or every playlist reports zero tracks.
  */
 export const listOwnPublicPlaylists = async () => {
-  const token = await accessToken();
+  const token = await spotifyAccessToken();
   const headers = { Authorization: `Bearer ${token}` };
 
   const me = await fetch("https://api.spotify.com/v1/me", { headers });
