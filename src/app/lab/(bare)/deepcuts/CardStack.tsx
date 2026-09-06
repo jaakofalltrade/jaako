@@ -85,7 +85,7 @@ export const CardStack = ({ cards, playlistName }: CardStackProps) => {
           target="_blank"
           rel="noopener noreferrer"
         >
-          {DEEPCUTS_TEASER.card_open_spotify}
+          {DEEPCUTS_TEASER.card_open_before} {top.track.title} {DEEPCUTS_TEASER.card_open_after}
         </a>
       ) : null}
 

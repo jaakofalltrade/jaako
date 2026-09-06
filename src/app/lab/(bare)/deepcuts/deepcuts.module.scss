@@ -1028,24 +1028,31 @@
   min-height: 0;
 }
 
+/* THE WAY OUT, AND IT HAS TO BE FINDABLE. This was a 14%-alpha hairline round soft grey
+   type on no background at all - and the dialog paints no surface, so it was sitting on a
+   blurred photograph of the page. It read as a smudge. Filled, full ink, and a firm edge:
+   still the quietest control on the panel, and now visibly a control. */
 .dialogClose {
   align-self: flex-end;
   flex: none;
-  padding: 0.35rem 0.6rem;
-  border: 1px solid var(--dc-hair);
+  padding: 0.4rem 0.75rem;
+  border: 1px solid rgba(29, 26, 22, 0.3);
   border-radius: 0.25rem;
-  background: transparent;
+  background: var(--dc-card);
+  box-shadow: 0 1px 3px rgba(29, 26, 22, 0.16);
   font-family: var(--dc-mono);
-  font-size: 0.65rem;
+  font-size: 0.68rem;
+  font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--dc-ink-soft);
+  color: var(--dc-ink);
   cursor: pointer;
 
   &:hover,
   &:focus-visible {
-    border-color: rgba(29, 26, 22, 0.35);
-    color: var(--dc-ink);
+    border-color: var(--dc-ink);
+    background: var(--dc-ink);
+    color: var(--dc-card);
   }
 }
 
@@ -1456,6 +1463,19 @@
   gap: 0.85rem;
 }
 
+/* THE DECK NEEDS ROOM THE GAP DOES NOT GIVE IT. Every card is rotated up to six degrees
+   and lifted up to 16px by its depth, so the pile draws well outside the box the grid
+   assigns it - on a 20rem card that is about two rems past the top edge. A flex gap is
+   measured to the BOX, so the label above sat inside the overhang and the topmost cards
+   were printed over the playlist's name.
+
+   Margin rather than a bigger gap on .pulled, because only this one edge is the problem:
+   raising the gap would push the link and the note away from the deck for no reason. */
+.deck {
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
 /* THE TWO LINES AROUND THE DECK, both raised out of the soft grey they were set in.
 
    The rule for the whole panel: nothing is painted behind this dialog, so every word on
@@ -1547,9 +1567,11 @@
   border-radius: 0.45rem;
   overflow: hidden;
   background: var(--dc-board);
-  /* The rung, as the card's edge. A pile shows nothing but edges until you throw the
-     top one, so the border is where the rarity has to live. */
-  border: 2px solid var(--dc-hair);
+  /* THE RUNG, AS THE CARD'S EDGE, AND IT IS THE ONLY PLACE THE RUNG IS ALWAYS VISIBLE. A
+     pile shows nothing but edges until you throw the top one, and in the binder the plate
+     naming the rung is a few millimetres of type. Two pixels was not enough colour to tell
+     a gold from a silver across a grid; four is. */
+  border: 4px solid var(--dc-hair);
   box-shadow: 0 6px 18px rgba(29, 26, 22, 0.24);
 
   &[data-tier="DIAMOND"] { border-color: var(--dc-diamond); }
@@ -1686,7 +1708,7 @@
    The deck itself is still mouse and touch only: throwing a card is a drag and there is
    no keyboard equivalent for it. That is a real gap and a bigger one than a selector. */
 .pull:hover::before,
-.binderLink:focus-visible .pull::before {
+.binderOpen:focus-visible .pull::before {
   background-position: 100% 100%;
 }
 
@@ -1698,7 +1720,7 @@
   }
 
   .pull:hover::before,
-  .binderLink:focus-visible .pull::before {
+  .binderOpen:focus-visible .pull::before {
     background-position: -100% -100%;
   }
 }
@@ -1878,10 +1900,12 @@
   padding: 0;
   list-style: none;
   /* auto-fill rather than a fixed count, so the row breaks on the container and not on a
-     media query. 9rem is about as small as a card can be and still have its title read. */
+     media query. 12rem rather than the 9rem it was: at the smaller size a card was a
+     thumbnail of a card, and the artwork - which is the thing being collected - was
+     competing with its own caption for about a hundred and fifty pixels. */
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  gap: 1.15rem;
 }
 
 .binderSlot {
@@ -1892,17 +1916,122 @@
 
 /* Wraps the whole face, so the card IS the link rather than carrying one. No underline
    and no colour of its own: a card that turned blue would stop being a card. */
-.binderLink {
+/* A CARD IN THE BINDER OPENS IT RATHER THAN LEAVING THE SITE, so this is a button where
+   it was an anchor. Everything a button brings with it is unwanted here - the border, the
+   padding, the background, the font - because the control IS the card. */
+.binderOpen {
   display: block;
+  width: 100%;
   height: 100%;
-  text-decoration: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
   color: inherit;
+  text-align: inherit;
+  cursor: pointer;
 
   &:focus-visible {
     outline: 2px solid var(--dc-ink);
     outline-offset: 3px;
     border-radius: 0.5rem;
   }
+}
+
+/* ---------------- one card, held up ----------------
+
+   The binder's own dialog. It borrows .dialog for the box and the blurred backdrop, and
+   everything below is what sits inside it. */
+
+.cardStage {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  min-height: 0;
+}
+
+/* TWO ELEMENTS, TWO MOTIONS, for the reason the opened pack gives at greater length: the
+   entrance animates scale and opacity while the tilt animates rotateX, rotateY and its own
+   scale. Both are the transform property, so on one element the second would overwrite the
+   first and the card would arrive having never travelled. */
+.cardShell {
+  flex: none;
+  display: flex;
+  justify-content: center;
+  /* THE POP. A keyframe rather than a motion element, because this is a one-shot
+     entrance with no state behind it and a keyframe is the smaller way to write that.
+
+     `both` is load-bearing: it holds the end state after the run, so the card does not
+     snap back to 70% the moment the animation finishes.
+
+     A NOTE FOR WHOEVER DEBUGS THIS NEXT, because it has cost time twice. Reading this
+     element in devtools and finding it parked on the `from` state usually does not mean
+     the animation is broken - it means the tab is not the foreground tab. Chrome freezes
+     requestAnimationFrame AND CSS animations in a hidden tab, so a stuck-looking entrance
+     measures identically to a frozen one. Check document.visibilityState before believing
+     it, or call getAnimations()[0].finish() and read the end state. */
+  animation: dc-card-pop 320ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+
+@keyframes dc-card-pop {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Asked for no motion, so the card is simply there. */
+@media (prefers-reduced-motion: reduce) {
+  .cardShell {
+    animation: none;
+  }
+}
+
+.cardHeld {
+  /* Nearly twice the binder's card, which is the point of picking one up. Capped against
+     the viewport so a short window does not push the name and the link off the bottom -
+     11rem, measured rather than guessed: the close button, the name, the link and the
+     three gaps between them come to about that, and 16rem was reserving room for nothing
+     and shrinking the card on a laptop. */
+  /* flex:none, because TiltedCard's stage is a flex row and a flex item's default
+     shrink-to-fit beat the width outright: the card came out at its content's natural
+     size, 269px, and quietly ignored the 24rem it was asked for. */
+  flex: none;
+  width: min(24rem, calc(100vw - 4rem));
+  max-height: calc(100dvh - 11rem);
+  aspect-ratio: 5 / 7;
+}
+
+.cardHeldName {
+  flex: none;
+  margin: 0;
+  max-width: 32ch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--dc-ink);
+}
+
+.cardHeldRung {
+  font-family: var(--dc-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dc-ink-soft);
 }
 
 /* ---------------- the sparkles ----------------

@@ -5,6 +5,7 @@ import { remoteService } from "@/client/remoteService";
 import { DEEPCUT_TIER } from "@/constants";
 import { DEEPCUTS_TEASER } from "@/data/lab";
 import type { CollectedCard } from "@/models";
+import { CardDialog } from "./CardDialog";
 import { CardFace } from "./CardFace";
 import styles from "./deepcuts.module.scss";
 
@@ -54,6 +55,9 @@ export const Collection = ({ active }: CollectionProps) => {
      "could not read" are different things to a reader: one is an invitation to open a
      pack, the other is not their fault and not their problem to fix. */
   const [failed, setFailed] = useState("");
+  /* The card being held up, or null. Its own state rather than an id, because the binder
+     already has the whole row and the dialog needs nothing the list does not hold. */
+  const [held, setHeld] = useState<CollectedCard | null>(null);
 
   useEffect(() => {
     if (!active) return;
@@ -105,26 +109,16 @@ export const Collection = ({ active }: CollectionProps) => {
       <ul className={styles.binder}>
         {cards.map((card) => (
           <li key={card.id} className={styles.binderSlot}>
-            {/* The card links out when we have a URL for it. Rows written before the
-                column existed have none, and those render as a plain face rather than as
-                a dead link. */}
-            {card.url ? (
-              <a
-                className={styles.binderLink}
-                href={card.url}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <CardFace
-                  title={card.title}
-                  artist={card.artist}
-                  album_art={card.album_art}
-                  plays={card.plays}
-                  tier={card.tier}
-                  shiny={card.shiny}
-                />
-              </a>
-            ) : (
+            {/* A BUTTON, NOT A LINK, AND THAT IS THE CHANGE. Every card used to be an
+                anchor to Spotify, so the only thing a click could mean was "leave". What
+                somebody wants from a card they pulled is to look at it, so a click holds
+                it up instead and the Spotify link is one of the things offered once it is
+                open. Every card opens, including the ones with no stored link. */}
+            <button
+              type="button"
+              className={styles.binderOpen}
+              onClick={() => setHeld(card)}
+            >
               <CardFace
                 title={card.title}
                 artist={card.artist}
@@ -133,10 +127,12 @@ export const Collection = ({ active }: CollectionProps) => {
                 tier={card.tier}
                 shiny={card.shiny}
               />
-            )}
+            </button>
           </li>
         ))}
       </ul>
+
+      <CardDialog card={held} onClose={() => setHeld(null)} />
 
       <p className={styles.source}>{DEEPCUTS_TEASER.collection_note}</p>
     </>

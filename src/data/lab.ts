@@ -442,7 +442,12 @@ export const DEEPCUTS_TEASER = {
   /** On a shiny card. */
   shiny_badge: "shiny",
   /** Under the deck, for whichever card is on top. It changes as the deck is shuffled. */
-  card_open_spotify: "open this track in spotify",
+  /* NAMES THE SONG RATHER THAN "this track", which is why it is two halves. A link that
+     says what it opens is worth more than a tidy constant: under a pile of five cards
+     that shuffle, "open this track" cannot say WHICH, and the whole reason the link
+     follows the front card is that it belongs to the one you can see. */
+  card_open_before: "open",
+  card_open_after: "in spotify",
   /** Above the deck once the pack is gone, in place of the wrapper. */
   pulled_from: "out of",
   /* Under the button. Why it will not press.

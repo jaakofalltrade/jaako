@@ -197,10 +197,13 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
       /* Escape and the close button both come through here, so the parent's state and
          the element's own open flag cannot drift apart. */
       onClose={onClose}
-      /* Clicking the page behind closes. The check is what makes it the BACKDROP rather
-         than any click: a <dialog> is its own event target, so a click that landed on
-         the content bubbles up with that content as its target, and only a click on the
-         dialog element itself is one that missed. */
+      /* CLICKING OUTSIDE CLOSES, AND "OUTSIDE" HAD TO BE WIDENED. A <dialog> is its own
+         event target, so a click on the backdrop arrives here with the dialog as its
+         target and a click on the content arrives with the content - which is the whole
+         check. What it missed is that this dialog's box is 46rem by 52rem of transparent
+         nothing and .stage fills all of it, so almost every click a visitor would call
+         "outside the pack" landed on the stage and did nothing. The stage counts too;
+         see the handler on it below. */
       onClick={(event) => {
         if (event.target === ref.current) ref.current?.close();
       }}
@@ -210,7 +213,15 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
           close is a hard cut however carefully the open was tuned. */}
       <AnimatePresence>
         {playlist ? (
-          <div className={styles.stage}>
+          <div
+            className={styles.stage}
+            /* Only a click on the stage ITSELF, never one that bubbled up from the pack
+               or a card. currentTarget is the stage; target is whatever was actually
+               hit, so the two are equal exactly when the click missed everything. */
+            onClick={(event) => {
+              if (event.target === event.currentTarget) ref.current?.close();
+            }}
+          >
             <button
               type="button"
               className={styles.dialogClose}
