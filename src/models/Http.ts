@@ -6,6 +6,8 @@
  */
 export enum HttpStatus {
   Ok = 200,
+  /** Answered, deliberately with no body. The warm route's success. */
+  NoContent = 204,
   BadRequest = 400,
   /**
    * The pack asked for is not one this site publishes.

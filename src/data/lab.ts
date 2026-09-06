@@ -419,8 +419,6 @@ export const DEEPCUTS_TEASER = {
 
   dialog_label: "opened",
   dialog_close: "close",
-  dialog_loading: "Reading the pack.",
-  dialog_failed: "That pack would not open. Try again in a moment.",
   dialog_plays: "plays",
   dialog_spotify: "open the playlist in spotify",
 
@@ -451,8 +449,6 @@ export const DEEPCUTS_TEASER = {
      NOT "rip_note", which is already taken by the word printed on the tear strip. Two
      different things called the same thing is how the strip ends up reading like an
      apology. */
-  /** When the deployment cannot score what it would deal. */
-  rip_blocked_unscored: "The rip needs play counts, and last.fm is not switched on here.",
 
   /* THE PULL ODDS, ON THE CARDS TAB. They used to be a column in a table under the pack,
      printed per track: the chance that this exact song was the one card the pack rolled a
@@ -492,6 +488,8 @@ export const DEEPCUTS_TEASER = {
 
   /** Between the fetch and the answer. Never seen for long, and never for a cold start. */
   collection_loading: "Reading your cards.",
+  /** The read did not happen. Distinct from an empty binder, which is not a failure. */
+  collection_failed: "Could not read your cards just now. Try again in a moment.",
   /**
    * Nobody has opened a pack in this browser.
    *

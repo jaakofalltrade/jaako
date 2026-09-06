@@ -4,6 +4,7 @@ import { useState } from "react";
 import { PACKS_PER_PAGE } from "@/constants";
 import { DEEPCUTS_TEASER } from "@/data/lab";
 import type { DeepcutsPlaylist } from "@/models";
+import { remoteService } from "@/client/remoteService";
 import { Pagination } from "@/design-system/core/Pagination";
 import { PackDialog } from "./PackDialog";
 import styles from "./deepcuts.module.scss";
@@ -66,6 +67,18 @@ export const PackShelf = ({ playlists }: PackShelfProps) => {
                  unprinted wrapper actually looks like. */
               data-plain={playlist.cover ? undefined : ""}
               onClick={() => setOpen(playlist)}
+              /* WARMING THE CACHE BEFORE THE CLICK. Scoring a cold playlist is up to fifty
+                 last.fm lookups, and the rip animation is under a second - so a pack that
+                 has never been asked about deals its cards after the tear rather than
+                 inside it. Pointing at a pack is the earliest honest signal that somebody
+                 might open it, and the request renders nothing, so a hover that goes
+                 nowhere costs a warm cache and no pixels.
+
+                 onFocus as well, because a keyboard never hovers. Touch never fires either
+                 and there is no equivalent: a phone takes the cold path, and the flash
+                 covers what it can. */
+              onPointerEnter={() => remoteService.warmPack({ playlist_id: playlist.id })}
+              onFocus={() => remoteService.warmPack({ playlist_id: playlist.id })}
             >
               {/* The serrated edge, then the crimp band under it. A foil pack is sealed
                   by pressing the sheets together along the top, and both marks that

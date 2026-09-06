@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchCollection } from "@/client/deepcutsApi";
+import { remoteService } from "@/client/remoteService";
 import { DEEPCUT_TIER } from "@/constants";
 import { DEEPCUTS_TEASER } from "@/data/lab";
 import type { CollectedCard } from "@/models";
@@ -45,26 +45,38 @@ export type CollectionProps = {
  * the smallest thing that does both.
  *
  * AN EMPTY BINDER IS THE COMMON CASE, not an error. It is what every first-time visitor
- * sees, and what a failed read collapses to; see the route and the store, where reads
- * degrade. So the empty state is written as an invitation rather than as an apology, and
- * there is no error state to distinguish because there is nothing a visitor could do
- * about the difference.
+ * sees, so it is written as an invitation rather than an apology - and it is kept apart
+ * from a failed read, which says so instead of pretending the binder is empty.
  */
 export const Collection = ({ active }: CollectionProps) => {
   const [cards, setCards] = useState<CollectedCard[] | null>(null);
+  /* Its own state rather than a sentinel inside `cards`, because "read and empty" and
+     "could not read" are different things to a reader: one is an invitation to open a
+     pack, the other is not their fault and not their problem to fix. */
+  const [failed, setFailed] = useState("");
 
   useEffect(() => {
     if (!active) return;
 
     const controller = new AbortController();
 
-    fetchCollection({ signal: controller.signal }).then((found) => {
+    void remoteService.collection({ signal: controller.signal }).then((answer) => {
       if (controller.signal.aborted) return;
-      setCards(found);
+
+      if (answer.ok) {
+        setCards(answer.data);
+        setFailed("");
+        return;
+      }
+
+      // An empty sentence is an abort this component asked for. Nothing to say.
+      if (answer.error) setFailed(answer.error);
     });
 
     return () => controller.abort();
   }, [active]);
+
+  if (failed) return <p className={styles.ladderNote}>{failed}</p>;
 
   /* Null is "not read yet" and [] is "read, and empty". Collapsing them would flash the
      empty-binder invitation at somebody who has two hundred cards, every time they open

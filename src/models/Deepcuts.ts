@@ -243,24 +243,6 @@ export type ScoredTrack = {
   /** Global scrobbles on last.fm. Not Spotify streams; the page says so. */
   plays: number | null;
   tier: DeepcutTier | null;
-  /**
-   * The chance a pack holds this song, as a percentage with one decimal.
-   *
-   * ACROSS ALL FIVE CARDS, because all five roll a rung now. It was briefly the odds on
-   * one reserved slot, and before that it counted four uniform commons as well - which
-   * buried the rarity under a floor set by playlist length, so on a twelve-track list
-   * every song started at 36.4% and the column said nothing at all. See pullChances for
-   * the arithmetic, which is enumerated rather than approximated.
-   *
-   * THE NUMBER RUNS THE OTHER WAY FROM RARITY, and that is not a bug. A rare song is one
-   * the draw rolls for less often, so a rarer rung prices LOWER on an equal footing. A fat
-   * common rung can also out-price a thin rare one: a specific song among forty is still a
-   * specific song.
-   *
-   * Zero for a rung the playlist does not have. Null for a track with no rung, which is
-   * the same set of tracks that are not in the pool at all.
-   */
-  chance: number | null;
 };
 
 /**

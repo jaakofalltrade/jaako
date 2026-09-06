@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { fetchPack, ripPack } from "@/client/deepcutsApi";
+import { remoteService } from "@/client/remoteService";
 import {
   RIP_FLASH_MS,
   RIP_FORWARD_MS,
@@ -10,7 +10,7 @@ import {
   RIP_TEAR_MS,
 } from "@/constants";
 import { DEEPCUTS_TEASER } from "@/data/lab";
-import type { DeepcutsPlaylist, PackCard, PackContents } from "@/models";
+import type { DeepcutsPlaylist, PackCard } from "@/models";
 import { CardStack } from "./CardStack";
 import { Sparkles } from "./Sparkles";
 import { TiltedPack } from "./TiltedPack";
@@ -77,15 +77,6 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
      dialog needs an accessible name and its name is the playlist. */
   const titleId = useId();
 
-  /* ONE PIECE OF STATE, STAMPED WITH THE PACK IT BELONGS TO. A slow answer for pack A
-     can land after pack B has been opened, and clearing state beforehand does not
-     prevent that - the id does. */
-  const [result, setResult] = useState<{
-    id: string;
-    contents: PackContents | null;
-    failed: boolean;
-  } | null>(null);
-
   /* showModal() and close() are imperative, so opening is an effect rather than an
      attribute. `open` as a prop would render the dialog non-modally: no top layer, no
      focus trap, no backdrop. */
@@ -97,27 +88,8 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
     if (!playlist && dialog.open) dialog.close();
   }, [playlist]);
 
-  useEffect(() => {
-    if (!playlist) return;
-
-    const controller = new AbortController();
-    const id = playlist.id;
-
-    fetchPack({ playlist_id: id, signal: controller.signal })
-      .then((contents) => setResult({ id, contents, failed: false }))
-      .catch((error: unknown) => {
-        // An abort is this component tidying up after itself, not a failure to report.
-        if (controller.signal.aborted) return;
-        console.error("[deepcuts] pack failed:", error);
-        setResult({ id, contents: null, failed: true });
-      });
-
-    return () => controller.abort();
-  }, [playlist]);
-
-  /* The rip, stamped with its pack for the same reason the contents are: opening one
-     pack, closing it and opening another must not show the first one's cards under the
-     second one's name. */
+  /* The rip, stamped with its pack: opening one pack, closing it and opening another must
+     not show the first one's cards under the second one's name. */
   const [pulled, setPulled] = useState<{
     id: string;
     cards: PackCard[];
@@ -150,8 +122,7 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
   } | null>(null);
 
   /* Only an answer stamped with the pack now on screen counts. Anything else is the
-     previous pack's, still in flight or already landed, and it renders as loading. */
-  const shown = playlist && result?.id === playlist.id ? result : null;
+     previous pack's, still in flight or already landed. */
   const pack = playlist && pulled?.id === playlist.id ? pulled : null;
   const phase = playlist && ripping?.id === playlist.id ? ripping.phase : "idle";
 
@@ -181,17 +152,20 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
        boundary for a debugging switch. The server ignores it anywhere but local. */
     const shiny = new URLSearchParams(window.location.search).get("shiny") === "1";
 
-    const dealt = ripPack({ playlist_id: id, shiny }).catch((error: unknown) => {
-      console.error("[deepcuts] rip failed:", error);
-      return { playlist_id: id, cards: [], error: DEEPCUTS_TEASER.rip_failed };
-    });
+    const dealt = remoteService.rip({ playlist_id: id, shiny });
 
     const [answer] = await Promise.all([dealt, sequence]);
 
-    setPulled({ id, cards: answer.cards, error: answer.error });
+    /* The service never throws, so there is nothing to catch here - a refusal arrives as
+       a value with a sentence already written for the visitor. */
+    setPulled(
+      answer.ok
+        ? { id, cards: answer.data.cards, error: answer.data.error }
+        : { id, cards: [], error: answer.error }
+    );
     /* Back to idle when the rip was refused, so the button can be pressed again. A pack
        that failed to open is still a sealed pack. */
-    setRipping({ id, phase: answer.cards.length ? "opened" : "idle" });
+    setRipping({ id, phase: answer.ok && answer.data.cards.length ? "opened" : "idle" });
   };
 
   return (
@@ -349,7 +323,7 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
                 type="button"
                 className={styles.rip}
                 onClick={rip}
-                disabled={phase !== "idle" || !shown?.contents?.scored || Boolean(pack?.error)}
+                disabled={phase !== "idle" || Boolean(pack?.error)}
               >
                 {phase === "idle" ? DEEPCUTS_TEASER.rip_button : DEEPCUTS_TEASER.rip_working}
               </button>
@@ -358,17 +332,7 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
             {/* ONE LINE UNDER THE BUTTON, SAYING WHICHEVER THING IS TRUE. It is the only
                 thing the panel says about the contents now, and each branch is a reason
                 the button will not work rather than a description of what is inside. */}
-            {pack?.error ? (
-              <p className={styles.ripNote}>{pack.error}</p>
-            ) : shown?.failed ? (
-              <p className={styles.ripNote}>{DEEPCUTS_TEASER.dialog_failed}</p>
-            ) : shown?.contents && !shown.contents.scored ? (
-              <p className={styles.ripNote}>{DEEPCUTS_TEASER.rip_blocked_unscored}</p>
-            ) : !shown?.contents && phase === "idle" ? (
-              /* The button is disabled until the scoring lands, so something has to say
-                 why it is disabled. */
-              <p className={styles.ripNote}>{DEEPCUTS_TEASER.dialog_loading}</p>
-            ) : null}
+            {pack?.error ? <p className={styles.ripNote}>{pack.error}</p> : null}
 
             {/* The five cards, once they exist. */}
             {pack?.cards.length ? (

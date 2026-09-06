@@ -16,6 +16,7 @@ export * from "./Handle";
 export * from "./Http";
 export * from "./Lab";
 export * from "./Project";
+export * from "./Result";
 export * from "./ServerConfig";
 export * from "./Site";
 export * from "./Suggest";

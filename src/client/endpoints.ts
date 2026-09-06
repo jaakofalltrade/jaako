@@ -62,12 +62,18 @@ export const routes = {
  * Keys are the path segment with the hyphen swapped for an underscore, so the table
  * can be read against the route folders without translating.
  */
+/* The two segments every route below is built from, so the prefix is written once. A
+   typo in a literal path is a 404 nobody notices until a feature quietly stops working;
+   a typo here does not compile. */
+const API = "/api";
+const LAB = `${API}/lab`;
+
 export const endpoints = {
-  contact: "/api/contact",
+  contact: `${API}/contact`,
 
   spotify: {
-    now_playing: "/api/spotify/now-playing",
-    top_items: "/api/spotify/top-items",
+    now_playing: `${API}/spotify/now-playing`,
+    top_items: `${API}/spotify/top-items`,
   },
 
   /**
@@ -76,17 +82,24 @@ export const endpoints = {
    */
   lab: {
     suggest: {
-      search: "/api/lab/suggest/search",
-      add: "/api/lab/suggest/add",
+      search: `${LAB}/suggest/search`,
+      add: `${LAB}/suggest/add`,
     },
     deepcuts: {
-      /** What is inside one pack. Takes ?id=<spotify playlist id>. */
-      pack: "/api/lab/deepcuts/pack",
-      /** Opening one. POST, same ?id=. */
-      rip: "/api/lab/deepcuts/rip",
+      /**
+       * Fills the play-count cache for one playlist and answers nothing.
+       *
+       * Fired when a pointer enters a pack on the shelf, so the scoring is already done
+       * by the time somebody clicks and rips. It replaced a route that returned the whole
+       * scored track list on click: a sealed pack shows nothing of its contents, so there
+       * was nothing left for that response to render.
+       */
+      warm: `${LAB}/deepcuts/warm`,
+      /** Opening one. POST, takes ?id=<spotify playlist id>. */
+      rip: `${LAB}/deepcuts/rip`,
       /** Every card this browser has pulled, rarest first. Takes no parameters: who is
           asking comes from the visitor cookie, and could not come from anywhere else. */
-      cards: "/api/lab/deepcuts/cards",
+      cards: `${LAB}/deepcuts/cards`,
     },
   },
 } as const;
