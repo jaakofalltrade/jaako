@@ -480,6 +480,14 @@
      crimp band carrying the tear line. Both are absolutely positioned, so the padding
      is what stops the cover sliding under them. */
   padding: 2.2rem 0 0;
+  /* ONE HEIGHT FOR EVERY PACK, PRINTED OR PLAIN. Without this a pack's height is its
+     contents, so a row that happens to hold three playlists with no cover art comes out
+     half the height of the row above it and the shelf goes ragged. A wrapper is a
+     manufactured object: they all come off the same roll.
+
+     The ratio is the printed pack's own - a square cover, the crimp above it, the name
+     and count below - so nothing moved for the packs that already had art. */
+  aspect-ratio: 11 / 16;
   border-radius: 0.75rem;
   overflow: hidden;
   text-decoration: none;
@@ -593,7 +601,9 @@
   position: relative;
   display: block;
   aspect-ratio: 1;
-  margin: 0 0.75rem;
+  /* The top margin is the fix for the cover sitting flush against the tear line, which
+     read as a printing misregistration rather than a layout. */
+  margin: 0.5rem 0.75rem 0;
   border-radius: 0.35rem;
   overflow: hidden;
   background: var(--dc-board);
@@ -909,11 +919,14 @@
 .shelfPack[data-plain] {
   .shelfBody {
     justify-content: flex-end;
-    min-height: 9rem;
   }
 }
 
-/* ---------------- the opened pack ---------------- */
+/* ---------------- the opened pack ----------------
+
+   .dialogLabel, .dialogName and .dialogCover are gone with the panel they described: an
+   eyebrow, a heading and a loose cover square. The panel renders the WRAPPER now, so the
+   name and the art are printed on it rather than stacked beside it. See .opened. */
 
 .dialog {
   width: min(34rem, calc(100vw - 2rem));
@@ -1001,47 +1014,13 @@
   gap: 1rem;
 }
 
-.dialogHead {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-}
 
-.dialogLabel {
-  margin: 0 0 0.15rem;
-  font-family: var(--dc-mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--dc-ink-soft);
-}
 
-/* A PLAYLIST'S NAME, NOT A HEADING, THOUGH IT IS MARKED UP AS ONE.
 
-   The <h2> is right: a dialog needs a title and this is it. What is not right is what
-   the site's reset does to every h1-h6 - display face, bold, tracked, and
-   text-transform: lowercase, "set lowercase everywhere by design". That rule is about
-   the portfolio's headings; this is a string Spotify gave us, and it arrived as
-   "Portfolio Playlist (Local Env)" and rendered as "portfolio playlist (local env)".
-   The same name on the pack behind the dialog is a <span> and kept its capitals, so the
-   page was contradicting itself about what the playlist is called.
 
-   Every inherited property is therefore restated rather than only the transform, which
-   is the same rule this module's header sets out: a bare lab app owns its own type and
-   does not take the site's. */
-.dialogName {
-  margin: 0;
-  font-family: var(--dc-display);
-  font-size: 1.4rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  line-height: 1.2;
-  text-transform: none;
-  color: var(--dc-ink);
-}
 
 .dialogClose {
+  align-self: flex-end;
   flex: none;
   padding: 0.35rem 0.6rem;
   border: 1px solid var(--dc-hair);
@@ -1061,13 +1040,6 @@
   }
 }
 
-.dialogCover {
-  width: 7.5rem;
-  height: 7.5rem;
-  border-radius: 0.35rem;
-  object-fit: cover;
-  box-shadow: inset 0 0 0 1px rgba(29, 26, 22, 0.12);
-}
 
 .dialogNote {
   margin: 0;
@@ -1213,4 +1185,152 @@
   font-size: 0.9rem;
   line-height: 1.5;
   color: var(--dc-ink-soft);
+}
+
+/* ---------------- the opened pack ---------------- */
+
+/* The same wrapper as on the shelf, larger. Not a heading with a cover beside it: what
+   the reader clicked was a pack, so what arrives is that pack. */
+.opened {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  /* NARROWER THAN THE PANEL, AND CENTRED. Filling the dialog's full width made the cover
+     enormous and pushed the whole track list below the fold, so the panel opened on a
+     picture rather than on what is inside the pack. A pack is a portrait object; at this
+     width it reads as one, and the list starts on the first screen. */
+  width: min(15rem, 100%);
+  align-self: center;
+  padding: 2.2rem 0 0;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background:
+    linear-gradient(
+      118deg,
+      var(--dc-foil-low) 0%,
+      var(--dc-foil) 22%,
+      var(--dc-foil-high) 34%,
+      var(--dc-foil) 46%,
+      var(--dc-foil-low) 62%,
+      var(--dc-foil-high) 78%,
+      var(--dc-foil) 100%
+    );
+  box-shadow: 0 8px 18px rgba(29, 26, 22, 0.16);
+
+  /* A pack with nothing printed on it still has to be a pack rather than a label. Same
+     rule as the shelf's plain wrappers, at the panel's scale. */
+  &[data-plain] .openedBody {
+    min-height: 7rem;
+    justify-content: flex-end;
+  }
+}
+
+.openedArt {
+  position: relative;
+  display: block;
+  aspect-ratio: 1;
+  /* Clear of the crimp band above it. The shelf pack had the cover butted straight up
+     against the tear line, which read as a printing misregistration rather than a
+     layout. */
+  margin: 0.6rem 0.9rem 0;
+  border-radius: 0.35rem;
+  overflow: hidden;
+  background: var(--dc-board);
+  box-shadow:
+    inset 0 0 0 1px rgba(29, 26, 22, 0.12),
+    inset 0 1px 6px rgba(29, 26, 22, 0.18);
+
+  /* The same raked sheen the shelf covers take, so the art reads as printed on foil. */
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      118deg,
+      rgba(255, 255, 255, 0.34) 0%,
+      rgba(255, 255, 255, 0.06) 26%,
+      rgba(29, 26, 22, 0.16) 52%,
+      rgba(255, 255, 255, 0.5) 72%,
+      rgba(255, 255, 255, 0.08) 84%,
+      rgba(29, 26, 22, 0.1) 100%
+    );
+    mix-blend-mode: overlay;
+    pointer-events: none;
+  }
+}
+
+.openedBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-top: auto;
+  padding: 1rem 0.9rem 0.6rem;
+}
+
+/* The playlist's name. A <span> rather than a heading, and that is deliberate: the
+   site's reset sets every h1-h6 lowercase "everywhere by design", which mangles a name
+   Spotify gave us. The dialog is still named by this through aria-labelledby. */
+.openedName {
+  font-family: var(--dc-display);
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  color: var(--dc-ink);
+}
+
+.openedMeta {
+  font-family: var(--dc-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(29, 26, 22, 0.62);
+}
+
+/* ---------------- the rip ---------------- */
+
+/* Across the foot of the pack, as on the sketch. Full width so it reads as the pack's
+   own control rather than a button that happens to be under it. */
+.rip {
+  /* The pack's own width, so it reads as that pack's control rather than the panel's. */
+  width: min(15rem, 100%);
+  align-self: center;
+  padding: 0.75rem;
+  margin-top: -0.4rem;
+  border: 1px solid var(--dc-ink);
+  border-radius: 0.35rem;
+  background: var(--dc-ink);
+  color: var(--dc-card);
+  font-family: var(--dc-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+
+  &:disabled {
+    /* Dead, and visibly so. A pack you cannot open yet is the honest state of this app,
+       and slots makes the same call with a lever that does not pull. */
+    background: transparent;
+    color: var(--dc-ink-soft);
+    border-color: var(--dc-hair);
+    cursor: default;
+  }
+}
+
+.ripNote {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--dc-ink-soft);
+}
+
+/* The percentile under a card's rung. Its label names the playlist it is measured
+   against, because the number is local and reads as global without it. */
+.cardPercent {
+  font-family: var(--dc-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--dc-ink);
 }

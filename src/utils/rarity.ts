@@ -82,3 +82,39 @@ export const rarityOf = (args: { plays: number | null | undefined }): DeepcutTie
      the ground. */
   return DeepcutTier.Unheard;
 };
+
+/**
+ * How rare a song is against the playlist it came out of, as a percentage.
+ *
+ * A PERCENTILE, NOT A SCORE OUT OF A HUNDRED. "Rarer than 87% of this playlist" is a
+ * statement somebody can check by counting; a normalised 0-100 "rarity index" derived
+ * from the play count would be a number with no unit, which is the exact objection
+ * docs/lab.md raises against Spotify's own `popularity` field. Having refused one
+ * invented index, this app should not ship another.
+ *
+ * IT IS LOCAL TO THE PLAYLIST AND THE COPY HAS TO SAY SO. The same song is rarer than
+ * 90% of a chart playlist and rarer than 10% of a crate-digging one. That is the useful
+ * reading - it answers "is this a good pull out of THIS pack" - but read as a global
+ * figure it is nonsense, so the label beside it never says just "rarity".
+ *
+ * Counted on strictly-more-plays, so the quietest track in a playlist is rarer than
+ * everything else and reads 100, and the loudest reads 0.
+ */
+export const rarerThan = (args: {
+  plays: number | null;
+  /** Every known count on the playlist, this one included. Unmatched tracks are absent. */
+  among: number[];
+}): number | null => {
+  const { plays, among } = args;
+
+  // No count, no rung, no percentile. The three go together; see rarityOf.
+  if (plays === null || !Number.isFinite(plays)) return null;
+
+  /* One scored track is not a distribution. A lone song would read "rarer than 0% of
+     this playlist", which is true, useless, and reads as a bad pull. */
+  if (among.length < 2) return null;
+
+  const louder = among.filter((count) => count > plays).length;
+
+  return Math.round((louder / among.length) * 100);
+};

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DeepcutTier } from "@/models";
-import { rarityOf } from "@/utils/rarity";
+import { rarerThan, rarityOf } from "@/utils/rarity";
 
 /**
  * The scoring rule the whole app turns on.
@@ -84,6 +84,47 @@ describe("rarityOf", () => {
   it("always returns a rung for any real count", () => {
     for (const plays of [0, 3, 999, 12_345, 678_900, 4_200_000, 88_000_000]) {
       expect(tier(plays), `${plays} plays`).not.toBeNull();
+    }
+  });
+});
+
+describe("rarerThan", () => {
+  const among = [100, 1_000, 10_000, 100_000, 1_000_000];
+
+  it("puts the quietest song above everything else", () => {
+    expect(rarerThan({ plays: 100, among })).toBe(80);
+  });
+
+  it("puts the loudest song above nothing", () => {
+    expect(rarerThan({ plays: 1_000_000, among })).toBe(0);
+  });
+
+  it("counts the ones with more plays", () => {
+    expect(rarerThan({ plays: 10_000, among })).toBe(40);
+  });
+
+  /* Strictly more, so identical counts do not push each other up the list. */
+  it("does not count ties", () => {
+    expect(rarerThan({ plays: 500, among: [500, 500, 500, 500] })).toBe(0);
+  });
+
+  it("has no answer for a track that could not be matched", () => {
+    expect(rarerThan({ plays: null, among })).toBeNull();
+  });
+
+  /* One scored track is not a distribution: "rarer than 0% of this playlist" is true,
+     useless, and reads as a bad pull. */
+  it("has no answer for a playlist with nothing to compare against", () => {
+    expect(rarerThan({ plays: 100, among: [100] })).toBeNull();
+    expect(rarerThan({ plays: 100, among: [] })).toBeNull();
+  });
+
+  it("is always between 0 and 100", () => {
+    for (const plays of [0, 1, 999, 50_000, 9_000_000]) {
+      const value = rarerThan({ plays, among: [0, 1, 999, 50_000, 9_000_000] });
+      expect(value).not.toBeNull();
+      expect(value!).toBeGreaterThanOrEqual(0);
+      expect(value!).toBeLessThanOrEqual(100);
     }
   });
 });

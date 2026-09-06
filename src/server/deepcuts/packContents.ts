@@ -7,7 +7,8 @@ import { spotifyEndpoints } from "@/server/endpoints";
 import { spotifyRead } from "@/server/spotify/spotifyApiClient";
 import { hasCredentials } from "@/server/spotify/spotifyAccessTokens";
 import { artistNames } from "@/server/spotify/mappers";
-import { rarityOf } from "@/utils/rarity";
+import { rarerThan, rarityOf } from "@/utils/rarity";
+import { primaryArtist } from "@/utils/trackMatch";
 
 /**
  * What is inside one pack: the songs on a playlist, each with a rung.
@@ -59,13 +60,30 @@ export const packContents = async (args: {
 
     const total = playlist.items?.total ?? entries.length;
 
-    const tracks = await scoreAll({
+    const scored = await scoreAll({
+      /* TWO ARTIST STRINGS PER TRACK AND THEY ARE DIFFERENT ON PURPOSE. `artist` is
+         every credit joined, which is what a reader wants to see on the card;
+         `matchArtist` is the primary alone, which is the only form last.fm answers to.
+         Sending the joined string is the bug utils/trackMatch.ts exists to prevent. */
       tracks: entries.map((entry) => ({
         uri: entry.item?.uri ?? "",
         title: entry.item?.name ?? "unknown",
         artist: artistNames(entry.item?.artists),
+        matchArtist: primaryArtist(entry.item?.artists),
       })),
     });
+
+    /* THE PERCENTILE IS ADDED AFTER EVERY TRACK HAS ITS COUNT, because it is the one
+       field on a card that depends on the other cards. Computing it inside the scoring
+       loop would rank each song against however many happened to have finished. */
+    const known = scored
+      .map((track) => track.plays)
+      .filter((plays): plays is number => plays !== null);
+
+    const tracks = scored.map((track) => ({
+      ...track,
+      rarer_than: rarerThan({ plays: track.plays, among: known }),
+    }));
 
     return {
       playlist_id,
@@ -91,10 +109,10 @@ export const packContents = async (args: {
  * correct and would take fifty round trips; ten at a time is five.
  */
 const scoreAll = async (args: {
-  tracks: { uri: string; title: string; artist: string }[];
-}): Promise<ScoredTrack[]> => {
+  tracks: { uri: string; title: string; artist: string; matchArtist: string }[];
+}): Promise<Omit<ScoredTrack, "rarer_than">[]> => {
   const { tracks } = args;
-  const scored: ScoredTrack[] = [];
+  const scored: Omit<ScoredTrack, "rarer_than">[] = [];
 
   for (let start = 0; start < tracks.length; start += SCORING_CONCURRENCY) {
     const batch = tracks.slice(start, start + SCORING_CONCURRENCY);
@@ -103,12 +121,14 @@ const scoreAll = async (args: {
       ...(await Promise.all(
         batch.map(async (track) => {
           const plays = await lastfmService.playCount({
-            artist: track.artist,
+            artist: track.matchArtist,
             title: track.title,
           });
 
           return {
-            ...track,
+            uri: track.uri,
+            title: track.title,
+            artist: track.artist,
             plays,
             /* Null for a track last.fm could not match, and the panel renders that as
                "unmatched" rather than as the rarest rung. See rarityOf: guessing here

@@ -419,6 +419,27 @@ export const DEEPCUTS_TEASER = {
   dialog_plays: "plays",
   dialog_spotify: "open the playlist in spotify",
 
+  /* The control the whole app is named after, and it does not work yet.
+     DISABLED WITH A REASON RATHER THAN ABSENT. A pack with no way to open it is a
+     picture of a pack; a dead button with a sentence under it is a promise with a date
+     on it. Same call slots makes with its lever, which does not pull. */
+  rip_button: "rip the pack",
+  /* Under the button. Why it will not press.
+     NOT "rip_note", which is already taken by the word printed on the tear strip. Two
+     different things called the same thing is how the strip ends up reading like an
+     apology. */
+  rip_blocked: "The rip is not built yet. The cards below are the whole playlist, not a pack.",
+  /** The same, when the deployment cannot even score what it would deal. */
+  rip_blocked_unscored: "The rip needs play counts, and last.fm is not switched on here.",
+
+  /* Follows a number: "rarer than 87% of this playlist". Says WHICH playlist on purpose:
+     the same song is rarer than 90% of a chart list and 10% of a crate-digging one, so
+     the figure is nonsense read globally and useful read locally. */
+  card_rarer_than: "rarer than",
+  card_of_playlist: "of this playlist",
+  /** The pack's own line under its name, in the opened panel. */
+  dialog_pack_meta: "in the pack",
+
   /**
    * Says which direction is good once, at the top of the legend, rather than trusting
    * the order of the rungs to carry it. A ladder printed commonest-first looks like

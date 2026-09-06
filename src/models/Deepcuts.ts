@@ -134,6 +134,19 @@ export type ScoredTrack = {
   /** Global scrobbles on last.fm. Not Spotify streams; the page says so. */
   plays: number | null;
   tier: DeepcutTier | null;
+  /**
+   * How many of this playlist's scored songs have MORE plays than this one, as a
+   * percentage. 100 is the quietest thing on the playlist.
+   *
+   * LOCAL TO THE PLAYLIST, WHICH THE COPY BESIDE IT HAS TO SAY. The same song is rarer
+   * than 90% of a chart playlist and rarer than 10% of a crate-digging one. Read as a
+   * global figure it is nonsense; read as "was this a good pull out of THIS pack" it is
+   * the most useful number on the card.
+   *
+   * Null for an unmatched track, and null on a playlist with fewer than two scored
+   * songs, because a percentile of one thing is not a percentile.
+   */
+  rarer_than: number | null;
 };
 
 /**

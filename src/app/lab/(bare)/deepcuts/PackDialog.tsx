@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { fetchPack } from "@/client/deepcutsApi";
 import { DEEPCUT_TIER } from "@/constants";
 import { DEEPCUTS_TEASER } from "@/data/lab";
@@ -35,6 +35,9 @@ export type PackDialogProps = {
  */
 export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
   const ref = useRef<HTMLDialogElement>(null);
+  /* Stable across server and client render, and unique if this is ever used twice. The
+     dialog needs an accessible name and its name is the playlist. */
+  const titleId = useId();
 
   /* ONE PIECE OF STATE, STAMPED WITH THE PACK IT BELONGS TO, rather than a contents and
      a failed flag cleared on every open. Clearing them in the effect was the first
@@ -85,6 +88,7 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
     <dialog
       ref={ref}
       className={styles.dialog}
+      aria-labelledby={titleId}
       /* Escape and the close button both come through here, so the parent's state and
          the element's own open flag cannot drift apart. */
       onClose={onClose}
@@ -98,27 +102,67 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
     >
       {playlist ? (
         <div className={styles.dialogPanel}>
-          <header className={styles.dialogHead}>
-            <div>
-              <p className={styles.dialogLabel}>{DEEPCUTS_TEASER.dialog_label}</p>
-              <h2 className={styles.dialogName}>{playlist.name}</h2>
-            </div>
+          <button
+            type="button"
+            className={styles.dialogClose}
+            onClick={() => ref.current?.close()}
+          >
+            {DEEPCUTS_TEASER.dialog_close}
+          </button>
 
-            <button
-              type="button"
-              className={styles.dialogClose}
-              onClick={() => ref.current?.close()}
-            >
-              {DEEPCUTS_TEASER.dialog_close}
-            </button>
-          </header>
+          {/* THE PACK ITSELF, BROUGHT TO THE FRONT, rather than a heading with a cover
+              beside it. What the reader clicked was a wrapper, so what arrives is the
+              same wrapper larger: same teeth, same crimp, same tear strip. Anything else
+              makes the panel feel like a different object from the thing that opened it. */}
+          <div className={styles.opened} data-plain={playlist.cover ? undefined : ""}>
+            <span className={styles.shelfTeeth} aria-hidden="true" />
 
-          {/* The wrapper, opened. Not a second copy of the pack: the shelf's own pack
-              is what the reader clicked and this is what was under it. */}
-          {playlist.cover ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img className={styles.dialogCover} src={playlist.cover} alt="" width={120} height={120} />
-          ) : null}
+            <span className={styles.shelfStrip}>
+              <span className={styles.stripLabel}>{DEEPCUTS_TEASER.rip_label}</span>
+              <span className={styles.stripNote}>{DEEPCUTS_TEASER.rip_note}</span>
+            </span>
+
+            {playlist.cover ? (
+              <span className={styles.openedArt} aria-hidden="true">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  className={styles.shelfCover}
+                  src={playlist.cover}
+                  alt=""
+                  width={320}
+                  height={320}
+                />
+              </span>
+            ) : null}
+
+            <span className={styles.openedBody}>
+              {/* The playlist's name, and NOT an <h2>: the site's reset sets every
+                  heading lowercase by design, which mangled "Portfolio Playlist (Local
+                  Env)" into lower case while the pack behind it kept its capitals. The
+                  dialog is still labelled by it through aria-labelledby. */}
+              <span className={styles.openedName} id={titleId}>
+                {playlist.name}
+              </span>
+              <span className={styles.openedMeta}>
+                {playlist.track_count === 1
+                  ? DEEPCUTS_TEASER.shelf_count_one
+                  : `${playlist.track_count} ${DEEPCUTS_TEASER.shelf_count_many}`}
+              </span>
+            </span>
+
+            <span className={styles.shelfFoot} aria-hidden="true" />
+          </div>
+
+          {/* Sitting across the foot of the pack, as on the sketch. */}
+          <button type="button" className={styles.rip} disabled>
+            {DEEPCUTS_TEASER.rip_button}
+          </button>
+
+          <p className={styles.ripNote}>
+            {shown?.contents && !shown.contents.scored
+              ? DEEPCUTS_TEASER.rip_blocked_unscored
+              : DEEPCUTS_TEASER.rip_blocked}
+          </p>
 
           {shown?.failed ? (
             <p className={styles.dialogNote}>{DEEPCUTS_TEASER.dialog_failed}</p>
@@ -127,8 +171,8 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
           ) : (
             <>
               {/* Says what was scored and what was not, before the list rather than
-                  after it. A reader who scrolls a list of fifty and only then learns
-                  the playlist has three hundred songs has been misled for fifty rows. */}
+                  after it. A reader who scrolls a list of fifty and only then learns the
+                  playlist has three hundred songs has been misled for fifty rows. */}
               <p className={styles.dialogNote}>
                 {shown.contents.scored
                   ? `${shown.contents.tracks.length} of ${shown.contents.track_count} ${DEEPCUTS_TEASER.dialog_scored}`
@@ -155,6 +199,16 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
                       <span className={styles.cardTier}>
                         {track.tier ? DEEPCUT_TIER[track.tier].label : DEEPCUTS_TEASER.dialog_unmatched}
                       </span>
+
+                      {/* The percentile, and it names the playlist it is measured
+                          against. "87%" alone would read as a global figure, which it is
+                          not: the same song scores differently in a different pack. */}
+                      {track.rarer_than !== null ? (
+                        <span className={styles.cardPercent}>
+                          {DEEPCUTS_TEASER.card_rarer_than} {track.rarer_than}%{" "}
+                          {DEEPCUTS_TEASER.card_of_playlist}
+                        </span>
+                      ) : null}
 
                       {track.plays !== null ? (
                         <span className={styles.cardPlays}>

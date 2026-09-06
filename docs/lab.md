@@ -273,10 +273,35 @@ a card can print rather than a normalised score.
 
 The costs are accepted rather than solved:
 
-- **Matching is fuzzy.** Spotify gives an artist and a title; Last.fm is asked for the
-  same pair and may return a different recording, a live version, or nothing. A track
-  that cannot be matched has no tier, and the honest answer is to leave it out of the
-  pack rather than guess a rung for it.
+- **Matching is fuzzy, and the join is two strings.** Last.fm has no id this app shares
+  with Spotify: no ISRC lookup, no Spotify id, nothing. `track.getInfo` matches on an
+  artist string and a title string, so getting those two into the shape last.fm files
+  them under is the whole problem. `src/utils/trackMatch.ts` does it, and both rules
+  came from real tracks on the account:
+
+  - **The primary artist, never the joined credits.** Spotify returns every performer;
+    `artistNames` joins them for display, and `"Zero 7, Sia, Sophie Barker"` matches
+    *nothing* on last.fm, which files that song under `Zero 7`. Not a near miss, a zero.
+  - **The title with Spotify's version label stripped.** `"Destiny - Extended Mix"`,
+    `"Song - Remastered 2011"`, `"Song (feat. X)"`. Spotify uses ` - ` as its own version
+    separator, which makes this tractable, but the tail is checked against a list of
+    known decorations rather than stripped blindly: a real title can contain a hyphen,
+    and losing half of it is worse than not matching, because a wrong query still returns
+    a confident play count for the wrong song.
+  - Cleaned title first, raw title as the fallback. Two requests at worst, and the second
+    only for a track the first missed. `autocorrect=1` on both.
+
+  Deliberately **no fuzzy scoring and no similarity threshold**. last.fm's own autocorrect
+  handles spelling and punctuation better than a hand-rolled comparison would, and a
+  threshold is how the wrong recording gets a confident number. What is still unmatched
+  stays unmatched: no count, so no tier, so it is left out of the pack rather than guessed
+  at. Defaulting an unmatched track to `unheard` would make every failed match look like
+  the best card in the app.
+
+  Not taken, and worth knowing why: Spotify's full track object *does* carry an **ISRC**,
+  and MusicBrainz maps ISRC to an MBID that last.fm accepts. That is an exact join, and it
+  is a third upstream and two extra hops per track for a page that already fans out fifty
+  requests. Worth revisiting only if the string match turns out to miss badly.
 - **Scrobbles are not streams.** Last.fm counts what its own users scrobbled. It is a
   decent proxy for how much of the world has heard a song and it is not Spotify's play
   count. `DEEPCUTS_TEASER.source_note` already says this out loud on the page, because
@@ -412,6 +437,19 @@ what is inside: every song, its artist, its rung and its play count. A pack is a
 navigating; the Spotify link moved inside the panel. The contents come from
 `GET /api/lab/deepcuts/pack?id=`, which **checks the id against the shelf** - without
 that it is an open proxy for reading any playlist on Spotify through the owner's token.
+
+**Rarity also prints as a percentile.** Each card shows the rung and "rarer than N% of
+this playlist", counted against the other scored songs in the same pack. A percentile is
+checkable by counting; a normalised 0-100 "rarity index" would be another unitless score,
+which is the exact objection this document raises against Spotify's `popularity`. The
+label always names the playlist, because the same song is rarer than 90% of a chart list
+and 10% of a crate-digging one.
+
+**A pack opens into the wrapper itself, with a rip button that does not press yet.** The
+panel renders the same pack at a larger size rather than a heading beside a cover, and
+the button is disabled with the reason underneath - the rip is not built, and on a
+deployment with no last.fm key it could not be scored anyway. Same call `/lab/slots`
+makes with a lever that does not pull.
 
 **last.fm is wired up and switched off.** `LASTFM_API_KEY` in `serverConfig`,
 `src/server/lastfm/` for the client, six-hour cache, bounded concurrency, at most
