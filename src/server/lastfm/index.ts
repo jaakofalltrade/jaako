@@ -1,0 +1,209 @@
+import "server-only";
+import { LASTFM_API_URL, LASTFM_TIMEOUT_MS, PLAY_COUNT_TTL_MS } from "@/constants";
+import { serverConfig } from "@/server/serverConfig";
+import { titleCandidates } from "@/utils/trackMatch";
+
+/**
+ * last.fm, which is where the number every deepcuts card is scored on comes from.
+ *
+ * THE SECOND UPSTREAM, AND THE ONLY THING ON THIS SITE THAT IS NOT SPOTIFY. It exists
+ * because of a hard limit rather than a preference: the Spotify Web API has never
+ * exposed a play count for a track, a playlist or the owner's own library, and the one
+ * field that came close - `popularity`, a normalised 0-100 score - is now marked
+ * deprecated in Spotify's own reference. docs/lab.md sets out the whole argument and
+ * the alternatives that were rejected.
+ *
+ * WHAT IT COSTS, ACCEPTED RATHER THAN SOLVED. These are the same three caveats
+ * docs/lab.md lists, and none of them has a fix:
+ *
+ *   Matching is fuzzy.  Spotify gives an artist and a title; last.fm is asked for that
+ *                       pair and may answer with a different recording, a live version,
+ *                       or nothing. A track that cannot be matched gets no count and
+ *                       therefore no rung - see rarityOf, which returns null rather
+ *                       than guessing.
+ *   Scrobbles are not   last.fm counts what ITS users scrobbled. It is a decent proxy
+ *   streams.            for how much of the world has heard a song and it is not
+ *                       Spotify's play count. DEEPCUTS_TEASER.source_note says so on
+ *                       the page, because a visitor who works it out alone concludes
+ *                       the numbers are invented.
+ *   It is a second      If last.fm is unreachable, nothing can be scored. That is a
+ *   upstream.           whole outage for the scoring rather than a degraded one, and
+ *                       the page falls back to listing songs without rungs.
+ *
+ * NO SECRET PAIR AND NO OAUTH. One key on a query string, read server-side. The browser
+ * must never reach last.fm directly: `connect-src 'self'` in next.config.ts allows our
+ * own routes and nothing else, which is the second reason this is a server module.
+ */
+
+/** False on a clone with no key. The page lists songs and scores none of them. */
+export const hasLastfmKey = (): boolean => Boolean(serverConfig.lastfm_api_key);
+
+/**
+ * What track.getInfo answers with, cut down to the one field this reads.
+ *
+ * `playcount` ARRIVES AS A STRING. last.fm's JSON is a thin wrapper over their XML and
+ * every number in it is quoted, so this is `"48123456"` rather than 48123456. Reading
+ * it as a number without parsing gives NaN, which rarityOf refuses - so the failure
+ * would be every track silently losing its rung rather than an error.
+ */
+type TrackInfoResponse = {
+  track?: {
+    name?: string;
+    playcount?: string;
+    listeners?: string;
+  };
+  /** last.fm answers 200 with an error code in the body rather than an HTTP status. */
+  error?: number;
+  message?: string;
+};
+
+/**
+ * Global play counts, held per process.
+ *
+ * A LONG TTL, BECAUSE A GLOBAL SCROBBLE COUNT MOVES SLOWLY. docs/lab.md asks for
+ * exactly this: counts cached rather than fetched per pack, because a pack rip should
+ * be one read and not a fan-out of last.fm calls while somebody waits on an animation.
+ *
+ * Keyed on artist and title lowercased, which is the same pair the request is built
+ * from. A miss costs one request; there is nothing to invalidate, because the answer
+ * being slightly old is the entire point.
+ */
+const createCountCache = () => {
+  const cached = new Map<string, { value: number | null; expires_at: number }>();
+
+  return {
+    read: (key: string): { value: number | null } | undefined => {
+      const hit = cached.get(key);
+      if (!hit) return undefined;
+      if (hit.expires_at <= Date.now()) {
+        cached.delete(key);
+        return undefined;
+      }
+      return { value: hit.value };
+    },
+    write: (key: string, value: number | null) => {
+      cached.set(key, { value, expires_at: Date.now() + PLAY_COUNT_TTL_MS });
+    },
+  };
+};
+
+const countCache = createCountCache();
+
+/**
+ * The cache key for one artist-and-title pair.
+ *
+ * SEPARATED BY A NUL, WHICH IS THE POINT: it is the one character that cannot appear in
+ * an artist or a title, so no pair can be spelled two ways and no two pairs can collide.
+ * A "|" or a ":" would let artist "a|b" with title "c" key the same as artist "a" with
+ * title "b|c", which is a cache serving one song's play count for another.
+ *
+ * WRITTEN AS AN ESCAPE, AND IT WAS WRITTEN AS A RAW BYTE. A literal NUL in the source
+ * makes the whole file binary as far as git and grep are concerned: `git diff` on any
+ * later change to this module reported "Binary files differ" and "0 insertions, 0
+ * deletions", and grep skipped the file unless forced with -a. Same value at runtime,
+ * and the file is text again.
+ */
+const cacheKey = (args: { artist: string; title: string }): string =>
+  `${args.artist.toLowerCase()}\u0000${args.title.toLowerCase()}`;
+
+/**
+ * The global scrobble count for one track, or null.
+ *
+ * NULL IS A REAL AND COMMON ANSWER, not an error path: an unmatched track, a track
+ * last.fm has under another spelling, a missing key, or last.fm being down all arrive
+ * here as null, and every one of them means the same thing to the caller - no count, so
+ * no rung. Throwing would push five separate catches into the scoring loop for a
+ * distinction the page cannot act on.
+ *
+ * A NULL IS CACHED TOO, which is deliberate. Most nulls are a track last.fm genuinely
+ * does not have, and re-asking for it on every pack would spend a request per card per
+ * visitor to be told the same thing.
+ */
+const askFor = async (args: { artist: string; title: string }): Promise<number | null> => {
+  const { artist, title } = args;
+
+  const key = cacheKey({ artist, title });
+  const cached = countCache.read(key);
+  if (cached) return cached.value;
+
+  try {
+    const url =
+      `${LASTFM_API_URL}?method=track.getinfo` +
+      `&api_key=${encodeURIComponent(serverConfig.lastfm_api_key)}` +
+      `&artist=${encodeURIComponent(artist)}` +
+      `&track=${encodeURIComponent(title)}` +
+      /* Corrects common misspellings on last.fm's side before matching, which is free
+         and buys back some of what the fuzzy match costs. */
+      `&autocorrect=1` +
+      `&format=json`;
+
+    const response = await fetch(url, {
+      cache: "no-store",
+      /* Bounded for the same reason every Spotify call is: a request that never answers
+         is not an error, it is a promise nobody resolves, and a pack would sit on its
+         skeleton until the runtime gave up minutes later. */
+      signal: AbortSignal.timeout(LASTFM_TIMEOUT_MS),
+    });
+
+    if (!response.ok) {
+      // Status only, never the body: the key is on the query string and last.fm echoes
+      // the request back in some error shapes.
+      console.error(`[lastfm] track.getInfo failed: ${response.status}`);
+      return null;
+    }
+
+    const body = (await response.json()) as TrackInfoResponse;
+
+    /* A 200 CARRYING AN ERROR CODE IS LAST.FM'S NORMAL FAILURE SHAPE. Error 6 is "track
+       not found", which is the ordinary unmatched case and not worth logging. */
+    if (body.error) {
+      if (body.error !== 6) console.error(`[lastfm] error ${body.error}`);
+      countCache.write(key, null);
+      return null;
+    }
+
+    // Quoted in the response; see the note on TrackInfoResponse.
+    const plays = Number.parseInt(body.track?.playcount ?? "", 10);
+    const value = Number.isFinite(plays) && plays >= 0 ? plays : null;
+
+    countCache.write(key, value);
+    return value;
+  } catch (error) {
+    console.error("[lastfm] track.getInfo failed:", error);
+    return null;
+  }
+};
+
+/**
+ * The global scrobble count for one Spotify track, or null.
+ *
+ * THE ARTIST AND TITLE ARRIVE IN SPOTIFY'S SHAPE AND LAST.FM WILL NOT TAKE THEM AS THEY
+ * ARE. The caller passes the PRIMARY artist rather than every credit joined with commas,
+ * and this tries the title with Spotify's version label stripped before it tries the raw
+ * one. Both rules and the evidence for them are in utils/trackMatch.ts; without either,
+ * a track like "Destiny - Extended Mix" by "Zero 7, Sia, Sophie Barker" matches nothing
+ * at all.
+ *
+ * At most two requests, and only ever two for a track the first attempt missed. Every
+ * answer including a miss is cached, so a second pack containing the same song is free.
+ */
+export const playCount = async (args: {
+  artist: string;
+  title: string;
+}): Promise<number | null> => {
+  const { artist, title } = args;
+
+  if (!hasLastfmKey() || !artist) return null;
+
+  for (const candidate of titleCandidates(title)) {
+    const found = await askFor({ artist, title: candidate });
+    if (found !== null) return found;
+  }
+
+  return null;
+};
+
+export const lastfmService = {
+  hasKey: hasLastfmKey,
+  playCount,
+};

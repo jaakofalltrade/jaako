@@ -14,11 +14,15 @@
     "token:write": "node scripts/spotify-token.mjs write",
     "token:check": "node scripts/token-scopes.mjs",
     "playlist:id": "node scripts/playlist-id.mjs",
-    "build-icons": "node scripts/build-icons.mjs"
+    "lastfm:check": "node scripts/lastfm-check.mjs",
+    "build-icons": "node scripts/build-icons.mjs",
+    "ladder:spread": "node scripts/ladder-spread.mjs",
+    "cards:backfill": "node scripts/backfill-card-art.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
     "luxon": "^3.7.2",
+    "motion": "^13.2.0",
     "next": "16.3.1",
     "obscenity": "^0.4.6",
     "react": "19.2.8",

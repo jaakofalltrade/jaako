@@ -44,8 +44,23 @@ waits. Open the URL, approve access, and the script prints:
 SPOTIFY_REFRESH_TOKEN=AQD...
 ```
 
-The scopes requested are `user-read-currently-playing`, `user-read-recently-played`
-and `user-top-read` — all read-only, no playback control.
+The scopes requested are `user-read-currently-playing`, `user-read-recently-played`,
+`user-top-read` and `playlist-read-private` — all read-only, no playback control.
+
+`playlist-read-private` is the odd one and it is not named for what it unlocks.
+`/lab/deepcuts` lists the playlists on the account, and **without this scope
+`GET /me/playlists` answers `403 Insufficient client scope`** — as does
+`GET /users/{id}/playlists`, for playlists that are public and open in a browser with
+no account at all. Measured against the live API on 2026-09-05.
+
+So it is not requested in order to reach private playlists, and nothing renders them:
+`src/server/spotify/deepcutsLibrary.ts` keeps only what this account owns *and* has
+made public, because that page is public and a private playlist's name is not. The
+scope is what Spotify charges for a list; the filter is ours, because
+`GET /me/playlists` takes `limit` and `offset` and has no filter parameter of its own.
+
+`playlist-read-collaborative` is still never requested, for the same reason
+`playlist-modify-private` is not: nothing here has a use for it.
 
 ### If the token comes back with the wrong scopes
 
@@ -66,7 +81,7 @@ single playlist. The next best thing is a token per job:
 
 | | Scopes | Used by |
 | --- | --- | --- |
-| `SPOTIFY_REFRESH_TOKEN` | the three read scopes above | the panel, the statistics, and the lab's search proxy |
+| `SPOTIFY_REFRESH_TOKEN` | the four read scopes above | the panel, the statistics, the lab's search proxy, and the deepcuts shelf |
 | `SPOTIFY_WRITE_REFRESH_TOKEN` | `playlist-modify-public` only | the one route that adds a track |
 
 The write token cannot touch a private playlist, because `playlist-modify-private` is
@@ -107,12 +122,16 @@ unaffected and adding a track refuses with a 503.
 > **Rotating an existing token.** `pnpm token:read` re-mints the read one and
 > `pnpm token:write` the write one; the script defaults to `read` when neither is
 > named, so the original bare command still does exactly what it always did.
-> `user-top-read` was added for the listening
-> statistics cell in the instrument strip. A refresh token minted before that scope
-> existed will keep working for now-playing but Spotify will answer `403` for
-> `/me/top/*`, and the statistics cell renders its unavailable state instead. Re-run
-> this script and replace `SPOTIFY_REFRESH_TOKEN` to enable it. Nothing else breaks in
-> the meantime — the service never throws.
+> The read set has grown twice, and both times an
+> existing token kept working for everything except the new thing. `user-top-read` was
+> added for the listening statistics cell in the instrument strip; `playlist-read-private`
+> was added for the `/lab/deepcuts` shelf. A refresh token minted before either scope
+> existed keeps serving now-playing and answers `403` for the endpoint it cannot reach —
+> `/me/top/*` in the first case, `/me/playlists` in the second — and the block that
+> wanted it renders its degraded state. The statistics cell shows unavailable; the
+> deepcuts shelf does not render at all. Re-run this script and replace
+> `SPOTIFY_REFRESH_TOKEN` to enable them. Nothing else breaks in the meantime — the
+> service never throws, and `pnpm token:check` names any scope that is missing.
 
 ## 3. Local environment
 

@@ -1,0 +1,77 @@
+import { DEEPCUT_TIER, SHINY_ODDS, TIER_DRAW_ODDS } from "@/constants";
+import { DEEPCUTS_TEASER } from "@/data/lab";
+import styles from "./deepcuts.module.scss";
+import { DEEPCUT_LADDER } from "@/models";
+
+/**
+ * The cards tab: one face per rung, and the shiny finish beside the three that can roll
+ * it.
+ *
+ * WHAT IT IS FOR, GIVEN THE LEGEND ALREADY LISTS THE RUNGS. The legend is a table of
+ * thresholds and sentences - it answers "what does deep cut mean". This answers "what
+ * does a deep cut LOOK like", which is a different question and the one somebody about
+ * to open a pack is actually asking. It is also the only place shiny can be shown, since
+ * shiny is a finish rather than a rung and has no row on the ladder.
+ *
+ * NOT A COLLECTION. Nothing has been pulled, so this cannot be "your cards" - it is the
+ * set, the way the back of a booster box prints what is in the set. When the rip exists
+ * and cards persist, a real collection is a different tab again.
+ *
+ * A server component: it renders constants and has no state.
+ */
+export const CardGallery = () => (
+  <>
+    <p className={styles.ladderNote}>{DEEPCUTS_TEASER.cards_note}</p>
+
+    <ul className={styles.gallery}>
+      {DEEPCUT_LADDER.map((tier) => {
+        const rung = DEEPCUT_TIER[tier];
+        const shiny = SHINY_ODDS[tier];
+        const draw = TIER_DRAW_ODDS[tier];
+
+        return (
+          <li key={tier} className={styles.galleryItem}>
+            {/* The ordinary finish. */}
+            <span className={styles.face} data-tier={tier}>
+              <span className={styles.faceLabel}>{rung.label}</span>
+            </span>
+
+            {/* And the holographic one, for the three rungs that can roll it. Printed
+                beside its plain twin rather than on its own, because the whole point of a
+                shiny is that it is the same card and rarer. */}
+            {shiny ? (
+              <span className={`${styles.face} ${styles.shiny}`} data-tier={tier}>
+                <span className={styles.faceLabel}>{rung.label}</span>
+              </span>
+            ) : (
+              /* Holds the column so every row lines up, whether or not the rung has a
+                 shiny twin. An empty cell here is quieter than a ragged grid. */
+              <span className={styles.faceEmpty} aria-hidden="true" />
+            )}
+
+            <span className={styles.galleryMeta}>
+              <span className={styles.galleryName}>{rung.label}</span>
+
+              {/* HOW OFTEN A CARD ROLLS THIS RUNG. Every one of the five cards in a pack
+                  rolls against this table, so the figure is a property of the ladder and
+                  the same on every playlist - which is why it lives here rather than
+                  beside a track. All eight rungs carry a weight now; when the pack was
+                  four uniform commons and one reserved slot, only five of them did. */}
+              <span className={styles.galleryOdds}>
+                {`${(draw * 100).toFixed(0)}% ${DEEPCUTS_TEASER.gallery_of_draws}`}
+              </span>
+
+              <span className={styles.galleryOdds}>
+                {shiny
+                  ? `${DEEPCUTS_TEASER.shiny_label} ${(shiny * 100).toFixed(2)}%`
+                  : DEEPCUTS_TEASER.shiny_never}
+              </span>
+            </span>
+          </li>
+        );
+      })}
+    </ul>
+
+    <p className={styles.source}>{DEEPCUTS_TEASER.shiny_note}</p>
+  </>
+);

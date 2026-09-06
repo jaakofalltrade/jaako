@@ -1,4 +1,5 @@
 import { loadEnvLocal } from "./loadEnv.mjs";
+import { SPOTIFY_TOKENS } from "./spotifyScopes.mjs";
 
 /**
  * Prints what each stored refresh token is actually allowed to do.
@@ -26,17 +27,16 @@ if (!id || !secret) {
 
 const basic = Buffer.from(`${id}:${secret}`).toString("base64");
 
-/** What each token is FOR, so the check can say whether it is fit for that. */
-const EXPECTED = {
-  SPOTIFY_REFRESH_TOKEN: {
-    label: "read  (now-playing, statistics, lab search)",
-    wants: ["user-read-currently-playing", "user-read-recently-played", "user-top-read"],
-  },
-  SPOTIFY_WRITE_REFRESH_TOKEN: {
-    label: "write (adding a track to the lab playlist)",
-    wants: ["playlist-modify-public"],
-  },
-};
+/* What each token is FOR, keyed by the variable it lives in. Built from the shared
+   table rather than restated, because a scope listed here and requested there is a check
+   that can silently verify the wrong thing. */
+const EXPECTED = Object.fromEntries(
+  Object.values(SPOTIFY_TOKENS).map((token) => [
+    token.variable,
+    { label: token.label, wants: token.scopes },
+  ])
+);
+
 
 const check = async (variable) => {
   const { label, wants } = EXPECTED[variable];

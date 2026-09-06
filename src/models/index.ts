@@ -9,12 +9,14 @@
 export * as Spotify from "./Spotify";
 
 export * from "./Contact";
+export * from "./Deepcuts";
 export * from "./Env";
 export * from "./Experience";
 export * from "./Handle";
 export * from "./Http";
 export * from "./Lab";
 export * from "./Project";
+export * from "./Result";
 export * from "./ServerConfig";
 export * from "./Site";
 export * from "./Suggest";

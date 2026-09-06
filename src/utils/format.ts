@@ -25,3 +25,29 @@ export const getDigitCells = (args: { count: number; length: number }): string[]
   const { count, length } = args;
   return String(count).padStart(length, "0").slice(-length).split("");
 };
+
+/**
+ * A play count at a glance: 1,333,333 becomes 1.3M.
+ *
+ * NO PACKAGE FOR THIS, AND NOT BECAUSE THE DEPENDENCY LIST IS PRECIOUS. `Intl` has done
+ * compact notation natively in every browser and Node this site runs on for years, so a
+ * library would be a download, a bundle entry and a version to keep current, wrapping a
+ * one-line call to something already in the runtime. The wrapper is here rather than at
+ * the call site only so the locale decision below lives in one place.
+ *
+ * THE LOCALE IS PINNED, WHICH IS THE ONLY SUBTLE PART. `toLocaleString()` with no locale
+ * uses whatever the runtime's default is, and the server's default is not the visitor's:
+ * the same number renders "1.3M" in one and "1,3 M" in another, which is a hydration
+ * mismatch waiting for the first reader outside en-US. Pinning it makes the output a
+ * property of this function rather than of wherever it happened to run.
+ *
+ * Counts below a thousand come back unchanged, which is what compact notation already
+ * does: 847 is 847, not 0.8K.
+ */
+const COMPACT = new Intl.NumberFormat("en-US", {
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+
+export const compactCount = (value: number): string =>
+  Number.isFinite(value) ? COMPACT.format(value) : "";

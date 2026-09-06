@@ -273,10 +273,35 @@ a card can print rather than a normalised score.
 
 The costs are accepted rather than solved:
 
-- **Matching is fuzzy.** Spotify gives an artist and a title; Last.fm is asked for the
-  same pair and may return a different recording, a live version, or nothing. A track
-  that cannot be matched has no tier, and the honest answer is to leave it out of the
-  pack rather than guess a rung for it.
+- **Matching is fuzzy, and the join is two strings.** Last.fm has no id this app shares
+  with Spotify: no ISRC lookup, no Spotify id, nothing. `track.getInfo` matches on an
+  artist string and a title string, so getting those two into the shape last.fm files
+  them under is the whole problem. `src/utils/trackMatch.ts` does it, and both rules
+  came from real tracks on the account:
+
+  - **The primary artist, never the joined credits.** Spotify returns every performer;
+    `artistNames` joins them for display, and `"Zero 7, Sia, Sophie Barker"` matches
+    *nothing* on last.fm, which files that song under `Zero 7`. Not a near miss, a zero.
+  - **The title with Spotify's version label stripped.** `"Destiny - Extended Mix"`,
+    `"Song - Remastered 2011"`, `"Song (feat. X)"`. Spotify uses ` - ` as its own version
+    separator, which makes this tractable, but the tail is checked against a list of
+    known decorations rather than stripped blindly: a real title can contain a hyphen,
+    and losing half of it is worse than not matching, because a wrong query still returns
+    a confident play count for the wrong song.
+  - Cleaned title first, raw title as the fallback. Two requests at worst, and the second
+    only for a track the first missed. `autocorrect=1` on both.
+
+  Deliberately **no fuzzy scoring and no similarity threshold**. last.fm's own autocorrect
+  handles spelling and punctuation better than a hand-rolled comparison would, and a
+  threshold is how the wrong recording gets a confident number. What is still unmatched
+  stays unmatched: no count, so no tier, so it is left out of the pack rather than guessed
+  at. Defaulting an unmatched track to `unheard` would make every failed match look like
+  the best card in the app.
+
+  Not taken, and worth knowing why: Spotify's full track object *does* carry an **ISRC**,
+  and MusicBrainz maps ISRC to an MBID that last.fm accepts. That is an exact join, and it
+  is a third upstream and two extra hops per track for a page that already fans out fifty
+  requests. Worth revisiting only if the string match turns out to miss badly.
 - **Scrobbles are not streams.** Last.fm counts what its own users scrobbled. It is a
   decent proxy for how much of the world has heard a song and it is not Spotify's play
   count. `DEEPCUTS_TEASER.source_note` already says this out loud on the page, because
@@ -299,13 +324,42 @@ machine's counter it wants a value with a long TTL rather than a daily one.
 
 Open, and none of it blocking:
 
-- **The thresholds.** Which play counts separate the rungs. Deliberately not modelled:
-  they are tuning constants, they will move the first time real numbers are seen, and
-  the teaser says `thresholds: undecided` rather than inventing five bands.
-- **Which playlist.** The teaser says "a playlist of mine" on purpose. Pointing it at
-  the `/lab/suggest` playlist is tempting and is a real design decision, not a wiring
-  detail: it would mean visitors are dealt cards out of a list other visitors filled,
-  which is a different app from being dealt cards out of mine.
+- ~~**The thresholds.**~~ *Settled, and settled by measurement.* **5m+ scrobbles is
+  `anthem`, 1m `chart`, 200k `rotation`, 30k `album cut`, 8k `deep cut`, 2k `unheard`,
+  200 `ghost`, under 200 `lost`.** `DEEPCUT_TIER_FLOOR` in `src/constants/lab.ts`,
+  applied by `rarityOf` in `src/utils/rarity.ts`.
+
+  It went through two wrong answers first. Five rungs carried too much at both ends -
+  measured on a playlist of Filipino oldies, 20 tracks landed on the old bottom rung that
+  now split across three. Eight rungs one order of magnitude apart replaced it, on the
+  sound argument that play counts are a power law and a log ladder is the only one with
+  evenly spaced steps against one.
+
+  **What that missed is the range, and `pnpm ladder:spread` is what found it.** Eight
+  decade-wide rungs need seven decades to fill. Sampling 1,097 matched tracks across 60
+  playlists through the app's own route, the account's entire catalogue spans about four -
+  a p5 of 8.8k scrobbles to a maximum of 46.7m - because **these are last.fm scrobbles,
+  not Spotify streams**, and a scrobble is only reported by the minority of listeners who
+  run a client that reports one. Spotify's API publishes no play counts at all, so there
+  is nothing to convert against. The old ladder floored `chart` at 100m and `anthem` at
+  500m: **two of the eight rungs could not be reached by any song on the account** and
+  were dealt to nobody while being printed in the legend.
+
+  So the floors are chosen by **share** instead - each a quantile of that measured
+  distribution, rounded to a printable number, so the rungs fall away the way a card set
+  does: 28.8% `anthem`, 26.1% `chart`, 21.2% `rotation`, 11.5% `album cut`, 7.6%
+  `deep cut`, 2.6% `unheard`, 1.5% `ghost`, 0.6% `lost`. Monotone, nothing empty. What it
+  gives up is legibility of the rule itself, and that is a real cost: "one rung per order
+  of magnitude" is checkable by eye and "the 71st percentile of one person's playlists" is
+  not. Re-run the script before moving them, and move the whole set - the shares are what
+  is being preserved, not any one number.
+- **Which playlist.** *Half answered.* The page now reads the account's public
+  playlists from Spotify and prints one pack per playlist, so "a playlist of mine" is a
+  shelf a visitor can see rather than a phrase. What is still open is which one a RIP
+  deals from: the visitor picking a pack off the shelf, or one playlist nominated in
+  config. Pointing it at the `/lab/suggest` playlist remains a real design decision and
+  not a wiring detail, because it would mean visitors are dealt cards out of a list
+  other visitors filled, which is a different app from being dealt cards out of mine.
 - **Whether a pull persists.** Cards that survive between visits need the store and an
   identity; cards that do not are a rip and a screenshot. The cookie identity described
   above is enough for either.
@@ -314,9 +368,12 @@ Open, and none of it blocking:
 
 ## Constraints to check before writing app code
 
-- **Spotify scopes.** Today's token has `user-read-currently-playing`,
-  `user-read-recently-played` and `user-top-read`. Suggestions need
-  `playlist-modify-public` on the owner token. The roast needs a per-visitor OAuth
+- **Spotify scopes.** Today's read token has `user-read-currently-playing`,
+  `user-read-recently-played`, `user-top-read` and `playlist-read-private`.
+  Suggestions need `playlist-modify-public` on the owner token. deepcuts needs
+  `playlist-read-private` to LIST playlists at all — `GET /me/playlists` is a 403
+  without it even for public ones, so the scope buys the list rather than the private
+  entries on it, and the public-only filter is ours. The roast needs a per-visitor OAuth
   flow, which is a second token store and a callback route, not an extra scope.
 - **CSP.** `connect-src 'self'` allows our own streamed routes and nothing else, so
   any browser call must go through `/api`. `img-src` allows `i.scdn.co` only, which
@@ -348,6 +405,8 @@ Open, and none of it blocking:
    and needs no OAuth of its own: the playlist read is the owner's token and the play
    counts are an unauthenticated key. The scoring pass can be written and checked
    against real numbers long before any of the pack rip is built.
+   *In progress.* The Spotify half is done and the schema for the rip is in place; what
+   is missing is Last.fm and the rip itself.
 4. `/lab/roast`, last, because it is the only one whose audience is capped by Spotify
    rather than by us.
 
@@ -356,3 +415,98 @@ Open, and none of it blocking:
 `/lab/suggest` works. Everything else is a teaser: a static render of what the app will
 look like with its controls inert, storing nothing and fetching nothing. `/lab/deepcuts`
 is the newest of them and the pack on it does not open.
+
+`/lab/deepcuts` is now half connected, and no longer a teaser page in shape.
+
+The **shelf** is live: every public playlist on the account, read from Spotify on the
+server, one foil pack each, nine to a page, linking out to the real thing. Nothing on it
+is scored, because scoring needs a play count and that is Last.fm's half of the job, not
+Spotify's. So the page shows real packs and still turns over no cards.
+
+**The sealed hero pack and its fan of face-down cards are gone.** They were the teaser -
+one unopened wrapper standing in for an app that could not open one - and a shelf of
+seventy-five real ones says the same thing with data. Keeping both put two pack images
+on one page competing to be the subject. The tear strip and the card-back weave survive
+on the shelf, so none of the look went with them. The ladder stays, because the inverted
+rarity is the one thing a visitor cannot guess.
+
+**Two figures sit beside the title and both read "nothing yet".** Most-opened pack and
+rarest card pulled, queried from `pack_rip` and `pack_card` in Neon (002_deepcuts.sql).
+The tables are empty by construction: nothing opens a pack. They exist ahead of the rip
+so the masthead's layout is settled now rather than changing on the day the numbers
+arrive, and so the rip has somewhere to write without a migration.
+
+**The pager and the tab strip are reusable.**
+`src/design-system/core/Pagination.tsx` and `Tabs.tsx` ship no styling at all and take
+every class from their caller, which is what lets a bare lab app use them without
+pulling the site's `jk-` cascade in - the thing every bare module's header forbids. The
+arithmetic is `pageWindow` in `src/utils/pagination.ts`, pure and pinned.
+
+**The legend and the rules are two tabs ABOVE the shelf.** Normally a legend goes under
+what it labels; here what it labels is a grid of sealed wrappers, and the single fact a
+visitor cannot guess - that rarity runs backwards - has to arrive before they open one.
+Two stacked sections would have pushed the shelf off the first screen, so they are tabs.
+The legend prints the play bands now that there is a formula behind them.
+
+**A pack opens.** Clicking one brings it to the front over a blurred backdrop and lists
+what is inside: every song, its artist, its rung and its play count. A pack is a
+`<button>` rather than an anchor now, because it does something on this page instead of
+navigating; the Spotify link moved inside the panel. The contents come from
+`GET /api/lab/deepcuts/pack?id=`, which **checks the id against the shelf** - without
+that it is an open proxy for reading any playlist on Spotify through the owner's token.
+
+**A card prints the odds on pulling it, and the commons are not in that number.** The
+songs in an opened pack are a table: track, rung, and the pull odds with the play count
+abbreviated underneath. The figure is the hit slot alone - of all the packs this playlist
+could deal, in what fraction is this track the one card the pack rolled a rung for.
+
+It counted the four common slots too, at first, and that made it useless. Adding "or one
+of the uniform slots found it" puts a floor of `4/(pool - 1)` under every row, and on a
+short playlist that floor *is* the number: twelve scored tracks put every song at 36.4%
+before its rung was consulted, so a ghost printed 40.8% and a deep cut 46.3% and the
+column carried no rarity signal at all. Worse, the floor moved with playlist length
+rather than with the song - the same lone ghost priced 40.8% on a twelve track list and
+8.3% on a long one. Dropping the commons term leaves a figure that depends on the rung's
+weight and how many tracks share it, and on nothing else: 7.0% for that ghost on either
+playlist, against 6.6% for one of seven album cuts.
+
+**Zero is an answer and it prints as "common only".** The hit slot's commonest roll is
+album cut, so with album cuts on the playlist nothing above them can ever be the pull -
+a rotation track can be dealt, it just cannot be the card the pack was opened for. It is
+per playlist rather than per rung: strip the album cuts out and that 46% walks down onto
+rotation, which then has real odds.
+
+**The walk down the ladder needed a way back up, and finding that was worth the change
+on its own.** `HIT_SLOT_ODDS` rolls a rung and empty buckets fall *down* the ladder, so
+rare playlists cannot mint rarity they have not earned. But a playlist whose commonest
+song is a deep cut has nothing at or below `album`, and that roll - 46% of them - used to
+resolve to no rung at all, leaving `drawPack` with no hit to append and dealing a pack of
+**four** cards. Measured at 92 short packs in 200. `resolveHitRung` now falls back up
+when there is nothing below, which cannot hand out an unearned rarity because reaching
+that clause means the playlist has nothing commoner to give. It lives in `rarity.ts` with
+one caller in `packDraw.ts`, because odds printed for a draw that does not happen is the
+failure that rule exists to prevent.
+
+**The match rate is measured, and it is 100%.** Across four playlists and 192 scored
+tracks, every one matched on last.fm. That includes both cases `trackMatch` exists for:
+"Destiny - Extended Mix" by "Zero 7, Sia, Sophie Barker" resolves to Zero 7 / Destiny at
+3.7m plays, and "A New Kind Of Love - Demo" loses its suffix. `pnpm lastfm:check` is what
+reports it.
+
+**A pack opens into the wrapper itself, with a rip button that does not press yet.** The
+panel renders the same pack at a larger size rather than a heading beside a cover, and
+the button is disabled with the reason underneath - the rip is not built, and on a
+deployment with no last.fm key it could not be scored anyway. Same call `/lab/slots`
+makes with a lever that does not pull.
+
+**last.fm is wired up and switched off.** `LASTFM_API_KEY` in `serverConfig`,
+`src/server/lastfm/` for the client, six-hour cache, bounded concurrency, at most
+`SCORED_TRACK_LIMIT` tracks scored per pack. Without a key the packs still open and list
+their songs, every track reads "unmatched", and the panel says play counts are not
+switched on rather than pretending. A track last.fm cannot match gets **no rung** rather
+than the rarest one - defaulting an unmatched track to `unheard` would make every failed
+match look like the best card in the app.
+
+**A playlist with no cover gets no art block at all.** The monogram weave that used to
+fill the gap was the back of a *card* printed on the front of a *wrapper*, and nine of
+them down a grid read as broken images. A plain foil pack is a real object.

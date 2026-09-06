@@ -33,27 +33,47 @@ export const LAB_STATUS_BADGE: Record<
  */
 export const DEEPCUT_TIER: Record<
   DeepcutTier,
-  { label: string; note: string }
+  { label: string; note: string; stars: number }
 > = {
-  [DeepcutTier.Chart]: {
-    label: "chart",
-    note: "Everyone has heard it. You will pull it constantly.",
+  [DeepcutTier.Silver]: {
+    stars: 1,
+    label: "silver",
+    note: "Everyone alive has heard this. Throw it straight back.",
   },
-  [DeepcutTier.Rotation]: {
-    label: "rotation",
+  [DeepcutTier.Gold]: {
+    stars: 2,
+    label: "gold",
+    note: "A hit. You will pull these constantly.",
+  },
+  [DeepcutTier.Platinum]: {
+    stars: 3,
+    label: "platinum",
     note: "A song that had its year.",
   },
-  [DeepcutTier.Album]: {
-    label: "album cut",
+  [DeepcutTier.Diamond]: {
+    stars: 4,
+    label: "diamond",
     note: "Never a single. Played by people who played the album.",
   },
   [DeepcutTier.Deepcut]: {
+    stars: 5,
     label: "deep cut",
     note: "Thin numbers. The app is named after this rung for a reason.",
   },
   [DeepcutTier.Unheard]: {
+    stars: 6,
     label: "unheard",
-    note: "Almost nobody has played this. The best thing in the pack.",
+    note: "Almost nobody has played this.",
+  },
+  [DeepcutTier.Ghost]: {
+    stars: 6,
+    label: "ghost",
+    note: "A few hundred people, ever, anywhere.",
+  },
+  [DeepcutTier.Lost]: {
+    stars: 6,
+    label: "lost",
+    note: "Barely a trace of anyone hearing it. The best thing in a pack.",
   },
 };
 
@@ -65,10 +85,4 @@ export const DEEPCUT_TIER: Record<
  * sorted in a file nobody edits with a legend in mind. Order is a design decision
  * here, so it is stated where the design can see it.
  */
-export const DEEPCUT_LADDER: DeepcutTier[] = [
-  DeepcutTier.Chart,
-  DeepcutTier.Rotation,
-  DeepcutTier.Album,
-  DeepcutTier.Deepcut,
-  DeepcutTier.Unheard,
-];
+

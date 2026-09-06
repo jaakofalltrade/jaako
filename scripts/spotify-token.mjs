@@ -1,6 +1,7 @@
 import http from "node:http";
 import { randomUUID } from "node:crypto";
 import { loadEnvLocal } from "./loadEnv.mjs";
+import { SPOTIFY_TOKENS } from "./spotifyScopes.mjs";
 
 /**
  * One-off helper: mints a long-lived Spotify refresh token.
@@ -55,17 +56,35 @@ import { loadEnvLocal } from "./loadEnv.mjs";
 const PORT = 8888;
 const REDIRECT_URI = `http://127.0.0.1:${PORT}/callback`;
 
-/** The two sets. One token is minted for exactly one of them. */
-const SCOPE_SETS = {
-  read: "user-read-currently-playing user-read-recently-played user-top-read",
-  write: "playlist-modify-public",
-};
+/**
+ * The two sets. One token is minted for exactly one of them.
+ *
+ * `playlist-read-private` IS THE ONE SCOPE HERE THAT IS NOT NAMED FOR WHAT IT UNLOCKS.
+ * /lab/deepcuts needs to list the playlists on this account, and the name suggests the
+ * scope only reaches the private ones. It does not: WITHOUT it, both
+ * GET /me/playlists and GET /users/{id}/playlists answer 403 — the second even for
+ * playlists that are public and open in a browser with no account at all. Measured
+ * against the live API on 2026-09-05 rather than read off the documentation.
+ *
+ * So it is not requested in order to reach private playlists, and the page it serves
+ * does not render them: deepcutsLibrary.ts keeps only what this account owns AND has
+ * made public, because that page is public and a private playlist's name is not. The
+ * scope is what Spotify charges for a list; the filter is ours.
+ *
+ * playlist-read-COLLABORATIVE is still never requested, for the same reason
+ * playlist-modify-private is not: nothing here has a use for it.
+ */
+/* The scopes and the variable names both come from scripts/spotifyScopes.mjs, so this
+   file and token-scopes.mjs cannot disagree about what a token is supposed to carry. */
+const SCOPE_SETS = Object.fromEntries(
+  Object.entries(SPOTIFY_TOKENS).map(([set, token]) => [set, token.scopes.join(" ")])
+);
 
 /** Which variable the printed line names, so the output can be pasted as it stands. */
-const VARIABLE = {
-  read: "SPOTIFY_REFRESH_TOKEN",
-  write: "SPOTIFY_WRITE_REFRESH_TOKEN",
-};
+const VARIABLE = Object.fromEntries(
+  Object.entries(SPOTIFY_TOKENS).map(([set, token]) => [set, token.variable])
+);
+
 
 const rule = (char) => char.repeat(66);
 

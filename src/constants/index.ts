@@ -15,6 +15,7 @@
  */
 
 export * from "./contact";
+export * from "./deepcuts";
 export * from "./lab";
 export * from "./site";
 export * from "./spotify";
