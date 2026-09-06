@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { fetchPack } from "@/client/deepcutsApi";
 import { DEEPCUT_TIER } from "@/constants";
+import { compactCount } from "@/utils/format";
 import { DEEPCUTS_TEASER } from "@/data/lab";
 import type { DeepcutsPlaylist, PackContents } from "@/models";
 import styles from "./deepcuts.module.scss";
@@ -205,21 +206,37 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
                       : DEEPCUTS_TEASER.dialog_unscored}
                   </p>
 
-                  <ol className={styles.cards}>
-                    {shown.contents.tracks.map((track, index) => (
-                      <li
-                        key={track.uri || `${track.title}-${index}`}
-                        className={styles.card}
-                        data-tier={track.tier ?? undefined}
-                      >
-                        <span className={styles.cardSwatch} aria-hidden="true" />
-
+                  {/* A TABLE, BECAUSE IT IS ONE NOW. Three columns of the same kind of fact
+                  per row is what a table is for, and the list of stacked spans it
+                  replaced was a table drawn without saying so - which cost a screen
+                  reader the column headings and cost the layout its alignment. */}
+              <table className={styles.cards}>
+                <thead>
+                  <tr>
+                    <th scope="col">{DEEPCUTS_TEASER.col_track}</th>
+                    <th scope="col">{DEEPCUTS_TEASER.col_card}</th>
+                    <th scope="col" className={styles.colChance}>
+                      {DEEPCUTS_TEASER.col_chance}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {shown.contents.tracks.map((track, index) => (
+                    <tr
+                      key={track.uri || `${track.title}-${index}`}
+                      className={styles.card}
+                      data-tier={track.tier ?? undefined}
+                    >
+                      <td>
                         <span className={styles.cardMain}>
                           <span className={styles.cardTitle}>{track.title}</span>
                           <span className={styles.cardArtist}>{track.artist}</span>
                         </span>
+                      </td>
 
-                        <span className={styles.cardRarity}>
+                      <td>
+                        <span className={styles.cardTierCell}>
+                          <span className={styles.cardSwatch} aria-hidden="true" />
                           {/* A rung with no count behind it is not a rung. Both are
                               absent together, which is what rarityOf guarantees. */}
                           <span className={styles.cardTier}>
@@ -227,26 +244,28 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
                               ? DEEPCUT_TIER[track.tier].label
                               : DEEPCUTS_TEASER.dialog_unmatched}
                           </span>
-
-                          {/* The percentile, naming the playlist it is measured against.
-                              "87%" alone would read as a global figure, which it is not:
-                              the same song scores differently in a different pack. */}
-                          {track.rarer_than !== null ? (
-                            <span className={styles.cardPercent}>
-                              {DEEPCUTS_TEASER.card_rarer_than} {track.rarer_than}%{" "}
-                              {DEEPCUTS_TEASER.card_of_playlist}
-                            </span>
-                          ) : null}
-
-                          {track.plays !== null ? (
-                            <span className={styles.cardPlays}>
-                              {track.plays.toLocaleString()} {DEEPCUTS_TEASER.dialog_plays}
-                            </span>
-                          ) : null}
                         </span>
-                      </li>
-                    ))}
-                  </ol>
+                      </td>
+
+                      <td className={styles.colChance}>
+                        <span className={styles.cardChance}>
+                          {track.chance !== null ? `${track.chance.toFixed(1)}%` : ""}
+                        </span>
+                        {/* The plays sit under the chance, abbreviated: a column of
+                            1,333,333 and 847,201 is unreadable at a glance and the exact
+                            digit was never the point. */}
+                        {track.plays !== null ? (
+                          <span className={styles.cardPlays}>
+                            {compactCount(track.plays)} {DEEPCUTS_TEASER.dialog_plays}
+                          </span>
+                        ) : null}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              <p className={styles.dialogNote}>{DEEPCUTS_TEASER.chance_note}</p>
 
                   <a
                     className={styles.dialogOpen}

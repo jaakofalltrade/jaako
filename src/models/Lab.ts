@@ -84,9 +84,12 @@ export type LabApp = {
  * and pinning them into the type would make a tuning pass a schema change.
  */
 export enum DeepcutTier {
+  Anthem = "ANTHEM",
   Chart = "CHART",
   Rotation = "ROTATION",
   Album = "ALBUM",
   Deepcut = "DEEPCUT",
   Unheard = "UNHEARD",
+  Ghost = "GHOST",
+  Lost = "LOST",
 }

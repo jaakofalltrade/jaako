@@ -129,8 +129,20 @@ const checkPlaylist = async (playlistId) => {
   const tiers = {};
   for (const track of matched) tiers[track.tier] = (tiers[track.tier] ?? 0) + 1;
 
+  /* Listed commonest first, matching DEEPCUT_LADDER. Spelled out rather than derived
+     from the response, because a rung with no tracks on this playlist is exactly the
+     interesting case and would be missing from the data. Keep in step with the enum. */
   console.log("  tiers:");
-  for (const tier of ["CHART", "ROTATION", "ALBUM", "DEEPCUT", "UNHEARD"]) {
+  for (const tier of [
+    "ANTHEM",
+    "CHART",
+    "ROTATION",
+    "ALBUM",
+    "DEEPCUT",
+    "UNHEARD",
+    "GHOST",
+    "LOST",
+  ]) {
     const count = tiers[tier] ?? 0;
     console.log(`    ${tier.padEnd(9)} ${String(count).padStart(3)}  ${"#".repeat(count)}`);
   }

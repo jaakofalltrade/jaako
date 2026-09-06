@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DeepcutTier } from "@/models";
-import { rarerThan, rarityOf } from "@/utils/rarity";
+import { pullChance, rarityOf } from "@/utils/rarity";
 
 /**
  * The scoring rule the whole app turns on.
@@ -14,17 +14,19 @@ const tier = (plays: number | null) => rarityOf({ plays });
 
 describe("rarityOf", () => {
   it("puts a song everybody has heard on the commonest rung", () => {
-    expect(tier(48_000_000)).toBe(DeepcutTier.Chart);
+    expect(tier(480_000_000)).toBe(DeepcutTier.Anthem);
   });
 
   it("puts a song almost nobody has played on the rarest", () => {
-    expect(tier(600)).toBe(DeepcutTier.Unheard);
+    expect(tier(4)).toBe(DeepcutTier.Lost);
   });
 
   /* One rung per order of magnitude, checked on each boundary and just under it. These
      are the numbers a tuning pass will change, so this block is what tells you the
      shape still holds after you have changed them. */
   it("lands each decade on its own rung", () => {
+    expect(tier(100_000_000)).toBe(DeepcutTier.Anthem);
+    expect(tier(99_999_999)).toBe(DeepcutTier.Chart);
     expect(tier(10_000_000)).toBe(DeepcutTier.Chart);
     expect(tier(9_999_999)).toBe(DeepcutTier.Rotation);
     expect(tier(1_000_000)).toBe(DeepcutTier.Rotation);
@@ -33,12 +35,16 @@ describe("rarityOf", () => {
     expect(tier(99_999)).toBe(DeepcutTier.Deepcut);
     expect(tier(10_000)).toBe(DeepcutTier.Deepcut);
     expect(tier(9_999)).toBe(DeepcutTier.Unheard);
+    expect(tier(1_000)).toBe(DeepcutTier.Unheard);
+    expect(tier(999)).toBe(DeepcutTier.Ghost);
+    expect(tier(100)).toBe(DeepcutTier.Ghost);
+    expect(tier(99)).toBe(DeepcutTier.Lost);
   });
 
   /* Zero is a real answer, not a missing one: Last.fm knows the track and nobody has
      scrobbled it, which is the genuine top of the ladder. */
   it("treats a real zero as the rarest rung", () => {
-    expect(tier(0)).toBe(DeepcutTier.Unheard);
+    expect(tier(0)).toBe(DeepcutTier.Lost);
   });
 
   /* NULL IS NOT A ZERO AND MUST NEVER BECOME ONE. Last.fm matches on artist and title,
@@ -61,18 +67,21 @@ describe("rarityOf", () => {
      wrong way round, fails here and passes most of the tests above. */
   it("never gets rarer as the play count grows", () => {
     const ladderIndex = [
+      DeepcutTier.Lost,
+      DeepcutTier.Ghost,
       DeepcutTier.Unheard,
       DeepcutTier.Deepcut,
       DeepcutTier.Album,
       DeepcutTier.Rotation,
       DeepcutTier.Chart,
+      DeepcutTier.Anthem,
     ];
 
     /* ladderIndex runs rarest first, so a bigger rank is a COMMONER rung. More plays
        must therefore never lower the rank. */
     let previous = -1;
 
-    for (const plays of [0, 1, 500, 9_999, 10_000, 50_000, 100_000, 750_000, 1_000_000, 5_000_000, 10_000_000, 90_000_000]) {
+    for (const plays of [0, 1, 99, 100, 500, 999, 1_000, 9_999, 10_000, 50_000, 100_000, 750_000, 1_000_000, 5_000_000, 10_000_000, 90_000_000, 100_000_000, 400_000_000]) {
       const rung = tier(plays);
       const rank = ladderIndex.indexOf(rung!);
 
@@ -82,49 +91,91 @@ describe("rarityOf", () => {
   });
 
   it("always returns a rung for any real count", () => {
-    for (const plays of [0, 3, 999, 12_345, 678_900, 4_200_000, 88_000_000]) {
+    for (const plays of [0, 3, 99, 999, 12_345, 678_900, 4_200_000, 88_000_000, 300_000_000]) {
       expect(tier(plays), `${plays} plays`).not.toBeNull();
     }
   });
 });
 
-describe("rarerThan", () => {
-  const among = [100, 1_000, 10_000, 100_000, 1_000_000];
+describe("pullChance", () => {
+  const many = (tier: DeepcutTier, count: number) => Array.from({ length: count }, () => tier);
 
-  it("puts the quietest song above everything else", () => {
-    expect(rarerThan({ plays: 100, among })).toBe(80);
+  /* A playlist that cannot fill a pack deals all of itself. */
+  it("is certain when the playlist is smaller than a pack", () => {
+    expect(pullChance({ tier: DeepcutTier.Chart, among: many(DeepcutTier.Chart, 3) })).toBe(100);
+    expect(pullChance({ tier: DeepcutTier.Chart, among: many(DeepcutTier.Chart, 5) })).toBe(100);
   });
 
-  it("puts the loudest song above nothing", () => {
-    expect(rarerThan({ plays: 1_000_000, among })).toBe(0);
+  it("has no answer for a track with no rung", () => {
+    expect(pullChance({ tier: null, among: many(DeepcutTier.Chart, 20) })).toBeNull();
   });
 
-  it("counts the ones with more plays", () => {
-    expect(rarerThan({ plays: 10_000, among })).toBe(40);
+  it("has no answer when nothing is eligible", () => {
+    expect(pullChance({ tier: DeepcutTier.Chart, among: [] })).toBeNull();
   });
 
-  /* Strictly more, so identical counts do not push each other up the list. */
-  it("does not count ties", () => {
-    expect(rarerThan({ plays: 500, among: [500, 500, 500, 500] })).toBe(0);
+  /* THE PROPERTY THE WHOLE FIGURE EXISTS FOR. The hit slot never rolls a common rung, so
+     a rare song in a thin bucket has to beat a common one. A uniform draw would price
+     them identically and there would be no reason to print the number. */
+  it("prices a rare song above a common one on the same playlist", () => {
+    const among = [
+      ...many(DeepcutTier.Chart, 40),
+      ...many(DeepcutTier.Album, 20),
+      ...many(DeepcutTier.Lost, 1),
+    ];
+
+    const common = pullChance({ tier: DeepcutTier.Chart, among })!;
+    const rare = pullChance({ tier: DeepcutTier.Lost, among })!;
+
+    expect(rare).toBeGreaterThan(common);
   });
 
-  it("has no answer for a track that could not be matched", () => {
-    expect(rarerThan({ plays: null, among })).toBeNull();
+  /* A rung the hit slot never rolls gets the commons and nothing else, so every song on
+     it is priced the same however rare the rung sounds. "anthem" and "chart" are both
+     above the hit slot's floor of album cut. */
+  it("gives the same odds to two rungs the hit slot cannot reach", () => {
+    const among = [
+      ...many(DeepcutTier.Anthem, 10),
+      ...many(DeepcutTier.Chart, 10),
+      ...many(DeepcutTier.Album, 10),
+    ];
+
+    expect(pullChance({ tier: DeepcutTier.Anthem, among })).toBe(
+      pullChance({ tier: DeepcutTier.Chart, among })
+    );
   });
 
-  /* One scored track is not a distribution: "rarer than 0% of this playlist" is true,
-     useless, and reads as a bad pull. */
-  it("has no answer for a playlist with nothing to compare against", () => {
-    expect(rarerThan({ plays: 100, among: [100] })).toBeNull();
-    expect(rarerThan({ plays: 100, among: [] })).toBeNull();
+  /* An empty bucket walks DOWN to the nearest rung that has a track, never up. With no
+     lost, ghost or unheard songs, all of that weight lands on the deep cuts. */
+  it("walks an empty bucket down the ladder rather than up", () => {
+    const withRare = [
+      ...many(DeepcutTier.Album, 30),
+      ...many(DeepcutTier.Deepcut, 5),
+      ...many(DeepcutTier.Lost, 5),
+    ];
+    const withoutRare = [
+      ...many(DeepcutTier.Album, 30),
+      ...many(DeepcutTier.Deepcut, 5),
+      ...many(DeepcutTier.Chart, 5),
+    ];
+
+    const shared = pullChance({ tier: DeepcutTier.Deepcut, among: withRare })!;
+    const inherited = pullChance({ tier: DeepcutTier.Deepcut, among: withoutRare })!;
+
+    expect(inherited).toBeGreaterThan(shared);
   });
 
-  it("is always between 0 and 100", () => {
-    for (const plays of [0, 1, 999, 50_000, 9_000_000]) {
-      const value = rarerThan({ plays, among: [0, 1, 999, 50_000, 9_000_000] });
-      expect(value).not.toBeNull();
-      expect(value!).toBeGreaterThanOrEqual(0);
-      expect(value!).toBeLessThanOrEqual(100);
-    }
+  it("never exceeds a hundred percent", () => {
+    const among = [...many(DeepcutTier.Lost, 1), ...many(DeepcutTier.Chart, 5)];
+    const value = pullChance({ tier: DeepcutTier.Lost, among })!;
+    expect(value).toBeLessThanOrEqual(100);
+    expect(value).toBeGreaterThan(0);
+  });
+
+  /* Every song on a long playlist is unlikely, and that is the honest answer: four
+     uniform slots out of three hundred is not a good chance. */
+  it("prices a song on a long playlist low", () => {
+    const among = many(DeepcutTier.Rotation, 300);
+    expect(pullChance({ tier: DeepcutTier.Rotation, among })!).toBeLessThan(5);
   });
 });

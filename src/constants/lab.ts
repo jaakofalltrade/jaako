@@ -35,9 +35,13 @@ export const DEEPCUT_TIER: Record<
   DeepcutTier,
   { label: string; note: string }
 > = {
+  [DeepcutTier.Anthem]: {
+    label: "anthem",
+    note: "Everyone alive has heard this. Throw it straight back.",
+  },
   [DeepcutTier.Chart]: {
     label: "chart",
-    note: "Everyone has heard it. You will pull it constantly.",
+    note: "A hit. You will pull these constantly.",
   },
   [DeepcutTier.Rotation]: {
     label: "rotation",
@@ -53,7 +57,15 @@ export const DEEPCUT_TIER: Record<
   },
   [DeepcutTier.Unheard]: {
     label: "unheard",
-    note: "Almost nobody has played this. The best thing in the pack.",
+    note: "Almost nobody has played this.",
+  },
+  [DeepcutTier.Ghost]: {
+    label: "ghost",
+    note: "A few hundred people, ever, anywhere.",
+  },
+  [DeepcutTier.Lost]: {
+    label: "lost",
+    note: "Barely a trace of anyone hearing it. The best thing in a pack.",
   },
 };
 
@@ -66,11 +78,14 @@ export const DEEPCUT_TIER: Record<
  * here, so it is stated where the design can see it.
  */
 export const DEEPCUT_LADDER: DeepcutTier[] = [
+  DeepcutTier.Anthem,
   DeepcutTier.Chart,
   DeepcutTier.Rotation,
   DeepcutTier.Album,
   DeepcutTier.Deepcut,
   DeepcutTier.Unheard,
+  DeepcutTier.Ghost,
+  DeepcutTier.Lost,
 ];
 
 /**
@@ -81,9 +96,14 @@ export const DEEPCUT_LADDER: DeepcutTier[] = [
  * law spanning six or seven decades, and a logarithmic ladder is the only one whose
  * steps are evenly spaced against that.
  *
- * `unheard` floors at zero rather than at some small number, so every non-negative
- * count lands somewhere. Zero is a real answer - Last.fm knows the track and nobody has
- * scrobbled it - and it is the genuine top of the ladder. A track Last.fm cannot match
+ * EIGHT DECADES NOW, WHERE THERE WERE FIVE. The old ladder ran from ten thousand to ten
+ * million and both ends carried too much: "chart" meant everything above a hit, and
+ * "unheard" meant everything below ten thousand, which is four decades in one rung. A
+ * song with 900 scrobbles and one with 3 were the same card. They are not any more.
+ *
+ * `lost` floors at zero rather than at some small number, so every non-negative count
+ * lands somewhere. Zero is a real answer - last.fm knows the track and nobody has
+ * scrobbled it - and it is the genuine top of the ladder. A track last.fm cannot match
  * at all has no count and therefore no rung; see rarityOf.
  *
  * TUNING CONSTANTS, AND THE FIRST THING THAT WILL MOVE. docs/lab.md called the
@@ -93,9 +113,12 @@ export const DEEPCUT_LADDER: DeepcutTier[] = [
  * Move these; do not add rungs between them.
  */
 export const DEEPCUT_TIER_FLOOR: Record<DeepcutTier, number> = {
+  [DeepcutTier.Anthem]: 100_000_000,
   [DeepcutTier.Chart]: 10_000_000,
   [DeepcutTier.Rotation]: 1_000_000,
   [DeepcutTier.Album]: 100_000,
   [DeepcutTier.Deepcut]: 10_000,
-  [DeepcutTier.Unheard]: 0,
+  [DeepcutTier.Unheard]: 1_000,
+  [DeepcutTier.Ghost]: 100,
+  [DeepcutTier.Lost]: 0,
 };

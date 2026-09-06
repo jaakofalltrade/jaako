@@ -432,11 +432,14 @@ export const DEEPCUTS_TEASER = {
   /** The same, when the deployment cannot even score what it would deal. */
   rip_blocked_unscored: "The rip needs play counts, and last.fm is not switched on here.",
 
-  /* Follows a number: "rarer than 87% of this playlist". Says WHICH playlist on purpose:
-     the same song is rarer than 90% of a chart list and 10% of a crate-digging one, so
-     the figure is nonsense read globally and useful read locally. */
-  card_rarer_than: "rarer than",
-  card_of_playlist: "of this playlist",
+  /* The table's column heads. "chance" says what the number is and the note under the
+     table says it is a projection: the rip is not built, so nothing has ever actually
+     been drawn at these odds. */
+  col_track: "track",
+  col_card: "card",
+  col_chance: "chance",
+  /* Under the table. The honest caveat, once, rather than an asterisk on every row. */
+  chance_note: "Chance is what one pack would deal at the odds in the plan. Nothing has been ripped yet.",
   /** The pack's own line under its name, in the opened panel. */
   dialog_pack_meta: "in the pack",
 

@@ -1,3 +1,5 @@
+import { DeepcutTier } from "@/models";
+
 /**
  * Fixed values for /lab/deepcuts.
  *
@@ -104,3 +106,45 @@ export const SCORED_TRACK_LIMIT = 50;
  * Ten at a time keeps the panel under a second on a warm cache and polite on a cold one.
  */
 export const SCORING_CONCURRENCY = 10;
+
+/* ---------------- the draw ----------------
+
+   NONE OF THIS IS BUILT. The rip does not exist; what these describe is the model in the
+   pack-odds write-up, and the only thing reading them today is the chance printed on each
+   card. That figure is therefore a projection from a design rather than a measurement,
+   and the column heading says so. */
+
+/** Five cards to a pack. */
+export const PACK_SIZE = 5;
+
+/**
+ * Four of the five come off the playlist uniformly and are whatever they are.
+ *
+ * The fifth is the hit slot below. Four and one rather than five uniform draws is what
+ * puts the pull rate under this app's control instead of the playlist's: rip a list of
+ * obscurities with five uniform draws and every card is a pull, which makes the rare
+ * rungs worthless exactly where they should mean most.
+ */
+export const COMMON_SLOTS = PACK_SIZE - 1;
+
+/**
+ * What the hit slot rolls, and it never rolls a common rung.
+ *
+ * A GUARANTEED FLOOR OF "ALBUM CUT OR BETTER", which is how a physical pack works: the
+ * commons fill it and one slot is the reason you opened it.
+ *
+ * The five weights sum to 1 and run rarest-last, so `lost` at one percent is a genuine
+ * chase card: at one pack a day it is the thick end of three months. When a rolled rung
+ * has no track on the playlist the slot walks DOWN the ladder to the nearest rung that
+ * does, never up - falling upward would hand out rarer cards than the playlist has
+ * earned, which is the one direction that makes the whole ladder meaningless.
+ *
+ * Starting weights, not measurements. Borrowed from how a physical pack feels.
+ */
+export const HIT_SLOT_ODDS: Partial<Record<DeepcutTier, number>> = {
+  [DeepcutTier.Album]: 0.46,
+  [DeepcutTier.Deepcut]: 0.32,
+  [DeepcutTier.Unheard]: 0.15,
+  [DeepcutTier.Ghost]: 0.06,
+  [DeepcutTier.Lost]: 0.01,
+};

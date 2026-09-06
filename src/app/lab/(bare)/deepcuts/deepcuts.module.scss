@@ -38,13 +38,20 @@
   --dc-foil-low: #9aa5aa;
 
   /* The ladder, commonest to rarest. The step from rung to rung is saturation and
-     nothing else: the common end is the paper the page is already printed on, and
-     each rung up puts more pigment on the same card. */
+     nothing else: the common end is the paper the page is already printed on, and each
+     rung up puts more pigment on the same card.
+
+     EIGHT NOW, NOT FIVE, and the two new ends are where the ladder was flattest. Anthem
+     sits above chart and is barely pigment at all; ghost and lost run past unheard into
+     the deepest of the warm end. */
+  --dc-anthem: #cdc7ba;
   --dc-chart: #b9b2a4;
   --dc-rotation: #8fa6a8;
   --dc-album: #7d8cb5;
   --dc-deepcut: #9a7bb8;
   --dc-unheard: #c08a5e;
+  --dc-ghost: #c2643f;
+  --dc-lost: #b8442e;
 
   --dc-display: var(--font-quicksand), "Helvetica Neue", Helvetica, sans-serif;
   --dc-mono: var(--font-geist-mono), ui-monospace, "Courier New", monospace;
@@ -289,6 +296,10 @@
   border: 1px solid var(--dc-hair);
   align-self: center;
 
+  .rung[data-tier="ANTHEM"] & {
+    background: var(--dc-anthem);
+  }
+
   .rung[data-tier="CHART"] & {
     background: var(--dc-chart);
   }
@@ -302,22 +313,42 @@
   }
 
   .rung[data-tier="DEEPCUT"] & {
+    background: var(--dc-deepcut);
+  }
+
+  /* THE THREE RAREST ARE FOILS, which was two when the ladder was five rungs long. The
+     rule at the top of this file is unchanged and worth restating: a foil is a sheen
+     ACROSS a surface, so each of these is a gradient confined to a 1rem square, and
+     none of them throws light past its own edge. */
+  .rung[data-tier="UNHEARD"] & {
     background: linear-gradient(
       125deg,
-      var(--dc-deepcut) 0%,
-      #d9cbe8 48%,
-      var(--dc-deepcut) 100%
+      var(--dc-unheard) 0%,
+      #e6c9a4 48%,
+      var(--dc-unheard) 100%
     );
   }
 
-  .rung[data-tier="UNHEARD"] & {
+  .rung[data-tier="GHOST"] & {
     background: conic-gradient(
       from 210deg,
-      var(--dc-unheard),
+      var(--dc-ghost),
       #e6c9a4,
       var(--dc-deepcut),
       #cfd6d9,
-      var(--dc-unheard)
+      var(--dc-ghost)
+    );
+  }
+
+  .rung[data-tier="LOST"] & {
+    background: conic-gradient(
+      from 30deg,
+      var(--dc-lost),
+      #f0d3ad,
+      var(--dc-deepcut),
+      #b9d7dd,
+      #f0d3ad,
+      var(--dc-lost)
     );
   }
 }
@@ -1038,78 +1069,110 @@
 
 /* ---------------- the cards inside a pack ---------------- */
 
+/* THE TABLE. Three columns of the same kind of fact per row, which is what the stacked
+   spans this replaced were pretending not to be. */
 .cards {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  border-top: 1px solid var(--dc-hair);
+  width: 100%;
+  border-collapse: collapse;
+  /* FIXED, NOT AUTO, AND THE CHANCE COLUMN IS WHY. Left to size itself a table gives the
+     longest content the room it asks for, so one track called "Serpentskirt - Remastered
+     2024" pushed the rung and the chance off the right edge of the panel entirely. Fixed
+     layout means the two narrow columns are declared and the title takes what is left,
+     which is also the only arrangement where the decimals line up. */
+  table-layout: fixed;
+
+  th:nth-child(2),
+  td:nth-child(2) {
+    width: 6.5rem;
+  }
+
+  th:nth-child(3),
+  td:nth-child(3) {
+    width: 5rem;
+  }
+
+  th {
+    padding: 0 0 0.5rem;
+    border-bottom: 1px solid var(--dc-hair);
+    text-align: left;
+    font-family: var(--dc-mono);
+    font-size: 0.58rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--dc-ink-soft);
+  }
+
+  td {
+    padding: 0.5rem 0.5rem 0.5rem 0;
+    border-bottom: 1px solid var(--dc-hair);
+    vertical-align: top;
+  }
+
+  td:last-child,
+  th:last-child {
+    padding-right: 0;
+  }
+}
+
+/* The chance column, ranged right so the decimals line up down the table. */
+.colChance {
+  text-align: right;
+  white-space: nowrap;
 }
 
 .card {
-  display: grid;
-  grid-template-columns: 0.75rem 1fr max-content;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.6rem 0;
-  border-bottom: 1px solid var(--dc-hair);
+  /* Nothing of its own: the row is drawn by the cell rules above. The class is here for
+     the data-tier hook the swatch reads. */
 }
 
-/* The rung, as the same swatch the legend prints. One vocabulary for rarity across the
-   page: if a colour means "deep cut" in the legend it has to mean it here. */
+.cardTierCell {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
 .cardSwatch {
-  width: 0.75rem;
-  height: 0.75rem;
+  flex: none;
+  width: 0.7rem;
+  height: 0.7rem;
   border-radius: 0.15rem;
   border: 1px solid var(--dc-hair);
-  /* An unmatched track has no rung and gets no colour rather than a grey one that would
-     read as its own tier. */
+  /* An unmatched track has no rung and gets no colour rather than a grey one, which
+     would read as a tier of its own. */
   background: transparent;
 
-  .card[data-tier="CHART"] & {
-    background: var(--dc-chart);
-  }
-
-  .card[data-tier="ROTATION"] & {
-    background: var(--dc-rotation);
-  }
-
-  .card[data-tier="ALBUM"] & {
-    background: var(--dc-album);
-  }
-
-  .card[data-tier="DEEPCUT"] & {
-    background: linear-gradient(
-      125deg,
-      var(--dc-deepcut) 0%,
-      #d9cbe8 48%,
-      var(--dc-deepcut) 100%
-    );
-  }
+  .card[data-tier="ANTHEM"] & { background: var(--dc-anthem); }
+  .card[data-tier="CHART"] & { background: var(--dc-chart); }
+  .card[data-tier="ROTATION"] & { background: var(--dc-rotation); }
+  .card[data-tier="ALBUM"] & { background: var(--dc-album); }
+  .card[data-tier="DEEPCUT"] & { background: var(--dc-deepcut); }
 
   .card[data-tier="UNHEARD"] & {
-    background: conic-gradient(
-      from 210deg,
-      var(--dc-unheard),
-      #e6c9a4,
-      var(--dc-deepcut),
-      #cfd6d9,
-      var(--dc-unheard)
-    );
+    background: linear-gradient(125deg, var(--dc-unheard) 0%, #e6c9a4 48%, var(--dc-unheard) 100%);
+  }
+
+  .card[data-tier="GHOST"] & {
+    background: conic-gradient(from 210deg, var(--dc-ghost), #e6c9a4, var(--dc-deepcut), #cfd6d9, var(--dc-ghost));
+  }
+
+  .card[data-tier="LOST"] & {
+    background: conic-gradient(from 30deg, var(--dc-lost), #f0d3ad, var(--dc-deepcut), #b9d7dd, #f0d3ad, var(--dc-lost));
   }
 }
 
 .cardMain {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  min-width: 0;
+  display: block;
+  max-width: 100%;
 }
 
 .cardTitle,
 .cardArtist {
   /* A long title truncates rather than wrapping to three lines and pushing the rung out
-     of alignment with the rows above it. min-width:0 on the parent is what lets this
-     work inside a grid track. */
+     of alignment with the rows above it. Blocks rather than inline spans: a fixed table
+     cell gives them a definite width to be clipped against, which an inline box would
+     simply overflow. */
+  display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1125,26 +1188,23 @@
   color: var(--dc-ink-soft);
 }
 
-.cardRarity {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.1rem;
-  text-align: right;
-}
 
 .cardTier {
   font-family: var(--dc-mono);
-  font-size: 0.65rem;
-  letter-spacing: 0.1em;
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
+  /* "album cut" is two words and one rung. Broken across lines it reads as two. */
+  white-space: nowrap;
 }
 
 .cardPlays {
+  display: block;
   font-family: var(--dc-mono);
   font-size: 0.6rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
   color: var(--dc-ink-soft);
 }
 
@@ -1305,15 +1365,7 @@
   color: var(--dc-ink-soft);
 }
 
-/* The percentile under a card's rung. Its label names the playlist it is measured
-   against, because the number is local and reads as global without it. */
-.cardPercent {
-  font-family: var(--dc-mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--dc-ink);
-}
+
 
 /* THE PILE OF CARDS, AND THE ONLY THING ON THE SCREEN THAT SCROLLS.
 
@@ -1340,4 +1392,34 @@
   /* Keeps the momentum scroll inside the list rather than handing it to the page behind
      once the last card is reached. */
   overscroll-behavior: contain;
+
+  /* NO SCROLLBAR, AND STILL SCROLLABLE. Two declarations because no single one is
+     supported everywhere: the standard property for Firefox, the pseudo-element for
+     everything on Blink and WebKit. Neither touches whether the box scrolls, only
+     whether the browser paints a track down the side of it.
+
+     Worth knowing what this costs: the bar is also an affordance, and hiding it means
+     nothing on screen says there is more below. The list is paid for here by the cards
+     being cut off mid-row at the bottom edge, which is the other way a reader learns a
+     box scrolls. If that stops being obvious, a fade at the foot is the fix rather than
+     giving the bar back. */
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* .cardRarity and .cardPercent went with the stacked spans the table replaced: one was
+   the column wrapper, the other the "rarer than 87%" line that became a chance. */
+
+/* The chance, and the play count under it. Stacked rather than side by side: the
+   abbreviated count is the evidence for the percentage, so it reads as a subordinate
+   line rather than a second column. */
+.cardChance {
+  display: block;
+  font-family: var(--dc-mono);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--dc-ink);
 }

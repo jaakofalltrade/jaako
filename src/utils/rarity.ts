@@ -1,4 +1,10 @@
-import { DEEPCUT_LADDER, DEEPCUT_TIER_FLOOR } from "@/constants";
+import {
+  COMMON_SLOTS,
+  DEEPCUT_LADDER,
+  DEEPCUT_TIER_FLOOR,
+  HIT_SLOT_ODDS,
+  PACK_SIZE,
+} from "@/constants";
 import { DeepcutTier } from "@/models";
 
 /**
@@ -84,37 +90,74 @@ export const rarityOf = (args: { plays: number | null | undefined }): DeepcutTie
 };
 
 /**
- * How rare a song is against the playlist it came out of, as a percentage.
+ * The chance this song lands in a pack, as a percentage.
  *
- * A PERCENTILE, NOT A SCORE OUT OF A HUNDRED. "Rarer than 87% of this playlist" is a
- * statement somebody can check by counting; a normalised 0-100 "rarity index" derived
- * from the play count would be a number with no unit, which is the exact objection
- * docs/lab.md raises against Spotify's own `popularity` field. Having refused one
- * invented index, this app should not ship another.
+ * IT REPLACED A PERCENTILE, AND THE CHANGE IS THE QUESTION BEING ANSWERED. The card used
+ * to read "rarer than 87% of this playlist", which is checkable by counting and answers
+ * a question nobody asked. What somebody holding a pack wants to know is whether they
+ * were lucky, and that is a probability of drawing the thing, not its position in a
+ * sorted list.
  *
- * IT IS LOCAL TO THE PLAYLIST AND THE COPY HAS TO SAY SO. The same song is rarer than
- * 90% of a chart playlist and rarer than 10% of a crate-digging one. That is the useful
- * reading - it answers "is this a good pull out of THIS pack" - but read as a global
- * figure it is nonsense, so the label beside it never says just "rarity".
+ * IT IS A PROJECTION, NOT A MEASUREMENT, AND THE COPY BESIDE IT SAYS SO. The rip is not
+ * built. This computes the odds under the model the pack-odds write-up settles on, which
+ * is the design of record and not yet the behaviour of anything:
  *
- * Counted on strictly-more-plays, so the quietest track in a playlist is rarer than
- * everything else and reads 100, and the loudest reads 0.
+ *   COMMON_SLOTS cards are drawn uniformly, without replacement, from the eligible pool.
+ *   One hit slot rolls a rung by HIT_SLOT_ODDS and then picks uniformly inside it.
+ *
+ * So a song's chance is the hit slot finding it, plus the commons finding it if the hit
+ * did not. That is what makes the number worth printing at all: a rare song in a thin
+ * bucket beats a common one, which a uniform draw would never show.
+ *
+ * ELIGIBLE MEANS SCORED. Tracks last.fm could not match have no rung and are not in the
+ * pool, so they are not in the denominator either - the same rule that keeps them out of
+ * a pack keeps them out of everyone else's odds.
  */
-export const rarerThan = (args: {
-  plays: number | null;
-  /** Every known count on the playlist, this one included. Unmatched tracks are absent. */
-  among: number[];
+export const pullChance = (args: {
+  tier: DeepcutTier | null;
+  /** The rung of every eligible track on the playlist, this one included. */
+  among: DeepcutTier[];
 }): number | null => {
-  const { plays, among } = args;
+  const { tier, among } = args;
 
-  // No count, no rung, no percentile. The three go together; see rarityOf.
-  if (plays === null || !Number.isFinite(plays)) return null;
+  // No rung, no pool place, no odds. The three go together; see rarityOf.
+  if (!tier) return null;
+  if (among.length === 0) return null;
 
-  /* One scored track is not a distribution. A lone song would read "rarer than 0% of
-     this playlist", which is true, useless, and reads as a bad pull. */
-  if (among.length < 2) return null;
+  /* A playlist that cannot fill a pack deals all of itself, so everything on it is
+     certain. Without this the arithmetic below divides by zero at exactly five. */
+  if (among.length <= PACK_SIZE) return 100;
 
-  const louder = among.filter((count) => count > plays).length;
+  const counts = new Map<DeepcutTier, number>();
+  for (const rung of among) counts.set(rung, (counts.get(rung) ?? 0) + 1);
 
-  return Math.round((louder / among.length) * 100);
+  /* Where the hit slot actually resolves, once empty buckets have been walked past.
+     DEEPCUT_LADDER runs commonest first, so walking DOWN the ladder is walking toward
+     index zero. Never the other way: see HIT_SLOT_ODDS. */
+  const landed = new Map<DeepcutTier, number>();
+
+  for (const [rolled, weight] of Object.entries(HIT_SLOT_ODDS)) {
+    if (!weight) continue;
+
+    for (let index = DEEPCUT_LADDER.indexOf(rolled as DeepcutTier); index >= 0; index -= 1) {
+      const rung = DEEPCUT_LADDER[index];
+      if ((counts.get(rung) ?? 0) > 0) {
+        landed.set(rung, (landed.get(rung) ?? 0) + weight);
+        break;
+      }
+    }
+    /* Nothing at or below the roll leaves that weight unassigned, which is only
+       reachable on a pool with no eligible tracks - already returned above. */
+  }
+
+  const inRung = counts.get(tier) ?? 0;
+  const hit = inRung > 0 ? (landed.get(tier) ?? 0) / inRung : 0;
+
+  /* The commons draw from the pool with the hit card already taken out of it. */
+  const common = COMMON_SLOTS / (among.length - 1);
+
+  const chance = hit + (1 - hit) * common;
+
+  // One decimal: the spread across a big playlist lives in the tenths.
+  return Math.round(Math.min(chance, 1) * 1000) / 10;
 };

@@ -7,7 +7,7 @@ import { spotifyEndpoints } from "@/server/endpoints";
 import { spotifyRead } from "@/server/spotify/spotifyApiClient";
 import { hasCredentials } from "@/server/spotify/spotifyAccessTokens";
 import { artistNames } from "@/server/spotify/mappers";
-import { rarerThan, rarityOf } from "@/utils/rarity";
+import { pullChance, rarityOf } from "@/utils/rarity";
 import { primaryArtist } from "@/utils/trackMatch";
 
 /**
@@ -73,16 +73,17 @@ export const packContents = async (args: {
       })),
     });
 
-    /* THE PERCENTILE IS ADDED AFTER EVERY TRACK HAS ITS COUNT, because it is the one
-       field on a card that depends on the other cards. Computing it inside the scoring
-       loop would rank each song against however many happened to have finished. */
-    const known = scored
-      .map((track) => track.plays)
-      .filter((plays): plays is number => plays !== null);
+    /* THE CHANCE IS ADDED AFTER EVERY TRACK HAS ITS RUNG, because it is the one field on
+       a card that depends on the other cards: a song's odds come from how many others
+       share its rung. Computing it inside the scoring loop would price each song against
+       however many happened to have finished. */
+    const pool = scored
+      .map((track) => track.tier)
+      .filter((tier): tier is NonNullable<typeof tier> => tier !== null);
 
     const tracks = scored.map((track) => ({
       ...track,
-      rarer_than: rarerThan({ plays: track.plays, among: known }),
+      chance: pullChance({ tier: track.tier, among: pool }),
     }));
 
     return {
@@ -110,9 +111,9 @@ export const packContents = async (args: {
  */
 const scoreAll = async (args: {
   tracks: { uri: string; title: string; artist: string; matchArtist: string }[];
-}): Promise<Omit<ScoredTrack, "rarer_than">[]> => {
+}): Promise<Omit<ScoredTrack, "chance">[]> => {
   const { tracks } = args;
-  const scored: Omit<ScoredTrack, "rarer_than">[] = [];
+  const scored: Omit<ScoredTrack, "chance">[] = [];
 
   for (let start = 0; start < tracks.length; start += SCORING_CONCURRENCY) {
     const batch = tracks.slice(start, start + SCORING_CONCURRENCY);
