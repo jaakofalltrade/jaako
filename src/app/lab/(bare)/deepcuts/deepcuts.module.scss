@@ -971,9 +971,12 @@
    NO ENTRY TRANSITION OF ITS OWN. Framer Motion moves the pack; a CSS transform on the
    dialog at the same time would fight it, and the two together read as a wobble. */
 .dialog {
-  width: min(34rem, calc(100vw - 2rem));
+  /* WIDER AND TALLER THAN IT WAS, 34rem and 46rem. The panel had gone tight: a table of
+     three columns, an album cover in the first of them, and a pack above it all were
+     sharing a column narrower than the shelf's own. */
+  width: min(46rem, calc(100vw - 2rem));
   max-width: none;
-  height: min(46rem, calc(100dvh - 3rem));
+  height: min(52rem, calc(100dvh - 2rem));
   max-height: none;
   padding: 0;
   border: 0;
@@ -1014,7 +1017,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
+  /* Was 0.75rem, which read as a stack of things that had been pushed together. The pack,
+     its button, the note and the pile of cards are four separate ideas. */
+  gap: 1.25rem;
   /* min-height:0 on a flex child is what actually lets .pile scroll instead of growing
      past the bottom of the screen. Without it a flex item's floor is its content. */
   min-height: 0;
@@ -1083,12 +1088,12 @@
 
   th:nth-child(2),
   td:nth-child(2) {
-    width: 6.5rem;
+    width: 7.5rem;
   }
 
   th:nth-child(3),
   td:nth-child(3) {
-    width: 5rem;
+    width: 6rem;
   }
 
   th {
@@ -1104,9 +1109,11 @@
   }
 
   td {
-    padding: 0.5rem 0.5rem 0.5rem 0;
+    padding: 0.6rem 0.6rem 0.6rem 0;
     border-bottom: 1px solid var(--dc-hair);
-    vertical-align: top;
+    /* Middle, not top: the row is now as tall as an album cover, and a rung floating at
+       the ceiling of it reads as belonging to the row above. */
+    vertical-align: middle;
   }
 
   td:last-child,
@@ -1161,9 +1168,36 @@
   }
 }
 
+/* The record, then what is on it. */
+.cardTrack {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.cardArt,
+.cardArtEmpty {
+  flex: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.2rem;
+  object-fit: cover;
+  box-shadow: inset 0 0 0 1px var(--dc-hair);
+}
+
+/* A track with no artwork keeps the column aligned rather than leaving a hole, and gets
+   the page's own quiet surface instead of a broken image. */
+.cardArtEmpty {
+  background: var(--dc-board);
+}
+
 .cardMain {
   display: block;
-  max-width: 100%;
+  min-width: 0;
+  /* The art is a fixed 2.25rem; this takes what is left, which is what gives the title
+     something definite to be truncated against. */
+  flex: 1;
 }
 
 .cardTitle,
@@ -1179,7 +1213,10 @@
 }
 
 .cardTitle {
-  font-size: 0.9rem;
+  font-size: 0.92rem;
+  /* Bold, because the song is the subject of the row and everything else on it - the
+     artist, the rung, the odds, the count - is a fact about the song. */
+  font-weight: 600;
   line-height: 1.3;
 }
 
@@ -1229,7 +1266,9 @@
      enormous and pushed the whole track list below the fold, so the panel opened on a
      picture rather than on what is inside the pack. A pack is a portrait object; at this
      width it reads as one, and the list starts on the first screen. */
-  width: min(13.5rem, 100%);
+  /* Larger than the 13.5rem it was: in a wider frame the old width read as a thumbnail
+     of a pack rather than the pack itself. */
+  width: min(16rem, 100%);
   align-self: center;
   /* ONE SIZE, PRINTED OR PLAIN, AND THE SAME PROPORTIONS AS ON THE SHELF. Without this a
      pack with no cover collapsed to whatever its name and count needed, so opening
@@ -1329,7 +1368,7 @@
    own control rather than a button that happens to be under it. */
 .rip {
   /* The pack's own width, so it reads as that pack's control rather than the frame's. */
-  width: min(13.5rem, 100%);
+  width: min(16rem, 100%);
   align-self: center;
   flex: none;
   padding: 0.75rem;
@@ -1381,7 +1420,7 @@
   min-height: 0;
   width: 100%;
   overflow-y: auto;
-  padding: 1rem 1.15rem 1.15rem;
+  padding: 1.25rem 1.4rem 1.4rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -1422,4 +1461,27 @@
   font-size: 0.78rem;
   font-variant-numeric: tabular-nums;
   color: var(--dc-ink);
+}
+
+/* ---------------- the tilt ---------------- */
+
+/* THE PERSPECTIVE LIVES HERE, ON THE PARENT, which is what makes the pack's rotation
+   read as depth instead of as a skew. Taken from react-bits' TiltedCard; see
+   TiltedPack.tsx for what else was taken and what was left behind. */
+.tiltStage {
+  perspective: 800px;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+/* TWO ELEMENTS, TWO MOTIONS, AND THAT IS THE WHOLE REASON THIS EXISTS. The entrance
+   animates scale and opacity; the tilt animates rotateX, rotateY and its own scale. Both
+   are the `transform` property, so on one element the second would simply overwrite the
+   first and the pack would arrive without ever having travelled. */
+.openedShell {
+  flex: none;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }

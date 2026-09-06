@@ -93,6 +93,16 @@ const pickArtUrl = (images: Spotify.ImageResponse[] | undefined): string | undef
 const pickArt = (images: Spotify.ImageResponse[] | undefined): string | null =>
   toArtUrl(pickArtUrl(images));
 
+/**
+ * Album art for a track, host-checked, exported for the deepcuts pack panel.
+ *
+ * The same pickArt the track mappers already use, under a name that says which kind of
+ * art it is. Playlist COVERS take the wider suffix check instead - see toPlaylistSummary -
+ * so a single exported "pickArt" would be an invitation to use the wrong one.
+ */
+export const pickAlbumArt = (images: Spotify.ImageResponse[] | undefined): string | null =>
+  pickArt(images);
+
 export const toTrack = (args: {
   track: Spotify.TrackResponse;
   progress_ms?: number;

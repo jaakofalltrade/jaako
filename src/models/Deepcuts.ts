@@ -131,6 +131,13 @@ export type ScoredTrack = {
   uri: string;
   title: string;
   artist: string;
+  /**
+   * The record's cover, on Spotify's CDN, or null for a track with no artwork.
+   *
+   * Free to carry: `album(name,images)` was already on the playlist projection, so the
+   * art was arriving on every track and being dropped on the floor.
+   */
+  album_art: string | null;
   /** Global scrobbles on last.fm. Not Spotify streams; the page says so. */
   plays: number | null;
   tier: DeepcutTier | null;

@@ -6,7 +6,7 @@ import { lastfmService } from "@/server/lastfm";
 import { spotifyEndpoints } from "@/server/endpoints";
 import { spotifyRead } from "@/server/spotify/spotifyApiClient";
 import { hasCredentials } from "@/server/spotify/spotifyAccessTokens";
-import { artistNames } from "@/server/spotify/mappers";
+import { artistNames, pickAlbumArt } from "@/server/spotify/mappers";
 import { pullChance, rarityOf } from "@/utils/rarity";
 import { primaryArtist } from "@/utils/trackMatch";
 
@@ -69,6 +69,7 @@ export const packContents = async (args: {
         uri: entry.item?.uri ?? "",
         title: entry.item?.name ?? "unknown",
         artist: artistNames(entry.item?.artists),
+        album_art: pickAlbumArt(entry.item?.album?.images),
         matchArtist: primaryArtist(entry.item?.artists),
       })),
     });
@@ -110,7 +111,13 @@ export const packContents = async (args: {
  * correct and would take fifty round trips; ten at a time is five.
  */
 const scoreAll = async (args: {
-  tracks: { uri: string; title: string; artist: string; matchArtist: string }[];
+  tracks: {
+    uri: string;
+    title: string;
+    artist: string;
+    album_art: string | null;
+    matchArtist: string;
+  }[];
 }): Promise<Omit<ScoredTrack, "chance">[]> => {
   const { tracks } = args;
   const scored: Omit<ScoredTrack, "chance">[] = [];
@@ -130,6 +137,7 @@ const scoreAll = async (args: {
             uri: track.uri,
             title: track.title,
             artist: track.artist,
+            album_art: track.album_art,
             plays,
             /* Null for a track last.fm could not match, and the panel renders that as
                "unmatched" rather than as the rarest rung. See rarityOf: guessing here

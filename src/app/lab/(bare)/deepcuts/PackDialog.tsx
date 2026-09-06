@@ -7,6 +7,7 @@ import { DEEPCUT_TIER } from "@/constants";
 import { compactCount } from "@/utils/format";
 import { DEEPCUTS_TEASER } from "@/data/lab";
 import type { DeepcutsPlaylist, PackContents } from "@/models";
+import { TiltedPack } from "./TiltedPack";
 import styles from "./deepcuts.module.scss";
 
 export type PackDialogProps = {
@@ -129,17 +130,18 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
               {DEEPCUTS_TEASER.dialog_close}
             </button>
 
-            {/* The same wrapper as on the shelf, at the same proportions, arriving from
-                slightly back and below. Scale and opacity only: neither touches layout,
-                so nothing around it moves while the pack settles. */}
+            {/* Arrives from slightly back and below, then leans toward the pointer once
+                it is there. Two separate motions on two elements: this one owns the
+                entrance, TiltedPack owns the tilt. Putting both on one element means the
+                entrance transform and the tilt transform fight over the same property. */}
             <motion.div
               initial={still ? false : { scale: 0.82, y: 26, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
               exit={still ? undefined : { scale: 0.9, y: 12, opacity: 0 }}
               transition={{ type: "spring", stiffness: 320, damping: 26, mass: 0.7 }}
-              className={styles.opened}
-              data-plain={playlist.cover ? undefined : ""}
+              className={styles.openedShell}
             >
+            <TiltedPack className={styles.opened} plain={!playlist.cover}>
               <span className={styles.shelfTeeth} aria-hidden="true" />
 
               <span className={styles.shelfStrip}>
@@ -176,6 +178,7 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
               </span>
 
               <span className={styles.shelfFoot} aria-hidden="true" />
+            </TiltedPack>
             </motion.div>
 
             {/* Across the foot of the pack, as on the sketch. */}
@@ -228,9 +231,29 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
                       data-tier={track.tier ?? undefined}
                     >
                       <td>
-                        <span className={styles.cardMain}>
-                          <span className={styles.cardTitle}>{track.title}</span>
-                          <span className={styles.cardArtist}>{track.artist}</span>
+                        <span className={styles.cardTrack}>
+                          {/* The record it came off. Album art, so the exact host check
+                              is i.scdn.co rather than the playlist cover's wider one;
+                              pickAlbumArt in the mappers is the one that knows which. */}
+                          {track.album_art ? (
+                            /* eslint-disable-next-line @next/next/no-img-element */
+                            <img
+                              className={styles.cardArt}
+                              src={track.album_art}
+                              alt=""
+                              width={72}
+                              height={72}
+                            />
+                          ) : (
+                            /* Never a broken image, and never a gap: a track with no
+                               artwork keeps the column aligned with a quiet square. */
+                            <span className={styles.cardArtEmpty} aria-hidden="true" />
+                          )}
+
+                          <span className={styles.cardMain}>
+                            <span className={styles.cardTitle}>{track.title}</span>
+                            <span className={styles.cardArtist}>{track.artist}</span>
+                          </span>
                         </span>
                       </td>
 
