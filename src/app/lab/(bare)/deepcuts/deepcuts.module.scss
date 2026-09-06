@@ -51,10 +51,13 @@
 
      The three rarest can also come out SHINY, which is a separate roll and a separate
      treatment; see .shiny below and SHINY_ODDS. */
-  --dc-diamond: #b3ada1;
-  --dc-platinum: #8f9a8c;
-  --dc-gold: #1f9d55;
-  --dc-silver: #1f6fd0;
+  /* The two muted ones are the two COMMONEST rungs, which are now silver and gold rather
+     than diamond and platinum - the certification half was reversed so that a better award
+     is a better card. The colours belong to the positions, not to the words. */
+  --dc-silver: #b3ada1;
+  --dc-gold: #8f9a8c;
+  --dc-platinum: #1f9d55;
+  --dc-diamond: #1f6fd0;
   --dc-deepcut: #8034d4;
   --dc-unheard: #e2760c;
   --dc-ghost: #e02c20;
@@ -266,7 +269,6 @@
   color: var(--dc-ink);
 }
 
-
 /* ---------------- the ladder ----------------
 
    .ladder, .rules, .ladderHead, .rulesHead and .ladderNote have gone with the two
@@ -461,7 +463,6 @@
   flex-direction: column;
   gap: 1.5rem;
 }
-
 
 /* .shelfHead went with the tab that replaced it: the strip already says "the packs". */
 
@@ -1028,34 +1029,14 @@
   min-height: 0;
 }
 
-/* THE WAY OUT, AND IT HAS TO BE FINDABLE. This was a 14%-alpha hairline round soft grey
-   type on no background at all - and the dialog paints no surface, so it was sitting on a
-   blurred photograph of the page. It read as a smudge. Filled, full ink, and a firm edge:
-   still the quietest control on the panel, and now visibly a control. */
-.dialogClose {
-  align-self: flex-end;
-  flex: none;
-  padding: 0.4rem 0.75rem;
-  border: 1px solid rgba(29, 26, 22, 0.3);
-  border-radius: 0.25rem;
-  background: var(--dc-card);
-  box-shadow: 0 1px 3px rgba(29, 26, 22, 0.16);
-  font-family: var(--dc-mono);
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--dc-ink);
-  cursor: pointer;
+/* NO CLOSE BUTTON. Both dialogs close on a click outside, on Escape, and - for the pack -
+   the moment the cards are dealt there is nothing left to dismiss but the backdrop. A
+   button whose only job is duplicating a click anywhere on the screen was the loudest
+   control on a panel whose subject is a card.
 
-  &:hover,
-  &:focus-visible {
-    border-color: var(--dc-ink);
-    background: var(--dc-ink);
-    color: var(--dc-card);
-  }
-}
-
+   What that costs is stated rather than waved away: a pointer user closes by clicking off
+   the card, a keyboard user presses Escape, and a <dialog> gives both for free. There is
+   no visible affordance saying so, which is the trade. */
 
 /* The playlist itself, at the foot of the opened pack. Centred rather than ranged left
    as it was, because the panel it used to sit in is gone and everything left on the
@@ -1756,19 +1737,50 @@
   border-radius: 0.2rem;
   /* Its own plate, because it sits over a photograph and a photograph can be any
      colour. Legibility here cannot depend on the album art. */
-  background: rgba(29, 26, 22, 0.72);
+  background: rgba(29, 26, 22, 0.78);
   color: #fff;
+
+  /* THE RARE THREE GET THE PLATE TINTED, NOT JUST THE STARS COLOURED. All three show six
+     stars, so colour is the only thing telling them apart - and lost's amber is too close
+     to the gold the first five use for six small glyphs to carry that alone. Tinting the
+     plate makes the whole mark the rung's colour, which reads across a grid at a glance
+     rather than on inspection. The mix stays mostly ink, so the white word on it keeps its
+     contrast. */
+  .pull[data-tier="UNHEARD"] & {
+    background: color-mix(in srgb, var(--dc-unheard) 26%, rgba(29, 26, 22, 0.9));
+  }
+
+  .pull[data-tier="GHOST"] & {
+    background: color-mix(in srgb, var(--dc-ghost) 26%, rgba(29, 26, 22, 0.9));
+  }
+
+  .pull[data-tier="LOST"] & {
+    background: color-mix(in srgb, var(--dc-lost) 26%, rgba(29, 26, 22, 0.9));
+  }
 }
 
-.pullSymbol {
-  font-size: 0.85rem;
-  line-height: 1;
+/* THE RANK, COUNTED RATHER THAN NAMED. One to five gold stars across the first five
+   rungs, so somebody who has never heard of a diamond record can still see that a deep cut
+   outranks a silver. Gold for all five on purpose: the count is doing the work, and giving
+   each of them its own colour as well would be two systems saying the same thing badly.
 
-  .pull[data-tier="DIAMOND"] & { color: var(--dc-diamond); }
-  .pull[data-tier="PLATINUM"] & { color: var(--dc-platinum); }
-  .pull[data-tier="GOLD"] & { color: var(--dc-gold); }
-  .pull[data-tier="SILVER"] & { color: var(--dc-silver); }
-  .pull[data-tier="DEEPCUT"] & { color: var(--dc-deepcut); }
+   THE LAST THREE ALL SHOW SIX AND THE COLOUR SEPARATES THEM. Running on to seven and
+   eight would say lost is a bit better than ghost, when the point of the rare end is that
+   those three are a different KIND of card - the only rungs that roll shiny, and under a
+   fifth of the catalogue between them. Six is the ceiling; the colour says which.
+
+   letter-spacing, because stars set solid read as a smear at this size. */
+.pullStars {
+  font-size: 0.62rem;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  /* Gold for the first five. Not var(--dc-lost), which is the obvious pick and the one
+     colour it cannot be: lost's own stars would then be the same hue as every star below
+     it. Measured, a paler gold was not enough on its own - #e6c35c against lost's amber is
+     a contrast ratio of 1.13, which is no separation at all at this size. So the PLATE
+     carries the difference too; see the tint below. */
+  color: #e6c35c;
+
   .pull[data-tier="UNHEARD"] & { color: var(--dc-unheard); }
   .pull[data-tier="GHOST"] & { color: var(--dc-ghost); }
   .pull[data-tier="LOST"] & { color: var(--dc-lost); }
@@ -2010,14 +2022,24 @@
   aspect-ratio: 5 / 7;
 }
 
+/* THE NAME AND THE RUNG, ON A PLATE OF THEIR OWN. This dialog paints no surface, so
+   without one these two lines sit directly on a blurred photograph of the page - and a
+   blurred photograph is every colour at once, which is exactly the background type cannot
+   be made legible against. The card gets away with it because its own scrim is opaque; a
+   caption floating below it does not. */
 .cardHeldName {
   flex: none;
   margin: 0;
-  max-width: 32ch;
+  max-width: 34ch;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.35rem;
+  padding: 0.7rem 1.1rem;
+  border: 1px solid var(--dc-hair);
+  border-radius: 0.4rem;
+  background: var(--dc-card);
+  box-shadow: 0 2px 10px rgba(29, 26, 22, 0.18);
   text-align: center;
   font-size: 1.05rem;
   font-weight: 600;

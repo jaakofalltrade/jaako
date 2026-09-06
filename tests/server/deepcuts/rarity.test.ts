@@ -14,7 +14,7 @@ const tier = (plays: number | null) => rarityOf({ plays });
 
 describe("rarityOf", () => {
   it("puts a song everybody has heard on the commonest rung", () => {
-    expect(tier(20_000_000)).toBe(DeepcutTier.Diamond);
+    expect(tier(20_000_000)).toBe(DeepcutTier.Silver);
   });
 
   it("puts a song almost nobody has played on the rarest", () => {
@@ -27,13 +27,13 @@ describe("rarityOf", () => {
      catalogue rather than round decades now - see DEEPCUT_TIER_FLOOR - which is exactly
      why they need pinning here: nothing about 30,000 is guessable. */
   it("lands each band on its own rung", () => {
-    expect(tier(15_000_000)).toBe(DeepcutTier.Diamond);
-    expect(tier(14_999_999)).toBe(DeepcutTier.Platinum);
-    expect(tier(4_000_000)).toBe(DeepcutTier.Platinum);
-    expect(tier(3_999_999)).toBe(DeepcutTier.Gold);
-    expect(tier(1_000_000)).toBe(DeepcutTier.Gold);
-    expect(tier(999_999)).toBe(DeepcutTier.Silver);
-    expect(tier(300_000)).toBe(DeepcutTier.Silver);
+    expect(tier(15_000_000)).toBe(DeepcutTier.Silver);
+    expect(tier(14_999_999)).toBe(DeepcutTier.Gold);
+    expect(tier(4_000_000)).toBe(DeepcutTier.Gold);
+    expect(tier(3_999_999)).toBe(DeepcutTier.Platinum);
+    expect(tier(1_000_000)).toBe(DeepcutTier.Platinum);
+    expect(tier(999_999)).toBe(DeepcutTier.Diamond);
+    expect(tier(300_000)).toBe(DeepcutTier.Diamond);
     expect(tier(299_999)).toBe(DeepcutTier.Deepcut);
     expect(tier(80_000)).toBe(DeepcutTier.Deepcut);
     expect(tier(79_999)).toBe(DeepcutTier.Unheard);
@@ -49,7 +49,7 @@ describe("rarityOf", () => {
      could not be reached by any song on it. A rung nothing can land on is not a rung, and
      the only way to notice is to ask whether a plausible count reaches the top. */
   it("puts the loudest song on the account on the commonest rung", () => {
-    expect(tier(46_744_930)).toBe(DeepcutTier.Diamond);
+    expect(tier(46_744_930)).toBe(DeepcutTier.Silver);
   });
 
   /* Zero is a real answer, not a missing one: Last.fm knows the track and nobody has
@@ -82,10 +82,10 @@ describe("rarityOf", () => {
       DeepcutTier.Ghost,
       DeepcutTier.Unheard,
       DeepcutTier.Deepcut,
-      DeepcutTier.Silver,
-      DeepcutTier.Gold,
-      DeepcutTier.Platinum,
       DeepcutTier.Diamond,
+      DeepcutTier.Platinum,
+      DeepcutTier.Gold,
+      DeepcutTier.Silver,
     ];
 
     /* ladderIndex runs rarest first, so a bigger rank is a COMMONER rung. More plays

@@ -70,9 +70,6 @@ export const CardDialog = ({ card, onClose }: CardDialogProps) => {
             if (event.target === event.currentTarget) ref.current?.close();
           }}
         >
-          <button type="button" className={styles.dialogClose} onClick={() => ref.current?.close()}>
-            {DEEPCUTS_TEASER.dialog_close}
-          </button>
 
           {/* Comes forward rather than appearing, which is the same gesture a shelf pack
               makes when it is clicked. The pop is a CSS keyframe rather than a motion

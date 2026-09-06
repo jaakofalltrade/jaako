@@ -149,7 +149,7 @@ export const PACK_SIZE = 5;
  * That is why all eight rungs appear where five did.
  *
  * TOP-HEAVY ON PURPOSE. A pack should mostly be cards you throw back, or the ones you
- * keep mean nothing. At these weights a five card pack averages about 1.2 diamonds and
+ * keep mean nothing. At these weights a five card pack averages about 1.2 silvers and
  * carries something unheard-or-rarer roughly a third of the time.
  *
  * WHAT ONE PACK LOOKS LIKE, taking the five draws as independent:
@@ -171,10 +171,15 @@ export const PACK_SIZE = 5;
  * Starting weights, not measurements. Borrowed from how a physical pack feels.
  */
 export const TIER_DRAW_ODDS: Record<DeepcutTier, number> = {
-  [DeepcutTier.Diamond]: 0.24,
-  [DeepcutTier.Platinum]: 0.22,
-  [DeepcutTier.Gold]: 0.2,
-  [DeepcutTier.Silver]: 0.16,
+  /* KEYED BY RUNG, ORDERED BY POSITION, and the two came apart once already. When the
+     certification half was reversed so that diamond stopped being the commonest rung,
+     these weights stayed attached to their NAMES - which handed the commonest rung the
+     rarest weight and the other way about. The number beside a rung is what the LADDER
+     position is worth, so it moves when a name moves. */
+  [DeepcutTier.Silver]: 0.24,
+  [DeepcutTier.Gold]: 0.22,
+  [DeepcutTier.Platinum]: 0.2,
+  [DeepcutTier.Diamond]: 0.16,
   [DeepcutTier.Deepcut]: 0.1,
   [DeepcutTier.Unheard]: 0.05,
   [DeepcutTier.Ghost]: 0.02,

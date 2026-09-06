@@ -222,13 +222,6 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
               if (event.target === event.currentTarget) ref.current?.close();
             }}
           >
-            <button
-              type="button"
-              className={styles.dialogClose}
-              onClick={() => ref.current?.close()}
-            >
-              {DEEPCUTS_TEASER.dialog_close}
-            </button>
 
             {/* THE PACK IS GONE ONCE IT IS OPEN. A torn wrapper sitting above the cards
                 it produced is litter: the thing the reader wanted is the cards, and the

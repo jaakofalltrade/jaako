@@ -10,13 +10,23 @@
  * statuses, shells. The ladder is not a property of the lab, it is the central type of
  * one app in it, and every other thing deepcuts models is already in this file.
  *
- * THE TOP FOUR ARE RECORD CERTIFICATIONS AND THE BOTTOM FOUR ARE NOT, which is the whole
+ * THE COMMON HALF ARE RECORD CERTIFICATIONS AND THE RARE HALF ARE NOT, which is the whole
  * idea. "Anthem, chart, rotation, album cut" named what a song WAS and read as four
- * unrelated adjectives rather than as a ranked ladder. Diamond, platinum, gold and silver
- * are the music industry's own tiers in the industry's own order, so the top half needs no
- * explaining: it is how decorated a song is. The bottom half stays as it was, because it
- * measures the opposite thing - how obscure - and the hinge between silver and deep cut is
- * exactly where being certified stops mattering and being unheard starts.
+ * unrelated adjectives rather than as a ranked ladder. Silver, gold, platinum and diamond
+ * are the music industry's own awards in the industry's own order, so nothing has to teach
+ * a reader which outranks which.
+ *
+ * THEY RUN SILVER TO DIAMOND, WHICH IS BACKWARDS AGAINST PLAY COUNT AND FORWARDS AGAINST
+ * THE APP. Certifications reward SALES, so more plays should mean a better award - and the
+ * first version of this ladder ordered them that way, with diamond on the commonest rung.
+ * It read as nonsense: the card labelled diamond was the card you throw back. Rarity here
+ * runs backwards, so the awards run backwards with it, and every rung from silver upward
+ * is a better card than the one before. Diamond is the best of the certified half and
+ * deep cut, unheard, ghost and lost are better still.
+ *
+ * The rare half stays as it was, because it measures the opposite thing - how obscure -
+ * and the hinge between diamond and deep cut is exactly where being decorated stops
+ * mattering and being unheard starts.
  */
 export enum DeepcutTier {
   Diamond = "DIAMOND",
@@ -38,10 +48,10 @@ export enum DeepcutTier {
  * the list does - and it sits beside the enum so the two cannot drift apart unnoticed.
  */
 export const DEEPCUT_LADDER: DeepcutTier[] = [
-  DeepcutTier.Diamond,
-  DeepcutTier.Platinum,
-  DeepcutTier.Gold,
   DeepcutTier.Silver,
+  DeepcutTier.Gold,
+  DeepcutTier.Platinum,
+  DeepcutTier.Diamond,
   DeepcutTier.Deepcut,
   DeepcutTier.Unheard,
   DeepcutTier.Ghost,
@@ -60,14 +70,15 @@ export const DEEPCUT_LADDER: DeepcutTier[] = [
  * WHY IT MOVED AGAIN. The first eight-rung ladder ran one order of magnitude per rung,
  * which is a good rule that needs seven decades of range; the catalogue has about four,
  * and its two commonest rungs could not be reached by any song on the account. The second
- * fixed that but stayed steep at both ends: `diamond` swallowed 28.8% of everything while
+ * fixed that but stayed steep at both ends: the commonest rung swallowed 28.8% of
+ * everything while
  * `lost` held 0.6%. This one is flatter on purpose - no rung below 4.5% or above 22%:
  *
  *     rung        floor        share of the catalogue
- *     diamond     15,000,000      9.2%
- *     platinum     4,000,000     20.9%
- *     gold         1,000,000     21.8%
- *     silver         300,000     15.6%
+ *     silver      15,000,000      9.2%
+ *     gold         4,000,000     20.9%
+ *     platinum     1,000,000     21.8%
+ *     diamond        300,000     15.6%
  *     deep cut        80,000     11.9%
  *     unheard         20,000      8.5%
  *     ghost            5,000      7.7%
@@ -83,10 +94,10 @@ export const DEEPCUT_LADDER: DeepcutTier[] = [
  * what is being preserved, not any single number in the column.
  */
 export const DEEPCUT_TIER_FLOOR: Record<DeepcutTier, number> = {
-  [DeepcutTier.Diamond]: 15_000_000,
-  [DeepcutTier.Platinum]: 4_000_000,
-  [DeepcutTier.Gold]: 1_000_000,
-  [DeepcutTier.Silver]: 300_000,
+  [DeepcutTier.Silver]: 15_000_000,
+  [DeepcutTier.Gold]: 4_000_000,
+  [DeepcutTier.Platinum]: 1_000_000,
+  [DeepcutTier.Diamond]: 300_000,
   [DeepcutTier.Deepcut]: 80_000,
   [DeepcutTier.Unheard]: 20_000,
   [DeepcutTier.Ghost]: 5_000,

@@ -49,10 +49,12 @@ export const CardFace = ({ title, artist, album_art, plays, tier, shiny }: CardF
       <span className={styles.pullArtEmpty} aria-hidden="true" />
     )}
 
-    {/* The rung, as a symbol and a word, in the corner a card carries its set mark. */}
+    {/* The rung, as stars and a word, in the corner a card carries its set mark.
+        aria-hidden on the stars because the word beside them says the same thing, and a
+        screen reader counting six identical characters is noise rather than information. */}
     <span className={styles.pullMark}>
-      <span className={styles.pullSymbol} aria-hidden="true">
-        {DEEPCUT_TIER[tier].symbol}
+      <span className={styles.pullStars} aria-hidden="true">
+        {"★".repeat(DEEPCUT_TIER[tier].stars)}
       </span>
       <span className={styles.pullTier}>{DEEPCUT_TIER[tier].label}</span>
     </span>
