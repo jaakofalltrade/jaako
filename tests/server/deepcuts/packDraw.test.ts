@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { DeepcutTier } from "@/models";
-import { drawPack } from "@/utils/packDraw";
-import type { Drawable } from "@/utils/packDraw";
-import { packSeed, seededRandom } from "@/utils/seededRandom";
+import { DEEPCUT_LADDER, DeepcutTier } from "@/models";
+import { drawPack } from "@/server/deepcuts/packDraw";
+import type { Drawable } from "@/server/deepcuts/packDraw";
+import { packSeed, seededRandom } from "@/server/deepcuts/seededRandom";
 
 /**
  * Dealing a pack.
@@ -20,14 +20,14 @@ const many = (tier: DeepcutTier, count: number, prefix: string): Drawable<string
 
 describe("drawPack", () => {
   it("deals five cards from a playlist with plenty", () => {
-    const pool = many(DeepcutTier.Album, 40, "a");
+    const pool = many(DeepcutTier.Silver, 40, "a");
     expect(drawPack({ pool, random: seededRandom("x") })).toHaveLength(5);
   });
 
   /* Several playlists on the account have one or two songs. A pack of three is a real
      state, not an error. */
   it("deals what there is when the playlist is smaller than a pack", () => {
-    const pool = many(DeepcutTier.Album, 3, "a");
+    const pool = many(DeepcutTier.Silver, 3, "a");
     expect(drawPack({ pool, random: seededRandom("x") })).toHaveLength(3);
   });
 
@@ -41,8 +41,8 @@ describe("drawPack", () => {
   it("never deals the same song twice", () => {
     for (let run = 0; run < 200; run += 1) {
       const pool = [
-        ...many(DeepcutTier.Chart, 6, "c"),
-        ...many(DeepcutTier.Album, 4, "a"),
+        ...many(DeepcutTier.Platinum, 6, "c"),
+        ...many(DeepcutTier.Silver, 4, "a"),
         ...many(DeepcutTier.Lost, 1, "l"),
       ];
 
@@ -52,7 +52,7 @@ describe("drawPack", () => {
   });
 
   it("leaves the caller's pool untouched", () => {
-    const pool = many(DeepcutTier.Album, 20, "a");
+    const pool = many(DeepcutTier.Silver, 20, "a");
     drawPack({ pool, random: seededRandom("x") });
     expect(pool).toHaveLength(20);
   });
@@ -61,7 +61,7 @@ describe("drawPack", () => {
      refresh cannot re-roll a bad pull. */
   it("is deterministic for a seed", () => {
     const pool = () => [
-      ...many(DeepcutTier.Chart, 20, "c"),
+      ...many(DeepcutTier.Platinum, 20, "c"),
       ...many(DeepcutTier.Deepcut, 5, "d"),
       ...many(DeepcutTier.Ghost, 2, "g"),
     ];
@@ -75,7 +75,7 @@ describe("drawPack", () => {
   });
 
   it("deals a different pack on a different day", () => {
-    const pool = () => many(DeepcutTier.Album, 60, "a");
+    const pool = () => many(DeepcutTier.Silver, 60, "a");
     const of = (day: string) =>
       drawPack({
         pool: pool(),
@@ -86,7 +86,7 @@ describe("drawPack", () => {
   });
 
   it("deals a different pack to a different visitor", () => {
-    const pool = () => many(DeepcutTier.Album, 60, "a");
+    const pool = () => many(DeepcutTier.Silver, 60, "a");
     const of = (visitor_id: string) =>
       drawPack({
         pool: pool(),
@@ -96,54 +96,73 @@ describe("drawPack", () => {
     expect(of("one")).not.toEqual(of("two"));
   });
 
-  /* THE HIT SLOT IS THE POINT OF THE WHOLE SHAPE. It never rolls a common rung, so on a
-     playlist that has anything at album cut or better the last card is one of those,
-     every time, whatever the seed. */
-  it("always finishes on a rung the hit slot can roll", () => {
-    const reachable = [
-      DeepcutTier.Album,
-      DeepcutTier.Deepcut,
-      DeepcutTier.Unheard,
-      DeepcutTier.Ghost,
-      DeepcutTier.Lost,
-    ];
+  /* NO CARD IS SPECIAL ANY MORE, AND THIS IS WHAT THAT MEANS. There used to be a reserved
+     hit slot: the last card never rolled a common rung, so a playlist with anything good
+     on it finished on something good, every time. Every card rolls its own rung now, so
+     the last one is as ordinary as the first - and on a pool that is mostly diamonds and
+     platinums, the last card is usually one of those.
 
-    for (let run = 0; run < 100; run += 1) {
+     Kept as a test rather than deleted because it is the guarantee that WENT, and somebody
+     reading the draw later is entitled to know it was given up on purpose. */
+  it("does not reserve the last card for a rare rung", () => {
+    let commonLast = 0;
+
+    for (let run = 0; run < 200; run += 1) {
       const pool = [
-        ...many(DeepcutTier.Anthem, 30, "an"),
-        ...many(DeepcutTier.Chart, 30, "c"),
-        ...many(DeepcutTier.Album, 4, "a"),
+        ...many(DeepcutTier.Diamond, 30, "d"),
+        ...many(DeepcutTier.Platinum, 30, "p"),
+        ...many(DeepcutTier.Silver, 4, "s"),
         ...many(DeepcutTier.Ghost, 2, "g"),
       ];
 
-      const drawn = drawPack({ pool, random: seededRandom(`hit-${run}`) });
-      expect(reachable, `run ${run}`).toContain(drawn[drawn.length - 1].tier);
+      const drawn = drawPack({ pool, random: seededRandom(`last-${run}`) });
+      const last = drawn[drawn.length - 1].tier;
+      if (last === DeepcutTier.Diamond || last === DeepcutTier.Platinum) commonLast += 1;
     }
+
+    // Under the old shape this was exactly zero.
+    expect(commonLast).toBeGreaterThan(100);
   });
 
-  /* An empty bucket falls toward the COMMON end. A playlist whose rarest songs are album
-     cuts must never produce a ghost, however the hit slot rolls. */
+  /* EVERY CARD ROLLS, WHICH IS THE WHOLE CHANGE. Over enough packs from a pool that holds
+     every rung, all eight have to turn up - under the old shape the four commonest could
+     only ever arrive by a uniform draw and the rarest four only through one slot. */
+  it("can deal any rung on any card", () => {
+    const seen = new Set<DeepcutTier>();
+
+    for (let run = 0; run < 400; run += 1) {
+      const pool = DEEPCUT_LADDER.flatMap((tier, index) => many(tier, 6, `t${index}`));
+      for (const card of drawPack({ pool, random: seededRandom(`any-${run}`) })) {
+        seen.add(card.tier);
+      }
+    }
+
+    expect([...seen].sort()).toEqual([...DEEPCUT_LADDER].sort());
+  });
+
+  /* An empty bucket falls toward the COMMON end. A playlist whose rarest songs are silver
+     must never produce a ghost, however a card rolls. */
   it("never invents a rung the playlist does not have", () => {
     for (let run = 0; run < 100; run += 1) {
       const pool = [
-        ...many(DeepcutTier.Chart, 20, "c"),
-        ...many(DeepcutTier.Album, 6, "a"),
+        ...many(DeepcutTier.Platinum, 20, "c"),
+        ...many(DeepcutTier.Silver, 6, "a"),
       ];
 
       const drawn = drawPack({ pool, random: seededRandom(`walk-${run}`) });
       for (const card of drawn) {
-        expect([DeepcutTier.Chart, DeepcutTier.Album], `run ${run}`).toContain(card.tier);
+        expect([DeepcutTier.Platinum, DeepcutTier.Silver], `run ${run}`).toContain(card.tier);
       }
     }
   });
 
-  /* Only the three rarest rungs carry a shiny chance at all. A shiny chart hit would
-     spend the effect on the card you were going to throw back. */
+  /* Only the three rarest rungs carry a shiny chance at all. A shiny platinum would spend
+     the effect on the card you were going to throw back. */
   it("never makes a common card shiny", () => {
     for (let run = 0; run < 300; run += 1) {
       const pool = [
-        ...many(DeepcutTier.Chart, 10, "c"),
-        ...many(DeepcutTier.Album, 10, "a"),
+        ...many(DeepcutTier.Platinum, 10, "c"),
+        ...many(DeepcutTier.Silver, 10, "a"),
       ];
 
       for (const card of drawPack({ pool, random: seededRandom(`shiny-${run}`) })) {
@@ -188,7 +207,7 @@ describe("drawPack", () => {
      SHINY_ODDS, so only three can carry the finish; a shiny album cut is not a rare card,
      it is a bug with a rainbow on it. */
   it("leaves a rung that can never be shiny plain, even when forced", () => {
-    const pool = many(DeepcutTier.Album, 12, "a");
+    const pool = many(DeepcutTier.Silver, 12, "a");
     const forced = drawPack({ pool, random: seededRandom("preview"), forceShiny: true });
 
     expect(forced.length).toBeGreaterThan(0);
@@ -197,12 +216,13 @@ describe("drawPack", () => {
 
   /* THE PACK THAT CAME OUT SHORT, pinned so it cannot come back. The hit slot's rung
      walk used to go DOWN the ladder and stop there. On a playlist whose commonest song
-     is a deep cut, every roll of "album" - 46% of them - found nothing at or below
-     itself, resolved to no rung at all, and drawPack had no hit to append: 92 packs in
-     200 were dealt with FOUR cards. resolveHitRung now falls back up when there is
-     nothing below, which cannot hand out an unearned rarity, because reaching that
-     clause means the playlist has nothing commoner to give. */
-  it("deals a full pack when nothing on the playlist is as common as the hit slot rolls", () => {
+     is a deep cut, every roll of a commoner rung found nothing at or below itself,
+     resolved to no rung at all, and the pack came up short: 92 packs in 200 were dealt
+     with FOUR cards. resolveDrawRung falls back up when there is nothing below, which
+     cannot hand out an unearned rarity, because reaching that clause means the playlist
+     has nothing commoner to give. Every card rolls now, so the same gap would have cost
+     a card on any of the five rather than only the last. */
+  it("deals a full pack when nothing on the playlist is as common as a card rolls", () => {
     const pool: Drawable<string>[] = Array.from({ length: 30 }, (_, index) => ({
       track: `t${index}`,
       tier: index % 2 ? DeepcutTier.Deepcut : DeepcutTier.Ghost,

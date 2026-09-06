@@ -139,36 +139,48 @@ export const SCORING_CONCURRENCY = 10;
 export const PACK_SIZE = 5;
 
 /**
- * Four of the five come off the playlist uniformly and are whatever they are.
+ * WHAT EVERY CARD ROLLS FOR ITS RUNG. Eight weights, one per rung, summing to 1.
  *
- * The fifth is the hit slot below. Four and one rather than five uniform draws is what
- * puts the pull rate under this app's control instead of the playlist's: rip a list of
- * obscurities with five uniform draws and every card is a pull, which makes the rare
- * rungs worthless exactly where they should mean most.
- */
-export const COMMON_SLOTS = PACK_SIZE - 1;
-
-/**
- * What the hit slot rolls, and it never rolls a common rung.
+ * ONE RULE FOR ALL FIVE CARDS, WHICH IT DID NOT USED TO BE. The pack was four commons
+ * drawn uniformly plus one reserved "hit slot" that rolled a rung - so four fifths of a
+ * pack was decided by the playlist's own make-up and one fifth by this table, and the
+ * table only listed the five rungs a hit was allowed to be. Every card rolls now: pick a
+ * rung from here, pick a song from that rung, roll shiny if the rung allows one, repeat.
+ * That is why all eight rungs appear where five did.
  *
- * A GUARANTEED FLOOR OF "ALBUM CUT OR BETTER", which is how a physical pack works: the
- * commons fill it and one slot is the reason you opened it.
+ * TOP-HEAVY ON PURPOSE. A pack should mostly be cards you throw back, or the ones you
+ * keep mean nothing. At these weights a five card pack averages about 1.2 diamonds and
+ * carries something unheard-or-rarer roughly a third of the time.
  *
- * The five weights sum to 1 and run rarest-last, so `lost` at one percent is a genuine
- * chase card: at one pack a day it is the thick end of three months. When a rolled rung
- * has no track on the playlist the slot walks DOWN the ladder to the nearest rung that
- * does, never up - falling upward would hand out rarer cards than the playlist has
- * earned, which is the one direction that makes the whole ladder meaningless.
+ * WHAT ONE PACK LOOKS LIKE, taking the five draws as independent:
+ *
+ *     at least one unheard or rarer   34%
+ *     at least one ghost or rarer      14%
+ *     at least one lost                 5%
+ *
+ * THEY ARE NOT THE CATALOGUE'S SHARES AND MUST NOT BE. DEEPCUT_TIER_FLOOR measures what
+ * the account actually holds; this decides what a pack deals. Setting these to the
+ * measured shares would make every song equally likely and delete the ladder - a rung
+ * with twenty songs would be drawn twenty times as often, then split twenty ways, which
+ * is exactly a uniform draw wearing a costume.
+ *
+ * When a rolled rung has no song on the playlist the draw walks DOWN the ladder to the
+ * nearest rung that does, and only upward when there is nothing below at all. See
+ * resolveDrawRung.
  *
  * Starting weights, not measurements. Borrowed from how a physical pack feels.
  */
-export const HIT_SLOT_ODDS: Partial<Record<DeepcutTier, number>> = {
-  [DeepcutTier.Album]: 0.46,
-  [DeepcutTier.Deepcut]: 0.32,
-  [DeepcutTier.Unheard]: 0.15,
-  [DeepcutTier.Ghost]: 0.06,
+export const TIER_DRAW_ODDS: Record<DeepcutTier, number> = {
+  [DeepcutTier.Diamond]: 0.24,
+  [DeepcutTier.Platinum]: 0.22,
+  [DeepcutTier.Gold]: 0.2,
+  [DeepcutTier.Silver]: 0.16,
+  [DeepcutTier.Deepcut]: 0.1,
+  [DeepcutTier.Unheard]: 0.05,
+  [DeepcutTier.Ghost]: 0.02,
   [DeepcutTier.Lost]: 0.01,
 };
+
 
 /* ---------------- shiny ---------------- */
 

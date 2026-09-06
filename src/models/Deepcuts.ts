@@ -1,4 +1,97 @@
-import type { DeepcutTier } from "./Lab";
+/**
+ * deepcuts' rarity ladder, commonest first.
+ *
+ * THE DECLARATION ORDER IS THE MECHANIC, not a formatting choice. It runs from the songs
+ * everyone has already played to the ones almost nobody has, so a card gets rarer as its
+ * play count falls - the inversion the whole app is built on, and the reason a chart hit
+ * is the card you throw away.
+ *
+ * IT LIVES HERE RATHER THAN IN Lab.ts, which holds the lab's own catalogue: app ids,
+ * statuses, shells. The ladder is not a property of the lab, it is the central type of
+ * one app in it, and every other thing deepcuts models is already in this file.
+ *
+ * THE TOP FOUR ARE RECORD CERTIFICATIONS AND THE BOTTOM FOUR ARE NOT, which is the whole
+ * idea. "Anthem, chart, rotation, album cut" named what a song WAS and read as four
+ * unrelated adjectives rather than as a ranked ladder. Diamond, platinum, gold and silver
+ * are the music industry's own tiers in the industry's own order, so the top half needs no
+ * explaining: it is how decorated a song is. The bottom half stays as it was, because it
+ * measures the opposite thing - how obscure - and the hinge between silver and deep cut is
+ * exactly where being certified stops mattering and being unheard starts.
+ */
+export enum DeepcutTier {
+  Diamond = "DIAMOND",
+  Platinum = "PLATINUM",
+  Gold = "GOLD",
+  Silver = "SILVER",
+  Deepcut = "DEEPCUT",
+  Unheard = "UNHEARD",
+  Ghost = "GHOST",
+  Lost = "LOST",
+}
+
+/**
+ * The ladder as an ordered list, commonest first.
+ *
+ * TS gives no ordered view of an enum's members, and the order is load-bearing here:
+ * rarityOf walks it highest-floor-first, an empty bucket's fall-through walks it toward
+ * index zero, and pack_card.tier_rank is an index into it. An enum cannot carry that, so
+ * the list does - and it sits beside the enum so the two cannot drift apart unnoticed.
+ */
+export const DEEPCUT_LADDER: DeepcutTier[] = [
+  DeepcutTier.Diamond,
+  DeepcutTier.Platinum,
+  DeepcutTier.Gold,
+  DeepcutTier.Silver,
+  DeepcutTier.Deepcut,
+  DeepcutTier.Unheard,
+  DeepcutTier.Ghost,
+  DeepcutTier.Lost,
+];
+
+/**
+ * The fewest plays a track can have and still land on each rung.
+ *
+ * MEASURED, NOT REASONED. These are quantiles of this account's own catalogue, taken by
+ * `pnpm ladder:spread` over 1,097 matched tracks across 60 playlists. The numbers are
+ * last.fm SCROBBLES, which are a fraction of streams and are the only counts available -
+ * Spotify publishes none - so the ladder is anchored on the shape of what is actually
+ * being scored rather than on what a play count "should" look like.
+ *
+ * WHY IT MOVED AGAIN. The first eight-rung ladder ran one order of magnitude per rung,
+ * which is a good rule that needs seven decades of range; the catalogue has about four,
+ * and its two commonest rungs could not be reached by any song on the account. The second
+ * fixed that but stayed steep at both ends: `diamond` swallowed 28.8% of everything while
+ * `lost` held 0.6%. This one is flatter on purpose - no rung below 4.5% or above 22%:
+ *
+ *     rung        floor        share of the catalogue
+ *     diamond     15,000,000      9.2%
+ *     platinum     4,000,000     20.9%
+ *     gold         1,000,000     21.8%
+ *     silver         300,000     15.6%
+ *     deep cut        80,000     11.9%
+ *     unheard         20,000      8.5%
+ *     ghost            5,000      7.7%
+ *     lost                 0      4.5%
+ *
+ * `lost` floors at zero rather than at some small number, so every non-negative count
+ * lands somewhere. Zero is a real answer - last.fm knows the track and nobody has
+ * scrobbled it - and it is the genuine top of the ladder. A track last.fm cannot match at
+ * all has no count and therefore no rung; see rarityOf.
+ *
+ * STILL TUNING CONSTANTS, anchored on one account's taste, which is the honest scope of
+ * this app. Re-run the script before moving them and move the whole set: the shares are
+ * what is being preserved, not any single number in the column.
+ */
+export const DEEPCUT_TIER_FLOOR: Record<DeepcutTier, number> = {
+  [DeepcutTier.Diamond]: 15_000_000,
+  [DeepcutTier.Platinum]: 4_000_000,
+  [DeepcutTier.Gold]: 1_000_000,
+  [DeepcutTier.Silver]: 300_000,
+  [DeepcutTier.Deepcut]: 80_000,
+  [DeepcutTier.Unheard]: 20_000,
+  [DeepcutTier.Ghost]: 5_000,
+  [DeepcutTier.Lost]: 0,
+};
 
 /**
  * /lab/deepcuts, on both sides of the boundary.
@@ -151,19 +244,21 @@ export type ScoredTrack = {
   plays: number | null;
   tier: DeepcutTier | null;
   /**
-   * The chance this song is the pack's PULL, as a percentage with one decimal.
+   * The chance a pack holds this song, as a percentage with one decimal.
    *
-   * THE HIT SLOT ONLY, WHICH IS THE WHOLE POINT OF THE FIGURE. It once counted the four
-   * common slots too, and that buried the rarity under a floor set by playlist length -
-   * on a twelve-track list every song started at 36.4% and the column said nothing. See
-   * pullChance for the arithmetic and the argument.
+   * ACROSS ALL FIVE CARDS, because all five roll a rung now. It was briefly the odds on
+   * one reserved slot, and before that it counted four uniform commons as well - which
+   * buried the rarity under a floor set by playlist length, so on a twelve-track list
+   * every song started at 36.4% and the column said nothing at all. See pullChances for
+   * the arithmetic, which is enumerated rather than approximated.
    *
-   * ZERO MEANS "COMMON ONLY" AND IS A REAL ANSWER: this rung is above anything the hit
-   * slot can reach on this playlist, so the track can arrive in a pack but can never be
-   * the card it was opened for.
+   * THE NUMBER RUNS THE OTHER WAY FROM RARITY, and that is not a bug. A rare song is one
+   * the draw rolls for less often, so a rarer rung prices LOWER on an equal footing. A fat
+   * common rung can also out-price a thin rare one: a specific song among forty is still a
+   * specific song.
    *
-   * Null for a track with no rung, which is the same set of tracks that are not in the
-   * pool at all.
+   * Zero for a rung the playlist does not have. Null for a track with no rung, which is
+   * the same set of tracks that are not in the pool at all.
    */
   chance: number | null;
 };

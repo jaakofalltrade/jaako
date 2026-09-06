@@ -47,14 +47,14 @@
      So the hue moves too, along the run every game with loot has taught people to read -
      drab, green, blue, purple, then hot. The two commonest rungs stay muted on purpose,
      because they are the cards you throw back and they should look it. Everything from
-     rotation up is a real colour.
+     gold down is a real colour.
 
      The three rarest can also come out SHINY, which is a separate roll and a separate
      treatment; see .shiny below and SHINY_ODDS. */
-  --dc-anthem: #b3ada1;
-  --dc-chart: #8f9a8c;
-  --dc-rotation: #1f9d55;
-  --dc-album: #1f6fd0;
+  --dc-diamond: #b3ada1;
+  --dc-platinum: #8f9a8c;
+  --dc-gold: #1f9d55;
+  --dc-silver: #1f6fd0;
   --dc-deepcut: #8034d4;
   --dc-unheard: #e2760c;
   --dc-ghost: #e02c20;
@@ -303,20 +303,20 @@
   border: 1px solid var(--dc-hair);
   align-self: center;
 
-  .rung[data-tier="ANTHEM"] & {
-    background: var(--dc-anthem);
+  .rung[data-tier="DIAMOND"] & {
+    background: var(--dc-diamond);
   }
 
-  .rung[data-tier="CHART"] & {
-    background: var(--dc-chart);
+  .rung[data-tier="PLATINUM"] & {
+    background: var(--dc-platinum);
   }
 
-  .rung[data-tier="ROTATION"] & {
-    background: var(--dc-rotation);
+  .rung[data-tier="GOLD"] & {
+    background: var(--dc-gold);
   }
 
-  .rung[data-tier="ALBUM"] & {
-    background: var(--dc-album);
+  .rung[data-tier="SILVER"] & {
+    background: var(--dc-silver);
   }
 
   .rung[data-tier="DEEPCUT"] & {
@@ -1387,10 +1387,10 @@
   overflow: hidden;
   box-shadow: 0 2px 6px rgba(29, 26, 22, 0.14);
 
-  &[data-tier="ANTHEM"] { background: var(--dc-anthem); }
-  &[data-tier="CHART"] { background: var(--dc-chart); }
-  &[data-tier="ROTATION"] { background: var(--dc-rotation); }
-  &[data-tier="ALBUM"] { background: var(--dc-album); }
+  &[data-tier="DIAMOND"] { background: var(--dc-diamond); }
+  &[data-tier="PLATINUM"] { background: var(--dc-platinum); }
+  &[data-tier="GOLD"] { background: var(--dc-gold); }
+  &[data-tier="SILVER"] { background: var(--dc-silver); }
   &[data-tier="DEEPCUT"] { background: var(--dc-deepcut); }
   &[data-tier="UNHEARD"] { background: var(--dc-unheard); }
   &[data-tier="GHOST"] { background: var(--dc-ghost); }
@@ -1416,8 +1416,8 @@
   line-height: 1.1;
   color: #fff;
 
-  .face[data-tier="ANTHEM"] &,
-  .face[data-tier="CHART"] &,
+  .face[data-tier="DIAMOND"] &,
+  .face[data-tier="PLATINUM"] &,
   .face[data-tier="LOST"] & {
     color: var(--dc-ink);
   }
@@ -1552,10 +1552,10 @@
   border: 2px solid var(--dc-hair);
   box-shadow: 0 6px 18px rgba(29, 26, 22, 0.24);
 
-  &[data-tier="ANTHEM"] { border-color: var(--dc-anthem); }
-  &[data-tier="CHART"] { border-color: var(--dc-chart); }
-  &[data-tier="ROTATION"] { border-color: var(--dc-rotation); }
-  &[data-tier="ALBUM"] { border-color: var(--dc-album); }
+  &[data-tier="DIAMOND"] { border-color: var(--dc-diamond); }
+  &[data-tier="PLATINUM"] { border-color: var(--dc-platinum); }
+  &[data-tier="GOLD"] { border-color: var(--dc-gold); }
+  &[data-tier="SILVER"] { border-color: var(--dc-silver); }
   &[data-tier="DEEPCUT"] { border-color: var(--dc-deepcut); }
   &[data-tier="UNHEARD"] { border-color: var(--dc-unheard); }
   &[data-tier="GHOST"] { border-color: var(--dc-ghost); }
@@ -1684,10 +1684,10 @@
   font-size: 0.7rem;
   line-height: 1;
 
-  .pull[data-tier="ANTHEM"] & { color: var(--dc-anthem); }
-  .pull[data-tier="CHART"] & { color: var(--dc-chart); }
-  .pull[data-tier="ROTATION"] & { color: var(--dc-rotation); }
-  .pull[data-tier="ALBUM"] & { color: var(--dc-album); }
+  .pull[data-tier="DIAMOND"] & { color: var(--dc-diamond); }
+  .pull[data-tier="PLATINUM"] & { color: var(--dc-platinum); }
+  .pull[data-tier="GOLD"] & { color: var(--dc-gold); }
+  .pull[data-tier="SILVER"] & { color: var(--dc-silver); }
   .pull[data-tier="DEEPCUT"] & { color: var(--dc-deepcut); }
   .pull[data-tier="UNHEARD"] & { color: var(--dc-unheard); }
   .pull[data-tier="GHOST"] & { color: var(--dc-ghost); }

@@ -1,6 +1,7 @@
-import { DEEPCUT_LADDER, DEEPCUT_TIER, HIT_SLOT_ODDS, SHINY_ODDS } from "@/constants";
+import { DEEPCUT_TIER, SHINY_ODDS, TIER_DRAW_ODDS } from "@/constants";
 import { DEEPCUTS_TEASER } from "@/data/lab";
 import styles from "./deepcuts.module.scss";
+import { DEEPCUT_LADDER } from "@/models";
 
 /**
  * The cards tab: one face per rung, and the shiny finish beside the three that can roll
@@ -26,7 +27,7 @@ export const CardGallery = () => (
       {DEEPCUT_LADDER.map((tier) => {
         const rung = DEEPCUT_TIER[tier];
         const shiny = SHINY_ODDS[tier];
-        const hit = HIT_SLOT_ODDS[tier];
+        const draw = TIER_DRAW_ODDS[tier];
 
         return (
           <li key={tier} className={styles.galleryItem}>
@@ -51,16 +52,13 @@ export const CardGallery = () => (
             <span className={styles.galleryMeta}>
               <span className={styles.galleryName}>{rung.label}</span>
 
-              {/* HOW OFTEN THE PULL IS THIS RUNG, which used to be printed per track in
-                  the pack panel and had no home once that panel stopped listing its own
-                  contents. It belongs here rather than there anyway: it is a property of
-                  the ladder and the same on every playlist, where the per-track figure
-                  was neither. Rungs above album cut carry no weight at all - they arrive
-                  in the four common slots and are never the card a pack rolls for. */}
+              {/* HOW OFTEN A CARD ROLLS THIS RUNG. Every one of the five cards in a pack
+                  rolls against this table, so the figure is a property of the ladder and
+                  the same on every playlist - which is why it lives here rather than
+                  beside a track. All eight rungs carry a weight now; when the pack was
+                  four uniform commons and one reserved slot, only five of them did. */}
               <span className={styles.galleryOdds}>
-                {hit
-                  ? `${(hit * 100).toFixed(0)}% ${DEEPCUTS_TEASER.gallery_of_pulls}`
-                  : DEEPCUTS_TEASER.gallery_common_only}
+                {`${(draw * 100).toFixed(0)}% ${DEEPCUTS_TEASER.gallery_of_draws}`}
               </span>
 
               <span className={styles.galleryOdds}>

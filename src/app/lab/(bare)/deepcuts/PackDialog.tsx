@@ -62,9 +62,9 @@ export type PackDialogProps = {
  * inside the tear animation rather than after it. What changed is that nothing renders
  * them.
  *
- * The pull odds that used to sit in that table are not lost: the rate the hit slot lands
- * on each rung is on the cards tab, where it belongs, and it is a property of the ladder
- * rather than of any one playlist.
+ * The pull odds that used to sit in that table are not lost: the rate a card rolls each
+ * rung is on the set tab, where it belongs, and it is a property of the ladder rather
+ * than of any one playlist.
  */
 export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
   const ref = useRef<HTMLDialogElement>(null);
@@ -354,7 +354,6 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
                 {phase === "idle" ? DEEPCUTS_TEASER.rip_button : DEEPCUTS_TEASER.rip_working}
               </button>
             ) : null}
-
 
             {/* ONE LINE UNDER THE BUTTON, SAYING WHICHEVER THING IS TRUE. It is the only
                 thing the panel says about the contents now, and each branch is a reason

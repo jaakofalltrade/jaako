@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import type { ReactNode } from "react";
-import { DEEPCUT_LADDER, DEEPCUT_TIER, DEEPCUT_TIER_FLOOR } from "@/constants";
+import { DEEPCUT_TIER } from "@/constants";
 import { DEEPCUTS_TEASER } from "@/data/lab";
 import { Tabs } from "@/design-system/core/Tabs";
 import { CardGallery } from "./CardGallery";
 import { Collection } from "./Collection";
 import styles from "./deepcuts.module.scss";
+import { DEEPCUT_LADDER, DEEPCUT_TIER_FLOOR } from "@/models";
 
 /**
  * The legend and the rules, as two tabs above the shelf.

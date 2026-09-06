@@ -7,7 +7,7 @@ import { spotifyEndpoints } from "@/server/endpoints";
 import { spotifyRead } from "@/server/spotify/spotifyApiClient";
 import { hasCredentials } from "@/server/spotify/spotifyAccessTokens";
 import { artistNames, pickAlbumArt, toItemUrl } from "@/server/spotify/mappers";
-import { pullChance, rarityOf } from "@/utils/rarity";
+import { pullChances, rarityOf } from "./rarity";
 import { primaryArtist } from "@/utils/trackMatch";
 
 /**
@@ -86,14 +86,20 @@ export const packContents = async (args: {
     /* THE CHANCE IS ADDED AFTER EVERY TRACK HAS ITS RUNG, because it is the one field on
        a card that depends on the other cards: a song's odds come from how many others
        share its rung. Computing it inside the scoring loop would price each song against
-       however many happened to have finished. */
+       however many happened to have finished.
+
+       ONE CALL FOR THE WHOLE PLAYLIST. pullChances enumerates every way five cards can
+       come off eight buckets, which is the price of an exact answer; asking it per track
+       would pay that fifty times over for fifty answers that all come out of one tree. */
     const pool = scored
       .map((track) => track.tier)
       .filter((tier): tier is NonNullable<typeof tier> => tier !== null);
 
+    const chances = pullChances({ among: pool });
+
     const tracks = scored.map((track) => ({
       ...track,
-      chance: pullChance({ tier: track.tier, among: pool }),
+      chance: track.tier === null ? null : (chances.get(track.tier) ?? 0),
     }));
 
     return {

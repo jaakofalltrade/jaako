@@ -87,8 +87,8 @@ const Card = ({
       style={{ x, y, rotateX, rotateY, zIndex: offset }}
       /* POPPING OUT, ONE AFTER THE OTHER. They arrive from nothing rather than fading in,
          because what just happened is five cards coming out of a torn wrapper. The
-         stagger runs up the pile - offset 0 is the card at the back - so the hit slot,
-         which sits in front, is the last thing to land. */
+         stagger runs up the pile - offset 0 is the card at the back - so the last card
+         dealt, which sits in front, is the last thing to land. */
       initial={{ scale: 0.35, opacity: 0, y: 30 }}
       animate={{ rotate: LEAN[offset % LEAN.length], y: offset * -4, scale: 1, opacity: 1 }}
       transition={{ ...SPRING, delay: offset * 0.07 }}
@@ -113,8 +113,7 @@ export const CardStack = ({ cards, playlistName }: CardStackProps) => {
   const still = useReducedMotion();
 
   /* The order is state because throwing a card changes it. Reversed off the deal so the
-     hit slot lands at index 0: it is the last card dealt, and the front of the pile is
-     the one worth seeing first. */
+     last card dealt lands at index 0, and the front of the pile is the one seen first. */
   const [order, setOrder] = useState(() => [...cards].reverse());
 
   const sendToBack = (slot: number) =>

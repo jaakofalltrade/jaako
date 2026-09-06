@@ -2,8 +2,8 @@ import "server-only";
 import { DeepcutTier } from "@/models";
 import type { PackCard, ScoredTrack } from "@/models";
 import { getIsoDate, Timezone } from "@/oras";
-import { drawPack } from "@/utils/packDraw";
-import { packSeed, seededRandom } from "@/utils/seededRandom";
+import { drawPack } from "./packDraw";
+import { packSeed, seededRandom } from "./seededRandom";
 import { deepcutsStore } from "./store";
 import { packContents } from "./packContents";
 

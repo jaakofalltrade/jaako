@@ -464,8 +464,8 @@ export const DEEPCUTS_TEASER = {
      seeing the card at all, which is a different, much larger and much less interesting
      number. */
   gallery_of_pulls: "of pulls",
-  /** For the rungs above album cut, which the hit slot never rolls. Not a zero. */
-  gallery_common_only: "common slots only",
+  /** Follows a percentage on the set tab: "24% of draws". */
+  gallery_of_draws: "of draws",
   /** The pack's own line under its name, in the opened panel. */
   dialog_pack_meta: "in the pack",
 

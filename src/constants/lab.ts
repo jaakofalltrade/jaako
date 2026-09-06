@@ -40,25 +40,25 @@ export const DEEPCUT_TIER: Record<
   DeepcutTier,
   { label: string; note: string; symbol: string }
 > = {
-  [DeepcutTier.Anthem]: {
+  [DeepcutTier.Diamond]: {
     symbol: "○",
-    label: "anthem",
+    label: "diamond",
     note: "Everyone alive has heard this. Throw it straight back.",
   },
-  [DeepcutTier.Chart]: {
+  [DeepcutTier.Platinum]: {
     symbol: "◔",
-    label: "chart",
+    label: "platinum",
     note: "A hit. You will pull these constantly.",
   },
-  [DeepcutTier.Rotation]: {
+  [DeepcutTier.Gold]: {
     symbol: "◑",
-    label: "rotation",
+    label: "gold",
     note: "A song that had its year.",
   },
-  [DeepcutTier.Album]: {
+  [DeepcutTier.Silver]: {
     symbol: "◕",
-    label: "album cut",
-    note: "Never a single. Played by people who played the album.",
+    label: "silver",
+    note: "Charted somewhere, briefly. Never the one they put out.",
   },
   [DeepcutTier.Deepcut]: {
     symbol: "●",
@@ -90,74 +90,4 @@ export const DEEPCUT_TIER: Record<
  * sorted in a file nobody edits with a legend in mind. Order is a design decision
  * here, so it is stated where the design can see it.
  */
-export const DEEPCUT_LADDER: DeepcutTier[] = [
-  DeepcutTier.Anthem,
-  DeepcutTier.Chart,
-  DeepcutTier.Rotation,
-  DeepcutTier.Album,
-  DeepcutTier.Deepcut,
-  DeepcutTier.Unheard,
-  DeepcutTier.Ghost,
-  DeepcutTier.Lost,
-];
 
-/**
- * The fewest plays a track can have and still land on each rung.
- *
- * MEASURED, NOT REASONED, AND THAT REPLACED A RULE THAT SOUNDED BETTER THAN IT WORKED.
- * These used to be one order of magnitude apart, on the argument that play counts are a
- * power law and a log ladder is the only one with evenly spaced steps against one. The
- * argument is sound and the ANCHORING it implied was not, because of what the numbers
- * actually are.
- *
- * THE NUMBERS ARE LAST.FM SCROBBLES, NOT SPOTIFY STREAMS, and they are far smaller. A
- * scrobble is a play a listener's client reported to last.fm, and most listeners run no
- * such client, so a scrobble count is a small biased sample of a stream count. Spotify's
- * API publishes no play counts at all, so there is no second column to convert against -
- * the only thing the ladder can be anchored on is the shape of the catalogue being
- * scored. `pnpm ladder:spread` is what measures that, and it is what these came from.
- *
- * WHAT IT FOUND, over 1,097 matched tracks across 60 playlists: the account's whole
- * catalogue tops out at 46.7 million scrobbles. The old floors put `chart` at a hundred
- * million and `anthem` at five hundred, so TWO OF THE EIGHT RUNGS COULD NOT BE REACHED
- * BY ANY SONG ON THE ACCOUNT - printed in the legend, weighted in the hit slot, and dealt
- * never. Eight decade-wide rungs need seven decades of range; the catalogue has about
- * four, from a p5 of 8.8k to that maximum. No anchor fixes that. The step had to shrink.
- *
- * SO THE RULE IS NOW THE SHARE RATHER THAN THE STEP. Each floor is a quantile of the
- * measured distribution, rounded to a number a legend can print, chosen so the rungs fall
- * away like a card set does:
- *
- *     rung        floor        share of the catalogue
- *     anthem      5,000,000      28.8%
- *     chart       1,000,000      26.1%
- *     rotation      200,000      21.2%
- *     album cut      30,000      11.5%
- *     deep cut        8,000       7.6%
- *     unheard         2,000       2.6%
- *     ghost             200       1.5%
- *     lost                0       0.6%
- *
- * Every rung reachable, and the shares fall monotonically toward the rare end, which is
- * the property the old ladder never had on real data.
- *
- * `lost` floors at zero rather than at some small number, so every non-negative count
- * lands somewhere. Zero is a real answer - last.fm knows the track and nobody has
- * scrobbled it - and it is the genuine top of the ladder. A track last.fm cannot match
- * at all has no count and therefore no rung; see rarityOf.
- *
- * STILL TUNING CONSTANTS. They are anchored on ONE ACCOUNT'S taste, which is the honest
- * scope of this app, and adding a few hundred stadium-rock songs would pull them up.
- * Re-run `pnpm ladder:spread` before moving them, and move the whole set: the shares
- * above are the thing being preserved, not any single number in the column.
- */
-export const DEEPCUT_TIER_FLOOR: Record<DeepcutTier, number> = {
-  [DeepcutTier.Anthem]: 5_000_000,
-  [DeepcutTier.Chart]: 1_000_000,
-  [DeepcutTier.Rotation]: 200_000,
-  [DeepcutTier.Album]: 30_000,
-  [DeepcutTier.Deepcut]: 8_000,
-  [DeepcutTier.Unheard]: 2_000,
-  [DeepcutTier.Ghost]: 200,
-  [DeepcutTier.Lost]: 0,
-};
