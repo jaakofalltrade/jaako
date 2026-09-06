@@ -169,6 +169,32 @@ describe("drawPack", () => {
     expect(shiny).toBeLessThan(600);
   });
 
+  /* THE PROPERTY THE PREVIEW SWITCH LIVES OR DIES BY. `forceShiny` exists so the finish
+     can be looked at without opening two hundred packs, and it is only useful if it shows
+     the pack you would otherwise have got with the finish turned on. Skipping the roll
+     when forcing would consume one fewer number from the seeded generator, and every card
+     after the first would be a different song - a preview of a pack that does not exist. */
+  it("forces the finish without changing which songs are dealt", () => {
+    const pool = many(DeepcutTier.Ghost, 12, "g");
+
+    const plain = drawPack({ pool, random: seededRandom("preview") });
+    const forced = drawPack({ pool, random: seededRandom("preview"), forceShiny: true });
+
+    expect(forced.map((card) => card.track)).toEqual(plain.map((card) => card.track));
+    expect(forced.every((card) => card.shiny)).toBe(true);
+  });
+
+  /* AND IT DOES NOT INVENT A CARD THAT CANNOT EXIST. Only three rungs appear in
+     SHINY_ODDS, so only three can carry the finish; a shiny album cut is not a rare card,
+     it is a bug with a rainbow on it. */
+  it("leaves a rung that can never be shiny plain, even when forced", () => {
+    const pool = many(DeepcutTier.Album, 12, "a");
+    const forced = drawPack({ pool, random: seededRandom("preview"), forceShiny: true });
+
+    expect(forced.length).toBeGreaterThan(0);
+    expect(forced.some((card) => card.shiny)).toBe(false);
+  });
+
   /* THE PACK THAT CAME OUT SHORT, pinned so it cannot come back. The hit slot's rung
      walk used to go DOWN the ladder and stop there. On a playlist whose commonest song
      is a deep cut, every roll of "album" - 46% of them - found nothing at or below

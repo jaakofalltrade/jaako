@@ -55,9 +55,24 @@ export const POST = async (request: Request) => {
      shelf is never given a cookie. */
   const visitor = readVisitor({ request }) ?? mintVisitor();
 
+  /* THE SHINY PREVIEW, AND IT CANNOT LEAVE A DEVELOPER'S MACHINE. Shiny is at most a
+     one-in-a-hundred finish on the rungs that can roll it at all, so looking at it in a
+     real pack is not something a person can arrange - and a treatment nobody can look at
+     is a treatment nobody can tune.
+
+     `?shiny=1` deals every card that CAN be shiny as shiny. The env check is the whole
+     guard and it is deliberately the FIRST thing in the expression: on any deployment
+     that is not local this is false before the query string is read, so there is no
+     parameter to find and nothing to smuggle past. It changes only the finish - the same
+     five songs are dealt either way, because the roll still consumes its number from the
+     seeded generator. */
+  const force_shiny =
+    serverConfig.env === Env.Local &&
+    new URL(request.url).searchParams.get("shiny") === "1";
+
   let cards;
   try {
-    cards = await ripPack({ playlist_id: id, visitor_id: visitor.id });
+    cards = await ripPack({ playlist_id: id, visitor_id: visitor.id, force_shiny });
   } catch (error) {
     console.error("[deepcuts] rip failed:", error);
     return refuse(DEEPCUTS_TEASER.rip_failed, HttpStatus.BadGateway);

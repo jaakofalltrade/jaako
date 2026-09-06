@@ -1056,9 +1056,11 @@
 .dialogOpen {
   align-self: center;
   font-family: var(--dc-mono);
-  font-size: 0.65rem;
+  font-size: 0.68rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  /* The quietest thing on the panel and still a link, so it keeps the soft ink and gets
+     the size instead. It is the one control here a reader is not looking for. */
   color: var(--dc-ink-soft);
   text-decoration: underline;
   text-underline-offset: 0.25em;
@@ -1210,22 +1212,33 @@
 
   &:disabled {
     /* Dead, and visibly so. A pack you cannot open yet is the honest state of this app,
-       and slots makes the same call with a lever that does not pull. */
-    background: transparent;
+       and slots makes the same call with a lever that does not pull.
+
+       IT USED TO BE TRANSPARENT ON A HAIRLINE and it very nearly vanished. Nothing is
+       painted behind this dialog, so a transparent control with a 14%-alpha border sat
+       on a blurred photograph of the page - and a reader could not tell a disabled
+       button from no button at all. It keeps a filled, quiet body now, so it still
+       reads as a control and still reads as dead. */
+    background: rgba(29, 26, 22, 0.06);
     color: var(--dc-ink-soft);
-    border-color: var(--dc-hair);
+    border-color: rgba(29, 26, 22, 0.28);
     cursor: default;
   }
 }
 
+/* THE ONE LINE THAT SAYS WHY THE BUTTON WILL NOT WORK, so it is the last line on the
+   panel that can afford to be quiet. Full ink rather than the soft grey it was: this
+   dialog paints no surface of its own, so every word on it is set on a blurred picture
+   of the page behind, and soft grey at four-fifths of a rem was the first thing to go
+   unreadable. */
 .ripNote {
   flex: none;
   max-width: 30rem;
   text-align: center;
   margin: 0;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   line-height: 1.45;
-  color: var(--dc-ink-soft);
+  color: var(--dc-ink);
 }
 
 /* ---------------- the tilt ---------------- */
@@ -1342,12 +1355,16 @@
 
 /* Plain face, shiny twin, then the name and the odds. Three columns so every row lines
    up down the tab, including the five rungs with no shiny to show. */
+/* 8rem rather than the 4.5rem it was. The shiny is the reason: at four and a half rems a
+   holographic ghost and a plain one were two small coloured rectangles, and the whole
+   argument for this tab is that it shows what a card LOOKS like. A rainbow sweep and a
+   travelling band need room to be a rainbow sweep and a travelling band. */
 .galleryItem {
   display: grid;
-  grid-template-columns: 4.5rem 4.5rem 1fr;
+  grid-template-columns: 8rem 8rem 1fr;
   align-items: center;
-  gap: 1rem;
-  padding-bottom: 0.9rem;
+  gap: 1.25rem;
+  padding-bottom: 1.1rem;
   border-bottom: 1px solid var(--dc-hair);
 }
 
@@ -1439,22 +1456,32 @@
   gap: 0.85rem;
 }
 
+/* THE TWO LINES AROUND THE DECK, both raised out of the soft grey they were set in.
+
+   The rule for the whole panel: nothing is painted behind this dialog, so every word on
+   it sits on a blurred picture of the page. Soft ink is right for a caption on paper and
+   wrong on that, and at 0.62rem with 0.16em of tracking it was the least readable type on
+   the site. Full ink, and a size up. */
 .pulledLabel,
 .pulledNote {
   margin: 0;
   font-family: var(--dc-mono);
-  font-size: 0.62rem;
+  font-size: 0.68rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--dc-ink-soft);
+  color: var(--dc-ink);
   text-align: center;
 }
 
 .pulledNote {
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: none;
-  font-size: 0.75rem;
-  max-width: 34ch;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  max-width: 38ch;
+  /* The note is genuinely secondary to the label above it, so it keeps a step down -
+     but a step from full ink rather than from grey to greyer. */
+  color: var(--dc-ink-soft);
 }
 
 /* THE DECK. Every card in the same grid cell, so they sit on top of one another; the fan
@@ -1533,6 +1560,81 @@
   &[data-tier="UNHEARD"] { border-color: var(--dc-unheard); }
   &[data-tier="GHOST"] { border-color: var(--dc-ghost); }
   &[data-tier="LOST"] { border-color: var(--dc-lost); }
+}
+
+/* ---------------- the glare ----------------
+
+   ADAPTED FROM react-bits' GlareHover (reactbits.dev/animations/glare-hover). The
+   technique is theirs and it is a good one: a pseudo-element carrying a diagonal
+   gradient band, sized larger than its box with background-size, parked off one corner
+   at -100% -100% and slid to 100% 100% on hover with a plain transition. No JavaScript,
+   no keyframes, and the band's angle, width and travel all fall out of the gradient.
+
+   WHAT WAS CHANGED, AND WHY EACH:
+
+     the element   Theirs is a <div> wrapper component that draws its own width, height,
+                   background, radius and border from props, then puts your children in
+                   the middle. A card already has all five. Applying it as a wrapper would
+                   have meant a second box around every face for no reason, so this is the
+                   ::before of the face itself.
+     the props     Gone with the wrapper. A component whose entire job is to turn six
+                   props into six custom properties is a component when the six values
+                   are fixed - and here they are: one angle, one colour, one card.
+     no glow       Theirs defaults to a white band at 0.5 alpha, which on a dark card
+                   reads as light. This file bans light thrown off a surface, and the
+                   band obeys that the same way the shiny does: it is INSIDE the card's
+                   own bounds, clipped by its overflow, and nothing leaves the edge.
+     the trigger   Hover only, in theirs. A hover-only effect does not exist for a
+                   keyboard or a finger, so :focus-visible fires it too.
+     reduced motion  Theirs has none. A band sweeping across a card is decoration with
+                   no content in it, which is exactly what that setting asks to be spared.
+
+   IT IS NOT THE SHINY. The shiny is a permanent rainbow on the three rarest rungs, it
+   animates on its own, and it is a property of the card. This is a sheen that answers a
+   pointer, on every card, and it says nothing about rarity. They stack: .shiny takes
+   ::after, this takes ::before. */
+.pull::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* Above the artwork, below the type: a glare passes over a photograph and not over
+     the words printed on top of it. */
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(
+    -30deg,
+    rgba(255, 255, 255, 0) 58%,
+    rgba(255, 255, 255, 0.42) 70%,
+    rgba(255, 255, 255, 0) 82%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  /* The band is drawn on a canvas two and a half times the card, so only a slice of it
+     is over the face at any moment. Theirs uses 250% for the same reason. */
+  background-size: 250% 250%;
+  background-repeat: no-repeat;
+  background-position: -100% -100%;
+  transition: background-position 650ms ease;
+}
+
+/* Both, so the sweep exists for a keyboard as well as a mouse. */
+.pull:hover::before,
+.binderLink:focus-visible .pull::before,
+.pullSlot:focus-within .pull::before {
+  background-position: 100% 100%;
+}
+
+/* Asked for no motion, so there is no sweep. The band parks off the corner and stays
+   there, which is the same as not being drawn. */
+@media (prefers-reduced-motion: reduce) {
+  .pull::before {
+    transition: none;
+  }
+
+  .pull:hover::before,
+  .binderLink:focus-visible .pull::before,
+  .pullSlot:focus-within .pull::before {
+    background-position: -100% -100%;
+  }
 }
 
 .pullArt,
@@ -1769,15 +1871,19 @@
    type on it would be the line too many. */
 .pullOpen {
   font-family: var(--dc-mono);
-  font-size: 0.65rem;
+  font-size: 0.72rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--dc-ink-soft);
+  /* A LINK, AND ON THIS PANEL THAT HAS TO BE VISIBLE AT REST. Soft ink was fine while it
+     sat on a white sheet; the sheet is gone, and a grey underlined link on a blurred page
+     is a control nobody finds. Hover is no longer what makes it legible. */
+  color: var(--dc-ink);
   text-decoration: underline;
   text-underline-offset: 0.25em;
 
   &:hover,
   &:focus-visible {
     color: var(--dc-ink);
+    text-decoration-thickness: 2px;
   }
 }

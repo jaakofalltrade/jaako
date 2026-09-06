@@ -45,8 +45,18 @@ const eligible = (tracks: ScoredTrack[]) =>
 export const ripPack = async (args: {
   playlist_id: string;
   visitor_id: string;
+  /**
+   * Deal every card that CAN be shiny as shiny.
+   *
+   * A PREVIEW SWITCH, AND THE ROUTE WILL NOT PASS IT OUTSIDE A LOCAL DEPLOYMENT. Shiny
+   * is at most one card in a hundred on the rung that rolls it most often, so the
+   * finish is otherwise unreviewable: you cannot look at a treatment you would have to
+   * open a couple of hundred packs to see once. See rollShiny for what it does and does
+   * not override.
+   */
+  force_shiny?: boolean;
 }): Promise<PackCard[] | null> => {
-  const { playlist_id, visitor_id } = args;
+  const { playlist_id, visitor_id, force_shiny = false } = args;
 
   const contents = await packContents({ playlist_id });
   if (!contents) return null;
@@ -61,6 +71,7 @@ export const ripPack = async (args: {
   const drawn = drawPack({
     pool,
     random: seededRandom(packSeed({ visitor_id, playlist_id, day })),
+    forceShiny: force_shiny,
   });
 
   const cards: PackCard[] = drawn.map((card, slot) => ({

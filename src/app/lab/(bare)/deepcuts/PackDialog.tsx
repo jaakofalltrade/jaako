@@ -158,7 +158,15 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
       window.setTimeout(resolve, RIP_SEQUENCE_MS)
     );
 
-    const dealt = ripPack({ playlist_id: id }).catch((error: unknown) => {
+    /* THE SHINY PREVIEW RIDES ON THE PAGE'S OWN URL. Open /lab/deepcuts?shiny=1 on a
+       local deployment and every pack comes out with the finish on, which is the only
+       practical way to look at a treatment that appears on one card in a hundred. Read
+       here rather than through a hook because it is wanted at the moment of a click and
+       never at render, and useSearchParams would put this whole tree behind a Suspense
+       boundary for a debugging switch. The server ignores it anywhere but local. */
+    const shiny = new URLSearchParams(window.location.search).get("shiny") === "1";
+
+    const dealt = ripPack({ playlist_id: id, shiny }).catch((error: unknown) => {
       console.error("[deepcuts] rip failed:", error);
       return { playlist_id: id, cards: [], error: DEEPCUTS_TEASER.rip_failed };
     });
@@ -203,10 +211,21 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
 
             {/* THE PACK IS GONE ONCE IT IS OPEN. A torn wrapper sitting above the cards
                 it produced is litter: the thing the reader wanted is the cards, and the
-                pack has done its job. AnimatePresence is what lets it leave rather than
-                vanish. */}
-            <AnimatePresence>
-              {phase !== "opened" ? (
+                pack has done its job.
+
+                CUT, NOT ANIMATED OUT, AND THE FLASH IS WHY IT CAN BE. This was an
+                AnimatePresence exit - the pack blew up to 1.3 and faded - and it broke in
+                the worst way an exit can: the animation settled at opacity 0.01 and the
+                completion never fired, so AnimatePresence never unmounted the child.
+                Measured stuck at that value four seconds later. An invisible element still
+                occupies its box, so the wrapper went on holding 450px of the flex column
+                and the cards it had just dealt were shoved off the bottom of the panel.
+
+                There is no exit to get stuck now. `opened` begins at the moment the flash
+                is at full white and starting to fade, so the swap happens under cover -
+                which is the entire reason the flash exists. An animation nobody can see
+                is not worth a class of bug that leaves a ghost holding the layout. */}
+            {phase !== "opened" ? (
             <motion.div
               key="pack"
               initial={still ? false : { scale: 0.82, y: 26, opacity: 0 }}
@@ -217,7 +236,6 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
                 y: 0,
                 opacity: 1,
               }}
-              exit={still ? undefined : { scale: 1.3, opacity: 0 }}
               transition={{ type: "spring", stiffness: 320, damping: 26, mass: 0.7 }}
               className={styles.openedShell}
             >
@@ -273,8 +291,7 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
               <span className={styles.shelfFoot} aria-hidden="true" />
             </TiltedPack>
             </motion.div>
-              ) : null}
-            </AnimatePresence>
+            ) : null}
 
             {/* THE SPARKS, WHICH OUTLIVE THE FLASH. Mounted from the flash and kept
                 through `opened` rather than swapped out with the white, so they are still
@@ -300,18 +317,24 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
               ) : null}
             </AnimatePresence>
 
-            {/* Across the foot of the pack, as on the sketch. It opens the pack now.
-                Disabled while the contents are still arriving, because the rip is dealt
-                from the same scored tracks the table below is waiting on, and while
-                last.fm is switched off, because nothing could be given a rung. */}
-            {/* Goes with the pack. A button offering to open something that is already
-                open is a control with nothing left to do. */}
+            {/* ACROSS THE FOOT OF THE PACK, AND IT GOES WHEN THE PACK DOES. A button
+                offering to open something already open is a control with nothing left to
+                do.
+
+                FOUR REASONS IT IS DEAD, and the last one is the one worth reading. The
+                contents are still arriving; last.fm is switched off, so nothing could be
+                given a rung; the rip is mid-sequence; or THE RIP CAME BACK REFUSED. That
+                last case used to return the button to life, which invited pressing it
+                again - and every reason a rip is refused is a reason the next press
+                fails the same way. A visitor over the limit still gets their pack on
+                screen, sealed, with the button dead and the sentence under it saying
+                which limit. */}
             {phase !== "opened" ? (
               <button
                 type="button"
                 className={styles.rip}
                 onClick={rip}
-                disabled={phase !== "idle" || !shown?.contents?.scored}
+                disabled={phase !== "idle" || !shown?.contents?.scored || Boolean(pack?.error)}
               >
                 {phase === "idle" ? DEEPCUTS_TEASER.rip_button : DEEPCUTS_TEASER.rip_working}
               </button>

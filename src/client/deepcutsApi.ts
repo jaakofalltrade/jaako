@@ -45,14 +45,26 @@ export const fetchPack = async (args: {
  */
 export const ripPack = async (args: {
   playlist_id: string;
+  /**
+   * Ask for every card that can be shiny to come out shiny.
+   *
+   * PASSED THROUGH, NOT DECIDED HERE, AND THE SERVER IGNORES IT OFF A LOCAL DEPLOYMENT.
+   * It is a preview switch for a finish that is otherwise a one-in-a-hundred sight; the
+   * route's env check is the guard, and sending the parameter from a deployed site
+   * simply does nothing.
+   */
+  shiny?: boolean;
   signal?: AbortSignal;
 }): Promise<RipResponse> => {
-  const { playlist_id, signal } = args;
+  const { playlist_id, shiny, signal } = args;
 
-  const response = await fetch(
-    `${endpoints.lab.deepcuts.rip}?id=${encodeURIComponent(playlist_id)}`,
-    { method: "POST", signal }
-  );
+  const query = new URLSearchParams({ id: playlist_id });
+  if (shiny) query.set("shiny", "1");
+
+  const response = await fetch(`${endpoints.lab.deepcuts.rip}?${query.toString()}`, {
+    method: "POST",
+    signal,
+  });
 
   return (await response.json()) as RipResponse;
 };

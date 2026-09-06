@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cleanTitle, primaryArtist, titleCandidates } from "@/utils/trackMatch";
+import { cleanTitle, primaryArtist, titleCandidates, trackKey } from "@/utils/trackMatch";
 
 /**
  * The join between Spotify's catalogue and last.fm's.
@@ -130,5 +130,61 @@ describe("titleCandidates", () => {
   it("has no candidates at all for a blank title", () => {
     expect(titleCandidates("   ")).toEqual([]);
     expect(titleCandidates("")).toEqual([]);
+  });
+});
+
+/**
+ * The key that decides two playlist entries are one song.
+ *
+ * IT EXISTS BECAUSE OF A MEASURED BUG. "strangers" holds "did i tell u that i miss u" by
+ * adore twice, under two different Spotify uris, and both were scored, both sat in the
+ * draw pool, and a five card pack could deal the same song twice. De-duplicating on the
+ * uri does not fix that, because Spotify considers the two different tracks.
+ */
+describe("trackKey", () => {
+  /* THE CASE IT WAS WRITTEN FOR. Same recording, two uris, and nothing about the strings
+     differs - so if this ever stops collapsing, packs deal doubles again. */
+  it("collapses one song listed twice", () => {
+    expect(trackKey({ title: "did i tell u that i miss u", artist: "adore" })).toBe(
+      trackKey({ title: "did i tell u that i miss u", artist: "adore" })
+    );
+  });
+
+  /* The decoration stripping is shared with the last.fm lookup on purpose: both spellings
+     ask last.fm the same question and come back with one count, so they are one card. */
+  it("collapses a version label onto the plain title", () => {
+    expect(trackKey({ title: "Destiny - Extended Mix", artist: "Zero 7" })).toBe(
+      trackKey({ title: "Destiny", artist: "Zero 7" })
+    );
+  });
+
+  it("ignores case and surrounding space", () => {
+    expect(trackKey({ title: "  Pale Blue Eyes ", artist: "The Velvet Underground" })).toBe(
+      trackKey({ title: "pale blue eyes", artist: "the velvet underground" })
+    );
+  });
+
+  /* AND THE OTHER DIRECTION, WHICH IS THE ONE THAT COSTS A PLAYLIST SONGS IF IT BREAKS.
+     Over-collapsing silently drops tracks from the pool, so two genuinely different
+     songs must not share a key. */
+  it("keeps two different songs apart", () => {
+    expect(trackKey({ title: "Baiana", artist: "Barbatuques" })).not.toBe(
+      trackKey({ title: "Magalenha", artist: "Barbatuques" })
+    );
+
+    expect(trackKey({ title: "Numbers", artist: "TEMPOREX" })).not.toBe(
+      trackKey({ title: "Numbers", artist: "Daft Punk" })
+    );
+  });
+
+  /* A title that is nothing BUT decoration would clean to an empty string, and an empty
+     key would collapse every such track onto one card. cleanTitle's fallback to the raw
+     title is what stops that, and this is the test that keeps it. */
+  it("falls back to the raw title rather than keying on nothing", () => {
+    const dashOnly = trackKey({ title: "- Remastered", artist: "Someone" });
+    const other = trackKey({ title: "- Live", artist: "Someone" });
+
+    expect(dashOnly).not.toBe("someone|");
+    expect(dashOnly).not.toBe(other);
   });
 });

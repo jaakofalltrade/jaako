@@ -97,10 +97,30 @@ const hitRung = <T>(args: {
  * SHINY_ODDS. Shiny is a finish on a card that already has a rung rather than a rung of
  * its own, so it cannot change which song was drawn - by the time this is asked, the
  * card exists.
+ *
+ * `always` IS A LOOKING-AT-IT SWITCH AND NOTHING ELSE. Shiny tops out at one card in
+ * four hundred on the rung that rolls it most, which means the finish is unreviewable in
+ * practice: you cannot tune a treatment you have to open two hundred packs to see. It
+ * still respects SHINY_ODDS' MEMBERSHIP - a forced pack makes ghosts and losts shiny and
+ * leaves album cuts plain - because a shiny album cut is a card that can never exist and
+ * showing one would be a preview of nothing.
+ *
+ * The only caller that can set it is the rip route, and only on a local deployment.
  */
-const rollShiny = (args: { tier: DeepcutTier; random: () => number }): boolean => {
+const rollShiny = (args: {
+  tier: DeepcutTier;
+  random: () => number;
+  always: boolean;
+}): boolean => {
   const odds = SHINY_ODDS[args.tier];
-  return odds !== undefined && args.random() < odds;
+  if (odds === undefined) return false;
+
+  /* The roll still happens, even when forced. Skipping it would consume one fewer number
+     from the generator and every card after this one in the pack would change - so a
+     forced pack would not be the same pack with the finish turned on, which is the one
+     thing it needs to be. */
+  const rolled = args.random() < odds;
+  return args.always || rolled;
 };
 
 /**
@@ -118,8 +138,10 @@ const rollShiny = (args: { tier: DeepcutTier; random: () => number }): boolean =
 export const drawPack = <T>(args: {
   pool: Drawable<T>[];
   random: () => number;
+  /** Local-only preview switch. See rollShiny; false everywhere that matters. */
+  forceShiny?: boolean;
 }): DrawnCard<T>[] => {
-  const { random } = args;
+  const { random, forceShiny = false } = args;
 
   // Copied, because take() splices and the caller's array is not ours to empty.
   const pool = [...args.pool];
@@ -146,7 +168,7 @@ export const drawPack = <T>(args: {
       cards.push({
         track: drawn.track,
         tier: drawn.tier,
-        shiny: rollShiny({ tier: drawn.tier, random }),
+        shiny: rollShiny({ tier: drawn.tier, random, always: forceShiny }),
       });
     }
   }
@@ -155,7 +177,7 @@ export const drawPack = <T>(args: {
     cards.push({
       track: hit.track,
       tier: hit.tier,
-      shiny: rollShiny({ tier: hit.tier, random }),
+      shiny: rollShiny({ tier: hit.tier, random, always: forceShiny }),
     });
   }
 
