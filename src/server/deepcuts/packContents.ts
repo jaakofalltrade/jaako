@@ -8,8 +8,7 @@ import { spotifyRead } from "@/server/spotify/spotifyApiClient";
 import { hasCredentials } from "@/server/spotify/spotifyAccessTokens";
 import { artistNames, pickAlbumArt, toItemUrl } from "@/server/spotify/mappers";
 import { pullChance, rarityOf } from "@/utils/rarity";
-import { primaryArtist, trackKey } from "@/utils/trackMatch";
-import { uniqueBy } from "@/utils/collection";
+import { primaryArtist } from "@/utils/trackMatch";
 
 /**
  * What is inside one pack: the songs on a playlist, each with a rung.
@@ -56,23 +55,16 @@ export const packContents = async (args: {
        read walks every page because it needs a total; this one is filling a panel, and
        the panel says how many of how many it is showing.
 
-       DE-DUPLICATED BEFORE THE SLICE, WHICH IS THE ORDER THAT MATTERS: collapsing after
-       cutting to fifty would leave a pool of forty-nine and waste the place. A playlist
-       can hold one recording twice under two uris - measured on "strangers", which
-       carries one track twice - and both would be scored, both would sit in the pool, and
-       a pack could deal the same song as two of its five cards. See trackKey for why the
-       uri is not the key.
-
-       It fixes the odds as well as the draw: a song counted twice in its rung halved
-       every pull figure printed for that rung. */
-    const entries = uniqueBy({
-      values: (playlist.items?.items ?? []).filter((entry) => entry.item?.name),
-      key: (entry) =>
-        trackKey({
-          title: entry.item?.name ?? "",
-          artist: primaryArtist(entry.item?.artists),
-        }),
-    }).slice(0, SCORED_TRACK_LIMIT);
+       NOT DE-DUPLICATED, AND THAT IS A DECISION RATHER THAN AN OVERSIGHT. A playlist can
+       hold one recording twice under two Spotify uris - "strangers" carries one track
+       twice - so both are scored, both sit in the pool, and a pack can deal the same song
+       more than once. A version of this collapsed them on the last.fm query and it was
+       reverted: a pack of five identical cards is a thing that can happen and is meant to
+       be able to happen. It is the playlist's own shape showing through, and there is
+       nothing to protect a reader from. */
+    const entries = (playlist.items?.items ?? [])
+      .filter((entry) => entry.item?.name)
+      .slice(0, SCORED_TRACK_LIMIT);
 
     const total = playlist.items?.total ?? entries.length;
 

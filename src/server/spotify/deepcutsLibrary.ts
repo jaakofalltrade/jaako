@@ -4,6 +4,7 @@ import {
   LIBRARY_MAX_PAGES,
   LIBRARY_READ_LIMIT,
   LIBRARY_TTL_MS,
+  MIN_PACK_PLAYLIST_TRACKS,
 } from "@/constants";
 import { Spotify } from "@/models";
 import type { DeepcutsLibrary } from "@/models";
@@ -160,6 +161,8 @@ const allPlaylists = async (): Promise<Spotify.SimplePlaylistResponse[]> => {
  *   public   Strictly `=== true`. Spotify sends null when it will not say, and null is
  *            not consent. A playlist whose visibility is unanswered is treated as
  *            private and stays off the page.
+ *   big      MIN_PACK_PLAYLIST_TRACKS or more. A pack is five cards; a playlist of three
+ *            is a pack of three that is the whole playlist, dealt identically every time.
  *
  * EXPORTED SO IT CAN BE PINNED, which is the only reason it is not an inline predicate
  * in the filter below. It is four words of logic and the cost of getting it wrong is a
@@ -175,6 +178,12 @@ export const isOwnPublicPlaylist = (args: {
 
   if (playlist.owner?.id !== owner) return false;
   if (playlist.public !== true) return false;
+
+  /* TOO SHORT TO BE A PACK. `items.total` and not `tracks.total`: the SIMPLIFIED playlist
+     object /me/playlists returns spells the count that way, and reading the documented
+     field gives undefined for every playlist on the account - which `?? 0` would then
+     turn into an empty shelf. See toDeepcutsPlaylist, which learned this the hard way. */
+  if ((playlist.items?.total ?? 0) < MIN_PACK_PLAYLIST_TRACKS) return false;
 
   /* The suggestion box is public and owned by this account, so nothing above can tell
      it from music. A pack dealt out of a list other visitors filled is a different app.

@@ -257,3 +257,23 @@ export const RIP_SEQUENCE_MS = RIP_FORWARD_MS + RIP_TEAR_MS + RIP_FLASH_MS;
  * ghost they are here to look at.
  */
 export const COLLECTION_LIMIT = 200;
+
+/**
+ * The fewest tracks a playlist can have and still be dealt from.
+ *
+ * A PACK IS FIVE CARDS, SO A PLAYLIST NEEDS TO BE MEANINGFULLY BIGGER THAN ONE. At five
+ * tracks a pack IS the playlist: every card is dealt every time and the draw decides
+ * nothing but the order. At ten it is half of it. Fifteen is three packs' worth, which is
+ * the point at which two people opening the same pack are likely to see different cards -
+ * and that is the whole thing a pack is for.
+ *
+ * IT IS NOT ABOUT THE ARITHMETIC BREAKING. drawPack deals what it has and a pack of three
+ * is a real, correct answer; several playlists on the account are that short. This is
+ * about what is worth putting on a shelf. A wrapper promising five cards that opens to
+ * three of a possible three is a bad object, and the shelf is a page of objects.
+ *
+ * Applied by isOwnPublicPlaylist against `items.total`, which is the count of the WHOLE
+ * playlist rather than of the tracks a pack scores - so a long playlist whose first fifty
+ * are mostly unmatched still qualifies. The floor is about the list, not about the pool.
+ */
+export const MIN_PACK_PLAYLIST_TRACKS = 15;

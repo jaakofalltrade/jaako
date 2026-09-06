@@ -131,27 +131,3 @@ export const titleCandidates = (title: string): string[] => {
 
   return [...new Set([cleaned, raw])].filter(Boolean);
 };
-
-/**
- * The key two playlist entries share when they are the same song.
- *
- * WHY THIS IS THE RIGHT KEY, AND WHY THE SPOTIFY URI IS NOT. A playlist can hold one
- * recording twice under two different uris - the album pressing and a compilation's, or
- * an original and its remaster - and Spotify considers those different tracks. This app
- * cannot: both ask last.fm the identical question, get back the identical play count,
- * and land on the identical rung. Two cards with the same title, the same artist and the
- * same number on them are the same card, whatever the uri says.
- *
- * Measured on a real playlist: "strangers" carries "did i tell u that i miss u" by adore
- * twice, under two uris, and a pack could be dealt both of them.
- *
- * IT IS THE LAST.FM QUERY ITSELF, deliberately, rather than a key invented for the job.
- * Two entries collapse here exactly when the app would ask about them identically, so
- * the rule cannot drift from the thing it is a proxy for. It also means the decoration
- * stripping is shared: "Destiny" and "Destiny - Extended Mix" are one key, which is
- * correct, because last.fm answers with one count for both.
- *
- * Lowercased, because a difference of case is never a difference of song.
- */
-export const trackKey = (args: { title: string; artist: string }): string =>
-  `${args.artist.trim()}|${cleanTitle(args.title) || args.title.trim()}`.toLowerCase();
