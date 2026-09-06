@@ -1094,9 +1094,11 @@
     width: 7.5rem;
   }
 
+  /* 7rem rather than 6: the column holds "common only" as well as a percentage, and
+     .colChance is nowrap, so a narrower one pushes the phrase out of the table. */
   th:nth-child(3),
   td:nth-child(3) {
-    width: 6rem;
+    width: 7rem;
   }
 
   th {
@@ -1464,6 +1466,13 @@
   font-size: 0.78rem;
   font-variant-numeric: tabular-nums;
   color: var(--dc-ink);
+}
+
+/* "common only", where the others carry a percentage. Set back to the soft ink so a
+   column of figures still scans as a column of figures and the words do not read as the
+   loudest thing in it. */
+.cardChanceNone {
+  color: var(--dc-ink-soft);
 }
 
 /* ---------------- the tilt ---------------- */

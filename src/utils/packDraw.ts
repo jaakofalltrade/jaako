@@ -6,6 +6,7 @@ import {
   SHINY_ODDS,
 } from "@/constants";
 import { DeepcutTier } from "@/models";
+import { resolveHitRung } from "@/utils/rarity";
 
 /**
  * Dealing five cards out of a playlist.
@@ -49,13 +50,12 @@ const take = <T>(pool: T[], random: () => number): T | undefined =>
 /**
  * Which rung the hit slot lands on, once empty buckets have been walked past.
  *
- * WALKS DOWN THE LADDER, NEVER UP. DEEPCUT_LADDER runs commonest first, so walking down
- * is walking toward index zero. Roll `lost` on a playlist with no lost tracks and the
- * slot falls to ghost, then unheard, and so on. Falling upward would hand out rarer cards
- * than the playlist has earned, which is the one direction that makes the ladder
- * meaningless.
+ * THE ROLL IS HERE, THE RESOLUTION IS IN rarity.ts. resolveHitRung holds the down-then-up
+ * walk because pullChance has to price exactly the draw this makes; a copy of that rule
+ * here is a copy that can drift, and the symptom would be printed odds for a pack nobody
+ * is dealt.
  *
- * Null when nothing at or below the roll exists, which only happens on an empty pool.
+ * Null only on an empty pool.
  */
 const hitRung = <T>(args: {
   pool: Drawable<T>[];
@@ -84,12 +84,10 @@ const hitRung = <T>(args: {
   // Only reachable if the odds do not sum to one, which is a constant being edited badly.
   if (!target) target = DEEPCUT_LADDER[DEEPCUT_LADDER.length - 1];
 
-  for (let index = DEEPCUT_LADDER.indexOf(target); index >= 0; index -= 1) {
-    const tier = DEEPCUT_LADDER[index];
-    if (pool.some((entry) => entry.tier === tier)) return tier;
-  }
-
-  return null;
+  return resolveHitRung({
+    rolled: target,
+    has: (tier) => pool.some((entry) => entry.tier === tier),
+  });
 };
 
 /**

@@ -389,8 +389,19 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
                       </td>
 
                       <td className={styles.colChance}>
-                        <span className={styles.cardChance}>
-                          {track.chance !== null ? `${track.chance.toFixed(1)}%` : ""}
+                        {/* ZERO IS NOT A NUMBER TO PRINT HERE. It means the hit slot
+                            cannot reach this rung on this playlist, so the track can
+                            still be dealt - it just can never be the card the pack was
+                            opened for. "0.0%" would read as "you will never see this",
+                            which is the opposite of what it says. */}
+                        <span
+                          className={`${styles.cardChance} ${track.chance === 0 ? styles.cardChanceNone : ""}`}
+                        >
+                          {track.chance === null
+                            ? ""
+                            : track.chance === 0
+                              ? DEEPCUTS_TEASER.chance_common_only
+                              : `${track.chance.toFixed(1)}%`}
                         </span>
                         {/* The plays sit under the chance, abbreviated: a column of
                             1,333,333 and 847,201 is unreadable at a glance and the exact

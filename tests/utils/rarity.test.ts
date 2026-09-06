@@ -102,12 +102,6 @@ describe("rarityOf", () => {
 describe("pullChance", () => {
   const many = (tier: DeepcutTier, count: number) => Array.from({ length: count }, () => tier);
 
-  /* A playlist that cannot fill a pack deals all of itself. */
-  it("is certain when the playlist is smaller than a pack", () => {
-    expect(pullChance({ tier: DeepcutTier.Chart, among: many(DeepcutTier.Chart, 3) })).toBe(100);
-    expect(pullChance({ tier: DeepcutTier.Chart, among: many(DeepcutTier.Chart, 5) })).toBe(100);
-  });
-
   it("has no answer for a track with no rung", () => {
     expect(pullChance({ tier: null, among: many(DeepcutTier.Chart, 20) })).toBeNull();
   });
@@ -132,19 +126,82 @@ describe("pullChance", () => {
     expect(rare).toBeGreaterThan(common);
   });
 
-  /* A rung the hit slot never rolls gets the commons and nothing else, so every song on
-     it is priced the same however rare the rung sounds. "anthem" and "chart" are both
-     above the hit slot's floor of album cut. */
-  it("gives the same odds to two rungs the hit slot cannot reach", () => {
+  /* THE REASON THE COMMONS CAME OUT OF THIS FIGURE, pinned as arithmetic rather than as
+     a comment. The old number added "or one of the four uniform slots found it", which
+     put a floor of 4/(pool - 1) under every row: on a twelve-track playlist that floor
+     was 36.4% and it swamped the rung, so a ghost priced at 40.8% and a deep cut at
+     46.3%. The figure is now the hit slot alone, so a lone ghost and a bucket of album
+     cuts are told apart on a short playlist exactly as they are on a long one. */
+  it("prices a lone ghost on a short playlist the way it prices one on a long playlist", () => {
+    const short = [
+      ...many(DeepcutTier.Rotation, 1),
+      ...many(DeepcutTier.Album, 7),
+      ...many(DeepcutTier.Deepcut, 3),
+      ...many(DeepcutTier.Ghost, 1),
+    ];
+    const long = [
+      ...many(DeepcutTier.Rotation, 1),
+      ...many(DeepcutTier.Album, 275),
+      ...many(DeepcutTier.Deepcut, 3),
+      ...many(DeepcutTier.Ghost, 1),
+    ];
+
+    /* The ghost's own weight plus the 1% that falls through from an empty `lost`, over
+       the one track carrying it. Playlist length is not in that sentence anywhere. */
+    expect(pullChance({ tier: DeepcutTier.Ghost, among: short })).toBe(7);
+    expect(pullChance({ tier: DeepcutTier.Ghost, among: long })).toBe(7);
+  });
+
+  /* Rarity beats bucket size on the same playlist, which is the sentence the column is
+     there to make: one ghost out of one is a better pull than one deep cut out of three. */
+  it("prices a lone ghost above one of several deep cuts", () => {
+    const among = [
+      ...many(DeepcutTier.Album, 7),
+      ...many(DeepcutTier.Deepcut, 3),
+      ...many(DeepcutTier.Ghost, 1),
+    ];
+
+    expect(pullChance({ tier: DeepcutTier.Ghost, among })!).toBeGreaterThan(
+      pullChance({ tier: DeepcutTier.Album, among })!
+    );
+  });
+
+  /* A rung shares its weight evenly, because the hit slot picks uniformly once it has
+     chosen one. Twice the tracks on a rung, half the odds for each of them. */
+  it("splits a rung's weight evenly between the tracks on it", () => {
+    const few = [...many(DeepcutTier.Album, 10), ...many(DeepcutTier.Deepcut, 2)];
+    const several = [...many(DeepcutTier.Album, 10), ...many(DeepcutTier.Deepcut, 4)];
+
+    expect(pullChance({ tier: DeepcutTier.Deepcut, among: few })!).toBeCloseTo(
+      pullChance({ tier: DeepcutTier.Deepcut, among: several })! * 2,
+      5
+    );
+  });
+
+  /* ZERO IS AN ANSWER AND IT IS NOT NULL. The hit slot's commonest roll is album cut, so
+     with album cuts on the playlist nothing above them can ever be the pull. The panel
+     prints that as "common only" rather than as 0.0%. */
+  it("gives no pull odds to a rung above anything the hit slot rolls", () => {
     const among = [
       ...many(DeepcutTier.Anthem, 10),
       ...many(DeepcutTier.Chart, 10),
       ...many(DeepcutTier.Album, 10),
     ];
 
-    expect(pullChance({ tier: DeepcutTier.Anthem, among })).toBe(
-      pullChance({ tier: DeepcutTier.Chart, among })
-    );
+    expect(pullChance({ tier: DeepcutTier.Anthem, among })).toBe(0);
+    expect(pullChance({ tier: DeepcutTier.Chart, among })).toBe(0);
+    expect(pullChance({ tier: DeepcutTier.Album, among })).toBeGreaterThan(0);
+  });
+
+  /* THE SAME RUNG, THE SAME PLAYLIST MINUS ITS ALBUM CUTS, AND NOW IT CAN BE THE PULL.
+     That is why the zero above is per playlist and not a property of the rung: the hit
+     slot's weight walks DOWN the ladder past empty buckets, so stripping the album cuts
+     out hands their 46% to rotation. */
+  it("gives a common rung real odds once nothing below it is left", () => {
+    const among = [...many(DeepcutTier.Anthem, 10), ...many(DeepcutTier.Rotation, 10)];
+
+    expect(pullChance({ tier: DeepcutTier.Rotation, among })!).toBeGreaterThan(0);
+    expect(pullChance({ tier: DeepcutTier.Anthem, among })).toBe(0);
   });
 
   /* An empty bucket walks DOWN to the nearest rung that has a track, never up. With no
@@ -167,17 +224,29 @@ describe("pullChance", () => {
     expect(inherited).toBeGreaterThan(shared);
   });
 
+  /* The one card in a pack that rolls for a rung is one card, so no track can be more
+     than certain of being it - and a playlist of one track is exactly that certain. */
   it("never exceeds a hundred percent", () => {
+    expect(pullChance({ tier: DeepcutTier.Lost, among: many(DeepcutTier.Lost, 1) })).toBe(100);
+
     const among = [...many(DeepcutTier.Lost, 1), ...many(DeepcutTier.Chart, 5)];
     const value = pullChance({ tier: DeepcutTier.Lost, among })!;
     expect(value).toBeLessThanOrEqual(100);
     expect(value).toBeGreaterThan(0);
   });
 
-  /* Every song on a long playlist is unlikely, and that is the honest answer: four
-     uniform slots out of three hundred is not a good chance. */
-  it("prices a song on a long playlist low", () => {
-    const among = many(DeepcutTier.Rotation, 300);
-    expect(pullChance({ tier: DeepcutTier.Rotation, among })!).toBeLessThan(5);
+  /* The whole hit slot is one card, so the odds across a playlist add up to that card
+     and not to more. Rounding is the only reason this is not exact. */
+  it("adds up to one hit slot across the whole playlist", () => {
+    const among = [
+      ...many(DeepcutTier.Chart, 12),
+      ...many(DeepcutTier.Album, 7),
+      ...many(DeepcutTier.Deepcut, 3),
+      ...many(DeepcutTier.Ghost, 1),
+    ];
+
+    const total = among.reduce((sum, tier) => sum + pullChance({ tier, among })!, 0);
+
+    expect(total).toBeCloseTo(100, 0);
   });
 });

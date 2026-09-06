@@ -151,13 +151,16 @@ export type ScoredTrack = {
   plays: number | null;
   tier: DeepcutTier | null;
   /**
-   * The chance this song lands in a pack, as a percentage with one decimal.
+   * The chance this song is the pack's PULL, as a percentage with one decimal.
    *
-   * A PROJECTION RATHER THAN A TALLY. It is the odds under the model the draw actually
-   * implements - four commons and a hit slot - computed from the playlist's own make-up
-   * rather than counted from rips that have happened. It replaced a percentile, "rarer
-   * than 87% of this playlist", which was checkable by counting and answered a question
-   * nobody asked. Somebody holding a pack wants to know whether they were lucky.
+   * THE HIT SLOT ONLY, WHICH IS THE WHOLE POINT OF THE FIGURE. It once counted the four
+   * common slots too, and that buried the rarity under a floor set by playlist length -
+   * on a twelve-track list every song started at 36.4% and the column said nothing. See
+   * pullChance for the arithmetic and the argument.
+   *
+   * ZERO MEANS "COMMON ONLY" AND IS A REAL ANSWER: this rung is above anything the hit
+   * slot can reach on this playlist, so the track can arrive in a pack but can never be
+   * the card it was opened for.
    *
    * Null for a track with no rung, which is the same set of tracks that are not in the
    * pool at all.

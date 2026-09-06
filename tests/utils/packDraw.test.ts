@@ -168,4 +168,23 @@ describe("drawPack", () => {
     // 5 cards x 4000 packs at 1% is about 200. Anything near that is fine.
     expect(shiny).toBeLessThan(600);
   });
+
+  /* THE PACK THAT CAME OUT SHORT, pinned so it cannot come back. The hit slot's rung
+     walk used to go DOWN the ladder and stop there. On a playlist whose commonest song
+     is a deep cut, every roll of "album" - 46% of them - found nothing at or below
+     itself, resolved to no rung at all, and drawPack had no hit to append: 92 packs in
+     200 were dealt with FOUR cards. resolveHitRung now falls back up when there is
+     nothing below, which cannot hand out an unearned rarity, because reaching that
+     clause means the playlist has nothing commoner to give. */
+  it("deals a full pack when nothing on the playlist is as common as the hit slot rolls", () => {
+    const pool: Drawable<string>[] = Array.from({ length: 30 }, (_, index) => ({
+      track: `t${index}`,
+      tier: index % 2 ? DeepcutTier.Deepcut : DeepcutTier.Ghost,
+    }));
+
+    for (let seed = 0; seed < 200; seed += 1) {
+      const cards = drawPack({ pool, random: seededRandom(`short-${seed}`) });
+      expect(cards, `seed ${seed}`).toHaveLength(5);
+    }
+  });
 });

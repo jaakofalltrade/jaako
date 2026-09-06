@@ -440,13 +440,37 @@ navigating; the Spotify link moved inside the panel. The contents come from
 `GET /api/lab/deepcuts/pack?id=`, which **checks the id against the shelf** - without
 that it is an open proxy for reading any playlist on Spotify through the owner's token.
 
-**A card prints the chance of pulling it.** The songs in an opened pack are a table:
-track, rung, and the chance with the play count abbreviated underneath. The chance is a
-projection under the draw model rather than a measurement, and the note under the table
-says so. It briefly printed a percentile instead - "rarer than 87% of this playlist" -
-which is checkable by counting and answers a question nobody asked. On a 40 track
-playlist the commons price at 10.5% and the one deep cut at 58.8%, because the hit slot
-never rolls a common rung; a uniform draw would price them identically.
+**A card prints the odds on pulling it, and the commons are not in that number.** The
+songs in an opened pack are a table: track, rung, and the pull odds with the play count
+abbreviated underneath. The figure is the hit slot alone - of all the packs this playlist
+could deal, in what fraction is this track the one card the pack rolled a rung for.
+
+It counted the four common slots too, at first, and that made it useless. Adding "or one
+of the uniform slots found it" puts a floor of `4/(pool - 1)` under every row, and on a
+short playlist that floor *is* the number: twelve scored tracks put every song at 36.4%
+before its rung was consulted, so a ghost printed 40.8% and a deep cut 46.3% and the
+column carried no rarity signal at all. Worse, the floor moved with playlist length
+rather than with the song - the same lone ghost priced 40.8% on a twelve track list and
+8.3% on a long one. Dropping the commons term leaves a figure that depends on the rung's
+weight and how many tracks share it, and on nothing else: 7.0% for that ghost on either
+playlist, against 6.6% for one of seven album cuts.
+
+**Zero is an answer and it prints as "common only".** The hit slot's commonest roll is
+album cut, so with album cuts on the playlist nothing above them can ever be the pull -
+a rotation track can be dealt, it just cannot be the card the pack was opened for. It is
+per playlist rather than per rung: strip the album cuts out and that 46% walks down onto
+rotation, which then has real odds.
+
+**The walk down the ladder needed a way back up, and finding that was worth the change
+on its own.** `HIT_SLOT_ODDS` rolls a rung and empty buckets fall *down* the ladder, so
+rare playlists cannot mint rarity they have not earned. But a playlist whose commonest
+song is a deep cut has nothing at or below `album`, and that roll - 46% of them - used to
+resolve to no rung at all, leaving `drawPack` with no hit to append and dealing a pack of
+**four** cards. Measured at 92 short packs in 200. `resolveHitRung` now falls back up
+when there is nothing below, which cannot hand out an unearned rarity because reaching
+that clause means the playlist has nothing commoner to give. It lives in `rarity.ts` with
+one caller in `packDraw.ts`, because odds printed for a draw that does not happen is the
+failure that rule exists to prevent.
 
 **The match rate is measured, and it is 100%.** Across four playlists and 192 scored
 tracks, every one matched on last.fm. That includes both cases `trackMatch` exists for:

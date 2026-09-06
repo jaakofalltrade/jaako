@@ -451,18 +451,21 @@ export const DEEPCUTS_TEASER = {
      NOT "rip_note", which is already taken by the word printed on the tear strip. Two
      different things called the same thing is how the strip ends up reading like an
      apology. */
-  rip_blocked: "The rip is not built yet. The cards below are the whole playlist, not a pack.",
-  /** The same, when the deployment cannot even score what it would deal. */
+  /** When the deployment cannot score what it would deal. */
   rip_blocked_unscored: "The rip needs play counts, and last.fm is not switched on here.",
 
-  /* The table's column heads. "chance" says what the number is and the note under the
-     table says it is a projection: the rip is not built, so nothing has ever actually
-     been drawn at these odds. */
+  /* The table's column heads. "pull odds" rather than "chance", because the number is
+     the hit slot alone and "chance" let a reader take it for the chance of seeing the
+     song at all - which is a different, much larger and much less interesting number. */
   col_track: "track",
   col_card: "card",
-  col_chance: "chance",
-  /* Under the table. The honest caveat, once, rather than an asterisk on every row. */
-  chance_note: "Chance is what one pack would deal at the odds in the plan. Nothing has been ripped yet.",
+  col_chance: "pull odds",
+  /** For a rung the hit slot cannot reach on this playlist. Not a zero: see pullChance. */
+  chance_common_only: "common only",
+  /* Under the table. Says what the odds are on, and what the other four slots do, once
+     rather than as an asterisk on every row. */
+  chance_note:
+    "The odds are on the pull: the one card a pack rolls a rung for. Four more come off the playlist at random beside it, so a track with no odds here can still turn up in a pack.",
   /** The pack's own line under its name, in the opened panel. */
   dialog_pack_meta: "in the pack",
 

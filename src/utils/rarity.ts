@@ -1,10 +1,4 @@
-import {
-  COMMON_SLOTS,
-  DEEPCUT_LADDER,
-  DEEPCUT_TIER_FLOOR,
-  HIT_SLOT_ODDS,
-  PACK_SIZE,
-} from "@/constants";
+import { DEEPCUT_LADDER, DEEPCUT_TIER_FLOOR, HIT_SLOT_ODDS } from "@/constants";
 import { DeepcutTier } from "@/models";
 
 /**
@@ -90,24 +84,72 @@ export const rarityOf = (args: { plays: number | null | undefined }): DeepcutTie
 };
 
 /**
- * The chance this song lands in a pack, as a percentage.
+ * Which rung the hit slot settles on, given the rung it rolled and what the pool holds.
  *
- * IT REPLACED A PERCENTILE, AND THE CHANGE IS THE QUESTION BEING ANSWERED. The card used
- * to read "rarer than 87% of this playlist", which is checkable by counting and answers
- * a question nobody asked. What somebody holding a pack wants to know is whether they
- * were lucky, and that is a probability of drawing the thing, not its position in a
- * sorted list.
+ * ONE RULE, TWO CALLERS. drawPack deals the card and pullChance prices it, and if they
+ * disagree the printed odds are for a draw that does not happen. It lives here because
+ * this module is the pure one.
  *
- * IT IS A PROJECTION, NOT A MEASUREMENT, AND THE COPY BESIDE IT SAYS SO. The rip is not
- * built. This computes the odds under the model the pack-odds write-up settles on, which
- * is the design of record and not yet the behaviour of anything:
+ * DOWN FIRST, WHICH IS THE RULE THAT MATTERS. DEEPCUT_LADDER runs commonest first, so
+ * walking down is walking toward index zero. Roll `lost` on a playlist with no lost
+ * tracks and the slot falls to ghost, then unheard, and so on. Falling upward by
+ * preference would hand out rarer cards than the playlist has earned, which is the one
+ * direction that makes the ladder meaningless.
  *
- *   COMMON_SLOTS cards are drawn uniformly, without replacement, from the eligible pool.
- *   One hit slot rolls a rung by HIT_SLOT_ODDS and then picks uniformly inside it.
+ * UP ONLY WHEN THERE IS NOTHING BELOW AT ALL, and that clause is not a nicety. Without
+ * it, a playlist whose commonest song is a deep cut loses its hit slot to every roll of
+ * `album` - 46% of them - and drawPack, having no hit to append, deals FOUR cards
+ * instead of five. Measured at 92 short packs in 200 before this existed. Falling up
+ * here cannot hand out an unearned rarity, because reaching it means the playlist has
+ * nothing commoner to give.
  *
- * So a song's chance is the hit slot finding it, plus the commons finding it if the hit
- * did not. That is what makes the number worth printing at all: a rare song in a thin
- * bucket beats a common one, which a uniform draw would never show.
+ * Null only when the pool is empty, which is the one case with no answer.
+ */
+export const resolveHitRung = (args: {
+  rolled: DeepcutTier;
+  /** Whether the pool holds a track on a given rung. */
+  has: (tier: DeepcutTier) => boolean;
+}): DeepcutTier | null => {
+  const { rolled, has } = args;
+  const start = DEEPCUT_LADDER.indexOf(rolled);
+
+  for (let index = start; index >= 0; index -= 1) {
+    if (has(DEEPCUT_LADDER[index])) return DEEPCUT_LADDER[index];
+  }
+
+  for (let index = start + 1; index < DEEPCUT_LADDER.length; index += 1) {
+    if (has(DEEPCUT_LADDER[index])) return DEEPCUT_LADDER[index];
+  }
+
+  return null;
+};
+
+/**
+ * The chance this song is the pack's PULL, as a percentage.
+ *
+ * WHAT THIS ANSWERS, AND WHAT IT DELIBERATELY DOES NOT. A pack is COMMON_SLOTS cards
+ * drawn uniformly plus one hit slot that rolls a rung by HIT_SLOT_ODDS and then picks
+ * uniformly inside it. This prices the hit slot alone: of all the packs this playlist
+ * could deal, in what fraction is this exact track the rare card?
+ *
+ * IT USED TO INCLUDE THE COMMONS AND THAT MADE IT USELESS. Adding "or the commons found
+ * it" puts a floor of COMMON_SLOTS/(pool - 1) under every row, and on a short playlist
+ * that floor IS the number: twelve scored tracks put every song on the list at 36.4%
+ * before its rung was consulted at all, so a ghost read 40.8% and a deep cut 46.3% and
+ * the column carried no rarity signal whatever. The floor also moved with playlist
+ * length rather than with the song, which meant the same ghost was priced 40.8% on a
+ * twelve-track list and 8.3% on a long one.
+ *
+ * Dropping the commons term is what makes the figure a rarity again. It depends on the
+ * rung's weight and on how many tracks share that rung, and on nothing else, so a lone
+ * ghost beats one of twenty deep cuts on any playlist of any size.
+ *
+ * ZERO IS A REAL ANSWER AND NOT A MISSING ONE. The hit slot never rolls above album cut,
+ * so on a playlist that has album cuts, a rotation or chart track cannot be the pull -
+ * it can only arrive as a common. That reads as 0 here and prints as "common only". It
+ * is per playlist rather than per rung: strip the album cuts out and that weight falls
+ * down the ladder onto rotation, which then has a real chance. Null is reserved for a
+ * question that cannot be asked at all.
  *
  * ELIGIBLE MEANS SCORED. Tracks last.fm could not match have no rung and are not in the
  * pool, so they are not in the denominator either - the same rule that keeps them out of
@@ -124,39 +166,28 @@ export const pullChance = (args: {
   if (!tier) return null;
   if (among.length === 0) return null;
 
-  /* A playlist that cannot fill a pack deals all of itself, so everything on it is
-     certain. Without this the arithmetic below divides by zero at exactly five. */
-  if (among.length <= PACK_SIZE) return 100;
-
   const counts = new Map<DeepcutTier, number>();
   for (const rung of among) counts.set(rung, (counts.get(rung) ?? 0) + 1);
 
-  /* Where the hit slot actually resolves, once empty buckets have been walked past.
-     DEEPCUT_LADDER runs commonest first, so walking DOWN the ladder is walking toward
-     index zero. Never the other way: see HIT_SLOT_ODDS. */
+  // Where the hit slot actually resolves, once empty buckets have been walked past.
   const landed = new Map<DeepcutTier, number>();
+
+  const has = (rung: DeepcutTier) => (counts.get(rung) ?? 0) > 0;
 
   for (const [rolled, weight] of Object.entries(HIT_SLOT_ODDS)) {
     if (!weight) continue;
 
-    for (let index = DEEPCUT_LADDER.indexOf(rolled as DeepcutTier); index >= 0; index -= 1) {
-      const rung = DEEPCUT_LADDER[index];
-      if ((counts.get(rung) ?? 0) > 0) {
-        landed.set(rung, (landed.get(rung) ?? 0) + weight);
-        break;
-      }
-    }
-    /* Nothing at or below the roll leaves that weight unassigned, which is only
-       reachable on a pool with no eligible tracks - already returned above. */
+    /* The same resolution drawPack uses, so every point of weight is accounted for and
+       the column adds up to the one card the hit slot deals. */
+    const rung = resolveHitRung({ rolled: rolled as DeepcutTier, has });
+    if (rung) landed.set(rung, (landed.get(rung) ?? 0) + weight);
   }
 
+  /* The rung's whole weight, shared evenly by the tracks on it, because the hit slot
+     picks uniformly once it has chosen a rung. A caller asking about a track that is not
+     in `among` gets zero rather than a divide by zero. */
   const inRung = counts.get(tier) ?? 0;
-  const hit = inRung > 0 ? (landed.get(tier) ?? 0) / inRung : 0;
-
-  /* The commons draw from the pool with the hit card already taken out of it. */
-  const common = COMMON_SLOTS / (among.length - 1);
-
-  const chance = hit + (1 - hit) * common;
+  const chance = inRung > 0 ? (landed.get(tier) ?? 0) / inRung : 0;
 
   // One decimal: the spread across a big playlist lives in the tenths.
   return Math.round(Math.min(chance, 1) * 1000) / 10;
