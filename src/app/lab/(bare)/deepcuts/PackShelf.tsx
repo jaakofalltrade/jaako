@@ -49,6 +49,13 @@ export const PackShelf = ({ playlists }: PackShelfProps) => {
       <ul className={styles.packs}>
         {shown.map((playlist) => (
           <li key={playlist.id}>
+            {/* A PLAIN BUTTON, AND IT WAS BRIEFLY A motion.button WITH A SHARED layoutId
+                so the clicked pack could fly from here to the front. That is the prettier
+                effect and it does not survive `aspect-ratio`: Framer Motion animates a
+                shared layout by SCALING, and with both packs mounted it settled holding a
+                scale transform, so the opened pack rendered at this one's size and lapped
+                over the rip button under it. The pop-forward in PackDialog is the same
+                gesture and it does not fight the ratio. */}
             <button
               type="button"
               className={styles.shelfPack}

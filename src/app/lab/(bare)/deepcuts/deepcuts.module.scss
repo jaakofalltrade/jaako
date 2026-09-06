@@ -928,59 +928,43 @@
    eyebrow, a heading and a loose cover square. The panel renders the WRAPPER now, so the
    name and the art are printed on it rather than stacked beside it. See .opened. */
 
+/* THE DIALOG PAINTS NOTHING. It used to be the visible object: a card with a border, a
+   shadow, a background and a scrollbar down its side. It is now a transparent frame that
+   the pack and the list sit inside, because the thing the reader is meant to see arrive
+   is the WRAPPER, not a panel carrying one.
+
+   Sized to the viewport rather than to its contents, so the layout inside can decide
+   what is fixed and what scrolls. Without a height here the dialog grows to fit the song
+   list and the whole thing scrolls as one, which is exactly the bug this replaced.
+
+   NO ENTRY TRANSITION OF ITS OWN. Framer Motion moves the pack; a CSS transform on the
+   dialog at the same time would fight it, and the two together read as a wobble. */
 .dialog {
   width: min(34rem, calc(100vw - 2rem));
-  max-height: min(44rem, calc(100dvh - 4rem));
+  max-width: none;
+  height: min(46rem, calc(100dvh - 3rem));
+  max-height: none;
   padding: 0;
-  border: 1px solid var(--dc-hair);
-  border-radius: 0.75rem;
-  background: var(--dc-card);
+  border: 0;
+  background: transparent;
   color: var(--dc-ink);
   font-family: var(--dc-display);
-  overflow: auto;
-  box-shadow: 0 24px 60px rgba(29, 26, 22, 0.28);
-
-  /* THE PACK COMING TO THE FRONT. It starts small and slightly back and settles, which
-     is the one gesture available for "this wrapper is now in your hand". Paired with the
-     backdrop below so the page falls away at the same moment.
-
-     `allow-discrete` and the @starting-style block are what make an entry animation work
-     at all on an element that goes from display:none to the top layer. Without them the
-     dialog is simply there. */
-  transition:
-    opacity var(--dc-dialog-dur, 220ms) ease,
-    transform var(--dc-dialog-dur, 220ms) cubic-bezier(0.2, 0.9, 0.3, 1.2),
-    overlay var(--dc-dialog-dur, 220ms) allow-discrete,
-    display var(--dc-dialog-dur, 220ms) allow-discrete;
-
-  opacity: 0;
-  transform: scale(0.9) translateY(1rem);
-
-  &[open] {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-
-    @starting-style {
-      opacity: 0;
-      transform: scale(0.9) translateY(1rem);
-    }
-  }
+  overflow: visible;
 
   /* THE BLUR, ON THE BACKDROP RATHER THAN ON THE PAGE. A filter on a page wrapper would
      create a containing block and drag .ground - which is fixed - out from under the
-     whole document. ::backdrop sits between the page and this and costs the page nothing.
+     whole document.
 
      NOT hand-prefixed. Writing the -webkit- pair by hand makes Lightning CSS drop the
-     standard property, and the blur then vanishes in Chrome with no error at all. The
-     bare property is the one that works; the build adds what it needs. */
+     standard property, and the blur then vanishes in Chrome with no error at all. */
   &::backdrop {
-    background: rgba(29, 26, 22, 0.32);
-    backdrop-filter: blur(6px);
+    background: rgba(29, 26, 22, 0.34);
+    backdrop-filter: blur(7px);
     opacity: 0;
     transition:
-      opacity var(--dc-dialog-dur, 220ms) ease,
-      overlay var(--dc-dialog-dur, 220ms) allow-discrete,
-      display var(--dc-dialog-dur, 220ms) allow-discrete;
+      opacity 260ms ease,
+      overlay 260ms allow-discrete,
+      display 260ms allow-discrete;
   }
 
   &[open]::backdrop {
@@ -990,34 +974,20 @@
       opacity: 0;
     }
   }
-
-  /* Somebody who asked for no motion still gets the panel and the blur; what they do
-     not get is the thing that flies at them. */
-  @media (prefers-reduced-motion: reduce) {
-    transition: opacity var(--dc-dialog-dur, 220ms) ease;
-    transform: none;
-
-    &[open] {
-      transform: none;
-
-      @starting-style {
-        transform: none;
-      }
-    }
-  }
 }
 
-.dialogPanel {
-  padding: 1.5rem;
+/* Everything inside the frame. A column: the pack and its button hold their size, and
+   the pile of cards underneath takes what is left. */
+.stage {
+  height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  align-items: center;
+  gap: 0.75rem;
+  /* min-height:0 on a flex child is what actually lets .pile scroll instead of growing
+     past the bottom of the screen. Without it a flex item's floor is its content. */
+  min-height: 0;
 }
-
-
-
-
-
 
 .dialogClose {
   align-self: flex-end;
@@ -1199,8 +1169,15 @@
      enormous and pushed the whole track list below the fold, so the panel opened on a
      picture rather than on what is inside the pack. A pack is a portrait object; at this
      width it reads as one, and the list starts on the first screen. */
-  width: min(15rem, 100%);
+  width: min(13.5rem, 100%);
   align-self: center;
+  /* ONE SIZE, PRINTED OR PLAIN, AND THE SAME PROPORTIONS AS ON THE SHELF. Without this a
+     pack with no cover collapsed to whatever its name and count needed, so opening
+     "old old" produced a short wide box that was not recognisably the tall wrapper that
+     had just been clicked. It is also what makes the travel a clean scale: the two boxes
+     are the same shape, so nothing distorts on the way. */
+  flex: none;
+  aspect-ratio: 11 / 16;
   padding: 2.2rem 0 0;
   border-radius: 0.75rem;
   overflow: hidden;
@@ -1220,7 +1197,6 @@
   /* A pack with nothing printed on it still has to be a pack rather than a label. Same
      rule as the shelf's plain wrappers, at the panel's scale. */
   &[data-plain] .openedBody {
-    min-height: 7rem;
     justify-content: flex-end;
   }
 }
@@ -1292,9 +1268,10 @@
 /* Across the foot of the pack, as on the sketch. Full width so it reads as the pack's
    own control rather than a button that happens to be under it. */
 .rip {
-  /* The pack's own width, so it reads as that pack's control rather than the panel's. */
-  width: min(15rem, 100%);
+  /* The pack's own width, so it reads as that pack's control rather than the frame's. */
+  width: min(13.5rem, 100%);
   align-self: center;
+  flex: none;
   padding: 0.75rem;
   margin-top: -0.4rem;
   border: 1px solid var(--dc-ink);
@@ -1319,6 +1296,9 @@
 }
 
 .ripNote {
+  flex: none;
+  max-width: 30rem;
+  text-align: center;
   margin: 0;
   font-size: 0.8rem;
   line-height: 1.45;
@@ -1333,4 +1313,31 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--dc-ink);
+}
+
+/* THE PILE OF CARDS, AND THE ONLY THING ON THE SCREEN THAT SCROLLS.
+
+   The pack, its button and the notes above are all `flex: none`, so this takes whatever
+   height is left and keeps its overflow to itself. Before this the dialog itself
+   scrolled, which meant the pack you had just watched fly across the screen slid off the
+   top the moment you read what was inside it.
+
+   The surface starts here rather than on the frame, because this is the only part of the
+   opened pack that is a sheet of paper: the cards are dealt onto it. */
+.pile {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  overflow-y: auto;
+  padding: 1rem 1.15rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: var(--dc-card);
+  border: 1px solid var(--dc-hair);
+  border-radius: 0.6rem;
+  box-shadow: 0 16px 40px rgba(29, 26, 22, 0.22);
+  /* Keeps the momentum scroll inside the list rather than handing it to the page behind
+     once the last card is reached. */
+  overscroll-behavior: contain;
 }
