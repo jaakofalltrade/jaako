@@ -130,7 +130,7 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
    * survived the dialog closing, so ripping one pack and then opening a DIFFERENT one
    * left it reading "opened": the wrapper is suppressed at that phase and so is the
    * button, while the cards belong to the other playlist and do not render. The dialog
-   * came up holding a close button and a link to Spotify and nothing else. Reproduced
+   * came up holding a link to Spotify and nothing else. Reproduced
    * by hand - rip "Sorry You're Not a Winner", close, open "coding".
    *
    * The id is the fix rather than an effect that clears on `playlist`: this file already
@@ -194,8 +194,8 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
       ref={ref}
       className={styles.dialog}
       aria-labelledby={titleId}
-      /* Escape and the close button both come through here, so the parent's state and
-         the element's own open flag cannot drift apart. */
+      /* Escape and a click outside both come through here, so the parent's state and the
+         element's own open flag cannot drift apart. */
       onClose={onClose}
       /* CLICKING OUTSIDE CLOSES, AND "OUTSIDE" HAD TO BE WIDENED. A <dialog> is its own
          event target, so a click on the backdrop arrives here with the dialog as its
@@ -362,9 +362,16 @@ export const PackDialog = ({ playlist, onClose }: PackDialogProps) => {
                 the button will not work rather than a description of what is inside. */}
             {pack?.error ? <p className={styles.ripNote}>{pack.error}</p> : null}
 
-            {/* The five cards, once they exist. */}
+            {/* The five cards, once they exist.
+
+                KEYED ON THE PLAYLIST, AND IT HAS TO BE. Every pack numbers its cards 0 to
+                4, so the ids are identical from one pack to the next - and the pile keeps
+                its order in state. Without a key, ripping a second pack after shuffling a
+                first one deals the new cards into the old pile's order, so the card in
+                front is whichever slot happened to be there before rather than the last
+                one dealt. The key remounts it and the order starts fresh. */}
             {pack?.cards.length ? (
-              <CardStack cards={pack.cards} playlistName={playlist.name} />
+              <CardStack key={playlist.id} cards={pack.cards} playlistName={playlist.name} />
             ) : null}
 
             {/* The playlist itself, which is not a spoiler: the wrapper already carries

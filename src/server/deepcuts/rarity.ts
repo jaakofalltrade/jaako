@@ -83,7 +83,7 @@ export const rarityOf = (args: { plays: number | null | undefined }): DeepcutTie
 };
 
 /**
- * Which rung the hit slot settles on, given the rung it rolled and what the pool holds.
+ * Which rung a card settles on, given the rung it rolled and what the pool holds.
  *
  * ONE RULE, TWO CALLERS. drawPack deals the card and pullChance prices it, and if they
  * disagree the printed odds are for a draw that does not happen. It lives here because
@@ -96,7 +96,7 @@ export const rarityOf = (args: { plays: number | null | undefined }): DeepcutTie
  * direction that makes the ladder meaningless.
  *
  * UP ONLY WHEN THERE IS NOTHING BELOW AT ALL, and that clause is not a nicety. Without
- * it, a playlist whose commonest song is a deep cut loses its hit slot to every roll of
+ * it, a playlist whose commonest song is a deep cut loses a card to every roll of
  * `album` - 46% of them - and drawPack, having no hit to append, deals FOUR cards
  * instead of five. Measured at 92 short packs in 200 before this existed. Falling up
  * here cannot hand out an unearned rarity, because reaching it means the playlist has

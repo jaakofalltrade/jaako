@@ -417,8 +417,6 @@ export const DEEPCUTS_TEASER = {
 
   /* ---------------- the opened pack ---------------- */
 
-  dialog_label: "opened",
-  dialog_close: "close",
   dialog_plays: "plays",
   dialog_spotify: "open the playlist in spotify",
 
@@ -463,12 +461,8 @@ export const DEEPCUTS_TEASER = {
 
      "of pulls" rather than "chance", because "chance" invited being read as the chance of
      seeing the card at all, which is a different, much larger and much less interesting
-     number. */
-  gallery_of_pulls: "of pulls",
   /** Follows a percentage on the set tab: "24% of draws". */
   gallery_of_draws: "of draws",
-  /** The pack's own line under its name, in the opened panel. */
-  dialog_pack_meta: "in the pack",
 
   /**
    * Says which direction is good once, at the top of the legend, rather than trusting

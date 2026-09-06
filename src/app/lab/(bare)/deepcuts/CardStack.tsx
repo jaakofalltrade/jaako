@@ -32,12 +32,18 @@ export type CardStackProps = {
  */
 export const CardStack = ({ cards, playlistName }: CardStackProps) => {
   /* Reversed off the deal so the last card dealt is at the front, which is the one worth
-     seeing first. Kept in step with Stack's own order through onThrow. */
-  const [front, setFront] = useState(() => [...cards].reverse().map((card) => card.slot));
+     seeing first. */
+  const dealt = [...cards].reverse();
 
-  const top = cards.find((card) => card.slot === front[0]);
+  /* WHICH CARD IS IN FRONT, AND STACK IS THE ONE THAT KNOWS. This used to be a second copy
+     of the pile's order, reordered here by the same rule Stack applies to its own - two
+     sources of truth for one thing, where a change to either silently pointed the link
+     below at a card nobody could see. Null until the first throw, when Stack says. */
+  const [frontId, setFrontId] = useState<string | null>(null);
 
-  const items = [...cards].reverse().map((card) => ({
+  const top = dealt.find((card) => String(card.slot) === (frontId ?? String(dealt[0]?.slot)));
+
+  const items = dealt.map((card) => ({
     id: String(card.slot),
     node: (
       <CardFace
@@ -66,11 +72,7 @@ export const CardStack = ({ cards, playlistName }: CardStackProps) => {
           stillList: styles.pullList,
           stillSlot: styles.pullFlat,
         }}
-        onThrow={(id) =>
-          /* Mirrors what Stack just did to its own order: the thrown card goes to the
-             back, so the next one is in front and the link below follows it. */
-          setFront((current) => [...current.filter((slot) => String(slot) !== id), Number(id)])
-        }
+        onOrderChange={(order) => setFrontId(order[0] ?? null)}
       />
 
       {/* FOLLOWS THE FRONT CARD. Shuffling the deck changes which song this opens, which

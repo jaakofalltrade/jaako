@@ -15,10 +15,10 @@ import { resolveDrawRung } from "./rarity";
  * by the app. Rolling every card puts the whole pack under the app's control, and it
  * makes the mechanic one sentence instead of two.
  *
- * WHAT THAT COSTS, SAID PLAINLY: there is no longer a guarantee. The hit slot promised
- * one card of album-cut-or-better in every pack; a pack can now come out as five diamonds.
- * At these weights that is about one pack in a thousand, and the weights are where to fix
- * it if it ever matters.
+ * WHAT THAT COSTS, SAID PLAINLY: there is no longer a guarantee. The reserved slot
+ * promised one card off the rarer half of the ladder in every pack; a pack can now come
+ * out as five of the commonest rung. At these weights that is about one pack in a
+ * thousand, and the weights are where to fix it if it ever matters.
  *
  * WITHOUT REPLACEMENT. Each draw removes its entry from the pool, so one entry cannot be
  * dealt twice. A playlist that lists the same recording under two Spotify ids has two

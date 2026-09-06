@@ -14,13 +14,14 @@ export type StackItem = {
 export type StackProps = {
   items: StackItem[];
   /**
-   * Fires when the front item is thrown, AFTER it has gone to the back.
+   * The new order, front first, after a throw.
    *
-   * The order is this component's own state, so a caller does not have to reorder
-   * anything - this exists so a caller can react to the change, which usually means
-   * following the front item with something outside the pile.
+   * IT HANDS BACK THE WHOLE ORDER RATHER THAN THE THROWN ID, because a caller that needs
+   * to follow the front item would otherwise have to reproduce the reorder rule to work
+   * out what the front now is - and a second copy of that rule is a second thing to get
+   * wrong. It is this component's state; this is the only honest way to read it.
    */
-  onThrow?: (id: string) => void;
+  onOrderChange?: (order: string[]) => void;
   /**
    * SHIPS NO STYLING, like Pagination and Tabs. Every class comes from the caller: this
    * owns the drag, the fan and the order, and has no opinion about what a card looks
@@ -131,7 +132,7 @@ const Slot = ({
   );
 };
 
-export const Stack = ({ items, onThrow, classNames, label }: StackProps) => {
+export const Stack = ({ items, onOrderChange, classNames, label }: StackProps) => {
   const still = useReducedMotion();
 
   /* The order is state because throwing changes it. Seeded from the props once: this is
@@ -139,8 +140,11 @@ export const Stack = ({ items, onThrow, classNames, label }: StackProps) => {
   const [order, setOrder] = useState(() => items.map((item) => item.id));
 
   const sendToBack = (id: string) => {
-    setOrder((current) => [...current.filter((entry) => entry !== id), id]);
-    onThrow?.(id);
+    setOrder((current) => {
+      const next = [...current.filter((entry) => entry !== id), id];
+      onOrderChange?.(next);
+      return next;
+    });
   };
 
   const byId = new Map(items.map((item) => [item.id, item]));
