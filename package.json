@@ -14,6 +14,7 @@
     "token:write": "node scripts/spotify-token.mjs write",
     "token:check": "node scripts/token-scopes.mjs",
     "playlist:id": "node scripts/playlist-id.mjs",
+    "lastfm:check": "node scripts/lastfm-check.mjs",
     "build-icons": "node scripts/build-icons.mjs"
   },
   "dependencies": {
