@@ -37,21 +37,28 @@
   --dc-foil-high: #f2f5f6;
   --dc-foil-low: #9aa5aa;
 
-  /* The ladder, commonest to rarest. The step from rung to rung is saturation and
-     nothing else: the common end is the paper the page is already printed on, and each
-     rung up puts more pigment on the same card.
+  /* The ladder, commonest to rarest.
 
-     EIGHT NOW, NOT FIVE, and the two new ends are where the ladder was flattest. Anthem
-     sits above chart and is barely pigment at all; ghost and lost run past unheard into
-     the deepest of the warm end. */
-  --dc-anthem: #cdc7ba;
-  --dc-chart: #b9b2a4;
-  --dc-rotation: #8fa6a8;
-  --dc-album: #7d8cb5;
-  --dc-deepcut: #9a7bb8;
-  --dc-unheard: #c08a5e;
-  --dc-ghost: #c2643f;
-  --dc-lost: #b8442e;
+     SATURATION IS THE STEP, AND IT USED TO BE THE ONLY STEP. Every rung was a variation
+     on the same warm neutral, which meant the rare end of an eight rung ladder was
+     asking a reader to tell dusty mauve from dusty terracotta. It read as tasteful and
+     it read as nothing: there was no reason to want one card over another.
+
+     So the hue moves too, along the run every game with loot has taught people to read -
+     drab, green, blue, purple, then hot. The two commonest rungs stay muted on purpose,
+     because they are the cards you throw back and they should look it. Everything from
+     rotation up is a real colour.
+
+     The three rarest can also come out SHINY, which is a separate roll and a separate
+     treatment; see .shiny below and SHINY_ODDS. */
+  --dc-anthem: #b3ada1;
+  --dc-chart: #8f9a8c;
+  --dc-rotation: #1f9d55;
+  --dc-album: #1f6fd0;
+  --dc-deepcut: #8034d4;
+  --dc-unheard: #e2760c;
+  --dc-ghost: #e02c20;
+  --dc-lost: #f0b010;
 
   --dc-display: var(--font-quicksand), "Helvetica Neue", Helvetica, sans-serif;
   --dc-mono: var(--font-geist-mono), ui-monospace, "Courier New", monospace;
@@ -1484,4 +1491,181 @@
   width: 100%;
   display: flex;
   justify-content: center;
+}
+
+/* ---------------- shiny ----------------
+
+   A SEPARATE ROLL AND A SEPARATE FINISH. Shiny is not a rung: it is what a card that
+   already has a rung can turn out to be, at odds of a percent or less. Only the three
+   rarest can roll it; see SHINY_ODDS.
+
+   A HOLOGRAM, AND STILL NOT A GLOW. The rule at the top of this file is unchanged and
+   this is the hardest case for it: a holo card in the hand throws light around. Here it
+   is a rainbow sweep INSIDE the shape, plus a diagonal band that travels across it, and
+   nothing is thrown past the edge. The travel is what a real holo does when you tilt it,
+   which is also why it belongs on this page rather than a static gradient. */
+
+.shiny {
+  position: relative;
+  overflow: hidden;
+  /* The rung's own colour still shows through: a shiny ghost has to read as a ghost
+     first. The hologram is laid over it rather than replacing it. */
+  isolation: isolate;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(
+        115deg,
+        rgba(255, 255, 255, 0) 20%,
+        rgba(255, 255, 255, 0.55) 34%,
+        rgba(255, 255, 255, 0) 46%
+      ),
+      conic-gradient(
+        from 210deg,
+        #ff5f6d,
+        #ffc371,
+        #f9f871,
+        #5ee7a0,
+        #4facfe,
+        #b06ab3,
+        #ff5f6d
+      );
+    background-size: 260% 260%, 100% 100%;
+    /* HARD-LIGHT, NOT OVERLAY, and the difference is whether this reads as a hologram at
+       all. Overlay lets the layer underneath dominate, so a rainbow laid over a saturated
+       red card came out as a slightly warmer red card: the rung's colour won every pixel
+       and the whole effect was a tint. Hard-light lets the top layer carry the hue where
+       it is saturated, which is most of a rainbow, while still taking the base into
+       account through the pale bands. */
+    mix-blend-mode: hard-light;
+    opacity: 0.92;
+    animation: dc-holo 4.5s linear infinite;
+    pointer-events: none;
+  }
+
+  /* The rung, kept legible on a face the hologram has taken over. Without it a shiny
+     ghost and a shiny lost are the same rainbow. */
+  box-shadow:
+    0 2px 6px rgba(29, 26, 22, 0.18),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.5);
+
+  /* The band stops travelling; the rainbow stays. Somebody who asked for no motion still
+     gets to see that the card is shiny. */
+  @media (prefers-reduced-motion: reduce) {
+    &::after {
+      animation: none;
+    }
+  }
+}
+
+@keyframes dc-holo {
+  0% {
+    background-position: 160% 0, 0 0;
+  }
+
+  100% {
+    background-position: -60% 0, 0 0;
+  }
+}
+
+/* ---------------- the cards tab ---------------- */
+
+.gallery {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+/* Plain face, shiny twin, then the name and the odds. Three columns so every row lines
+   up down the tab, including the five rungs with no shiny to show. */
+.galleryItem {
+  display: grid;
+  grid-template-columns: 4.5rem 4.5rem 1fr;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--dc-hair);
+}
+
+.galleryItem:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+/* A CARD FACE, NOT A SWATCH. The legend already has swatches; this tab exists to show
+   the object, so it is card-shaped, card-proportioned and carries its own name the way a
+   printed card does. */
+.face {
+  position: relative;
+  aspect-ratio: 5 / 7;
+  border-radius: 0.3rem;
+  border: 1px solid var(--dc-hair);
+  display: flex;
+  align-items: flex-end;
+  padding: 0.4rem;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(29, 26, 22, 0.14);
+
+  &[data-tier="ANTHEM"] { background: var(--dc-anthem); }
+  &[data-tier="CHART"] { background: var(--dc-chart); }
+  &[data-tier="ROTATION"] { background: var(--dc-rotation); }
+  &[data-tier="ALBUM"] { background: var(--dc-album); }
+  &[data-tier="DEEPCUT"] { background: var(--dc-deepcut); }
+  &[data-tier="UNHEARD"] { background: var(--dc-unheard); }
+  &[data-tier="GHOST"] { background: var(--dc-ghost); }
+  &[data-tier="LOST"] { background: var(--dc-lost); }
+}
+
+/* Holds the shiny column on a rung that has no shiny, so the grid does not go ragged. */
+.faceEmpty {
+  aspect-ratio: 5 / 7;
+}
+
+/* The rung's name, printed on the card. White on every rung from rotation up, because
+   those are saturated enough to carry it; the two muted ones take ink instead. */
+.faceLabel {
+  position: relative;
+  /* Above the hologram, which is an ::after on the face and would otherwise cover it. */
+  z-index: 2;
+  font-family: var(--dc-mono);
+  font-size: 0.5rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  line-height: 1.1;
+  color: #fff;
+
+  .face[data-tier="ANTHEM"] &,
+  .face[data-tier="CHART"] &,
+  .face[data-tier="LOST"] & {
+    color: var(--dc-ink);
+  }
+}
+
+.galleryMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.galleryName {
+  font-family: var(--dc-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.galleryOdds {
+  font-family: var(--dc-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  color: var(--dc-ink-soft);
 }

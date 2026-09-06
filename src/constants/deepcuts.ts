@@ -148,3 +148,32 @@ export const HIT_SLOT_ODDS: Partial<Record<DeepcutTier, number>> = {
   [DeepcutTier.Ghost]: 0.06,
   [DeepcutTier.Lost]: 0.01,
 };
+
+/* ---------------- shiny ---------------- */
+
+/**
+ * The chance a card comes out shiny, rolled per rung AFTER the rung is decided.
+ *
+ * A SECOND, INDEPENDENT ROLL, WHICH IS THE WHOLE IDEA. Shiny is not a rung and does not
+ * sit on the ladder: it is a finish on a card that already has one. Pull a ghost and it
+ * is a ghost; the shiny roll then decides whether it is a shiny ghost. That is how a
+ * physical set works, and it is why this is a separate table rather than three more
+ * entries in DEEPCUT_TIER_FLOOR.
+ *
+ * ONLY THE THREE RAREST CAN BE SHINY. A shiny chart hit would be a special finish on the
+ * card you were going to throw back, which spends the effect on the wrong end of the
+ * ladder. Rungs absent from this table never roll.
+ *
+ * The odds fall as the rung gets rarer, so the two rolls compound: a shiny lost is the
+ * rarest thing the app can produce by some distance. At one pack a day it is not a card
+ * anybody should expect to see.
+ *
+ * NOTHING ROLLS THESE YET. The rip is not built. They are here because the cards tab
+ * prints them, and because inventing the number at the point of use is how it ends up
+ * different in the copy and in the code.
+ */
+export const SHINY_ODDS: Partial<Record<DeepcutTier, number>> = {
+  [DeepcutTier.Unheard]: 0.01,
+  [DeepcutTier.Ghost]: 0.005,
+  [DeepcutTier.Lost]: 0.0025,
+};

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { DEEPCUT_LADDER, DEEPCUT_TIER, DEEPCUT_TIER_FLOOR } from "@/constants";
 import { DEEPCUTS_TEASER } from "@/data/lab";
 import { Tabs } from "@/design-system/core/Tabs";
+import { CardGallery } from "./CardGallery";
 import styles from "./deepcuts.module.scss";
 
 /**
@@ -89,6 +90,10 @@ export const RulesTabs = () => {
       <Tabs
         items={[
           { id: DEEPCUTS_TEASER.tab_legend_id, label: DEEPCUTS_TEASER.tab_legend, panel: legend },
+          /* Between the legend and the rules on purpose. The legend says what a rung
+             means, the cards say what one looks like, and the rules are the small print
+             behind both. */
+          { id: DEEPCUTS_TEASER.tab_cards_id, label: DEEPCUTS_TEASER.tab_cards, panel: <CardGallery /> },
           { id: DEEPCUTS_TEASER.tab_rules_id, label: DEEPCUTS_TEASER.tab_rules, panel: rules },
         ]}
         value={tab}

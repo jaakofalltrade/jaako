@@ -392,8 +392,10 @@ export const DEEPCUTS_TEASER = {
   tabs_label: "how deepcuts works",
   /* Ids rather than labels as the tab keys, so rewording a tab is not a state change. */
   tab_legend_id: "legend",
+  tab_cards_id: "cards",
   tab_rules_id: "rules",
   tab_legend: "legend",
+  tab_cards: "the cards",
   tab_rules: "the rules, so far",
   /** Before the play count on the rarest rung, which has no floor of its own. */
   rung_under: "under",
@@ -453,6 +455,23 @@ export const DEEPCUTS_TEASER = {
    * rules, so far", so a heading inside each panel would repeat the tab just clicked.
    */
   ladder_note: "Rarest at the bottom. The fewer plays a song has, the better the card.",
+
+  /* ---------------- the cards tab ---------------- */
+
+  /**
+   * Above the gallery. Says what the tab is for, given the legend next to it already
+   * lists the same eight rungs: that one is thresholds, this one is faces.
+   */
+  cards_note: "Every card in the set, and the three that can come out shiny. Nothing here has been pulled: the rip is not built.",
+  /** Precedes the odds: "shiny 0.50%". */
+  shiny_label: "shiny",
+  /** For a rung that cannot roll shiny at all. */
+  shiny_never: "no shiny",
+  /**
+   * Under the gallery. The one thing about shiny that is not obvious from looking at it:
+   * that it is a second roll rather than a ninth rung.
+   */
+  shiny_note: "Shiny is a separate roll, made after the rung is decided. Pull a ghost and it is a ghost; the shiny roll then decides whether it is a shiny one. Only the three rarest rungs can roll it, so the two chances compound and a shiny lost is the rarest thing the app can produce.",
 
   spec: deepcutsSpec,
 

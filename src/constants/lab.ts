@@ -96,10 +96,16 @@ export const DEEPCUT_LADDER: DeepcutTier[] = [
  * law spanning six or seven decades, and a logarithmic ladder is the only one whose
  * steps are evenly spaced against that.
  *
- * EIGHT DECADES NOW, WHERE THERE WERE FIVE. The old ladder ran from ten thousand to ten
- * million and both ends carried too much: "chart" meant everything above a hit, and
- * "unheard" meant everything below ten thousand, which is four decades in one rung. A
- * song with 900 scrobbles and one with 3 were the same card. They are not any more.
+ * MOVED UP A DECADE, AND MEASUREMENT IS WHY. The first eight-rung ladder ran from a
+ * thousand plays to a hundred million, and against real playlists it bunched at the
+ * common end: one list came back 21 chart and 21 rotation with nothing below album cut,
+ * because a million scrobbles is an ordinary number for a song somebody actually likes.
+ * Every floor above `lost` is ten times what it was, so the rare rungs are reachable by
+ * songs that are genuinely obscure rather than merely not famous.
+ *
+ * ANTHEM IS THE ONE HALF-STEP. It floors at 500 million rather than a billion, because a
+ * billion scrobbles is a handful of songs in history and a rung nothing lands on is not a
+ * rung. Everything below it is a clean decade.
  *
  * `lost` floors at zero rather than at some small number, so every non-negative count
  * lands somewhere. Zero is a real answer - last.fm knows the track and nobody has
@@ -113,12 +119,12 @@ export const DEEPCUT_LADDER: DeepcutTier[] = [
  * Move these; do not add rungs between them.
  */
 export const DEEPCUT_TIER_FLOOR: Record<DeepcutTier, number> = {
-  [DeepcutTier.Anthem]: 100_000_000,
-  [DeepcutTier.Chart]: 10_000_000,
-  [DeepcutTier.Rotation]: 1_000_000,
-  [DeepcutTier.Album]: 100_000,
-  [DeepcutTier.Deepcut]: 10_000,
-  [DeepcutTier.Unheard]: 1_000,
-  [DeepcutTier.Ghost]: 100,
+  [DeepcutTier.Anthem]: 500_000_000,
+  [DeepcutTier.Chart]: 100_000_000,
+  [DeepcutTier.Rotation]: 10_000_000,
+  [DeepcutTier.Album]: 1_000_000,
+  [DeepcutTier.Deepcut]: 100_000,
+  [DeepcutTier.Unheard]: 10_000,
+  [DeepcutTier.Ghost]: 1_000,
   [DeepcutTier.Lost]: 0,
 };

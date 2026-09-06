@@ -14,31 +14,33 @@ const tier = (plays: number | null) => rarityOf({ plays });
 
 describe("rarityOf", () => {
   it("puts a song everybody has heard on the commonest rung", () => {
-    expect(tier(480_000_000)).toBe(DeepcutTier.Anthem);
+    expect(tier(900_000_000)).toBe(DeepcutTier.Anthem);
   });
 
   it("puts a song almost nobody has played on the rarest", () => {
-    expect(tier(4)).toBe(DeepcutTier.Lost);
+    expect(tier(40)).toBe(DeepcutTier.Lost);
   });
 
   /* One rung per order of magnitude, checked on each boundary and just under it. These
      are the numbers a tuning pass will change, so this block is what tells you the
      shape still holds after you have changed them. */
+  /* Anthem is the one half-step, at 500m rather than a billion: a billion scrobbles is a
+     handful of songs in history and a rung nothing lands on is not a rung. */
   it("lands each decade on its own rung", () => {
-    expect(tier(100_000_000)).toBe(DeepcutTier.Anthem);
-    expect(tier(99_999_999)).toBe(DeepcutTier.Chart);
-    expect(tier(10_000_000)).toBe(DeepcutTier.Chart);
-    expect(tier(9_999_999)).toBe(DeepcutTier.Rotation);
-    expect(tier(1_000_000)).toBe(DeepcutTier.Rotation);
-    expect(tier(999_999)).toBe(DeepcutTier.Album);
-    expect(tier(100_000)).toBe(DeepcutTier.Album);
-    expect(tier(99_999)).toBe(DeepcutTier.Deepcut);
-    expect(tier(10_000)).toBe(DeepcutTier.Deepcut);
-    expect(tier(9_999)).toBe(DeepcutTier.Unheard);
-    expect(tier(1_000)).toBe(DeepcutTier.Unheard);
-    expect(tier(999)).toBe(DeepcutTier.Ghost);
-    expect(tier(100)).toBe(DeepcutTier.Ghost);
-    expect(tier(99)).toBe(DeepcutTier.Lost);
+    expect(tier(500_000_000)).toBe(DeepcutTier.Anthem);
+    expect(tier(499_999_999)).toBe(DeepcutTier.Chart);
+    expect(tier(100_000_000)).toBe(DeepcutTier.Chart);
+    expect(tier(99_999_999)).toBe(DeepcutTier.Rotation);
+    expect(tier(10_000_000)).toBe(DeepcutTier.Rotation);
+    expect(tier(9_999_999)).toBe(DeepcutTier.Album);
+    expect(tier(1_000_000)).toBe(DeepcutTier.Album);
+    expect(tier(999_999)).toBe(DeepcutTier.Deepcut);
+    expect(tier(100_000)).toBe(DeepcutTier.Deepcut);
+    expect(tier(99_999)).toBe(DeepcutTier.Unheard);
+    expect(tier(10_000)).toBe(DeepcutTier.Unheard);
+    expect(tier(9_999)).toBe(DeepcutTier.Ghost);
+    expect(tier(1_000)).toBe(DeepcutTier.Ghost);
+    expect(tier(999)).toBe(DeepcutTier.Lost);
   });
 
   /* Zero is a real answer, not a missing one: Last.fm knows the track and nobody has
@@ -81,7 +83,7 @@ describe("rarityOf", () => {
        must therefore never lower the rank. */
     let previous = -1;
 
-    for (const plays of [0, 1, 99, 100, 500, 999, 1_000, 9_999, 10_000, 50_000, 100_000, 750_000, 1_000_000, 5_000_000, 10_000_000, 90_000_000, 100_000_000, 400_000_000]) {
+    for (const plays of [0, 1, 999, 1_000, 9_999, 10_000, 99_999, 100_000, 999_999, 1_000_000, 9_999_999, 10_000_000, 99_999_999, 100_000_000, 499_999_999, 500_000_000, 900_000_000]) {
       const rung = tier(plays);
       const rank = ladderIndex.indexOf(rung!);
 
