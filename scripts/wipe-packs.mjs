@@ -32,6 +32,12 @@ import { loadEnvLocal } from "./loadEnv.mjs";
  * the one for a branch differ by an endpoint id in the middle of a line of noise, and the
  * time to notice is before the truncate, not after.
  *
+ * WHICH IS THE OPPOSITE WAY ROUND FROM cards:backfill, and deliberately. That script
+ * writes unless it is passed --dry, because it only ever fills nulls and the worst a
+ * second run can do is nothing. This one cannot be run twice by accident: what it takes
+ * away does not come back, so the flag is on the side that destroys rather than the side
+ * that reports.
+ *
  * PER BRANCH, exactly like migrate.mjs, and the same escape hatch. An exported value wins
  * over .env.local:
  *
@@ -48,15 +54,16 @@ const TABLES = ["pack_card", "pack_rip"];
 /**
  * Which database this is about to touch, with the password left out of it.
  *
- * Returns the raw string only if it will not parse, which means it is malformed and the
- * driver is about to say so anyway.
+ * A string that will not parse says so rather than being echoed. It is the password that
+ * is being left out, and a malformed value is exactly the case where printing it whole
+ * would put one on the terminal, and from there into the paste of a command that broke.
  */
 const describe = (connectionString) => {
   try {
     const url = new URL(connectionString);
     return `${url.hostname}${url.pathname}`;
   } catch {
-    return connectionString;
+    return "unreadable, because DATABASE_URL is not a URL";
   }
 };
 
@@ -74,12 +81,15 @@ const run = async () => {
 
   const confirmed = process.argv.slice(2).includes("--yes");
 
+  /* Printed before the connection is opened rather than after it. The whole risk here is
+     running this against the wrong database, so which one it is about to reach should
+     survive a connection that never comes up. */
+  console.log(`database: ${describe(url)}`);
+
   const pool = new Pool({ connectionString: url });
   const client = await pool.connect();
 
   try {
-    console.log(`database: ${describe(url)}`);
-
     /* A Neon branch that has never been migrated has no pack tables, and truncating a
        table that does not exist is an error rather than a no-op. to_regclass answers
        null instead of throwing, which is the one way to ask Postgres this question
