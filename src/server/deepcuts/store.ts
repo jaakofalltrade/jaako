@@ -226,7 +226,10 @@ const cardsFor = async (args: { visitor_id: string }): Promise<CollectedCard[]> 
       isTier(row.tier)
         ? [
             {
-              id: String(row.id),
+              /* Not String(row.id) any more. That wrapper was here because the column
+                 was a bigserial and int8 arrives as text, so the cast was a no-op that
+                 looked like a conversion. It is a uuid now and unambiguously a string. */
+              id: row.id,
               uri: row.track_uri,
               title: row.title,
               artist: row.artist,

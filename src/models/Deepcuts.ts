@@ -322,7 +322,14 @@ export type RipResponse = {
  * card in a binder does not get rarer because the world listened to the song again.
  */
 export type CollectedCard = {
-  /** Neon's own row id, as text. Two identical cards from two rips are two entries. */
+  /**
+   * Neon's own row id: a uuid, as text. See 004_uuid_ids.sql.
+   *
+   * Two identical cards from two rips are two entries, which is what makes this the key
+   * the collection is drawn with rather than the track uri. It is also why the column is
+   * not a counter: it is handed to the browser for every card somebody owns, and a
+   * sequential id there would publish how many cards the deployment has ever dealt.
+   */
   id: string;
   /** `spotify:track:<22 chars>`, or empty for a local file. */
   uri: string;

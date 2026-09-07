@@ -13,6 +13,10 @@
 -- constraint here would also refuse a track that was removed and later suggested
 -- again by somebody else, which is a perfectly reasonable thing to happen.
 create table if not exists suggestion (
+  -- NOW A uuid. 004_uuid_ids.sql replaces this column; the bigserial below is what was
+  -- originally applied and is left as written, because migrate.mjs keys its ledger on the
+  -- filename and editing an applied migration would change only what a fresh database
+  -- gets. Read the two in order.
   id          bigserial     primary key,
   track_uri   text          not null,
   name        text          not null,

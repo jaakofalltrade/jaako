@@ -18,6 +18,9 @@
 -- The grain is the RIP, not the card, because "most opened" counts packs. Five cards
 -- hang off each of these in the table below.
 create table if not exists pack_rip (
+  -- NOW A uuid, along with pack_card.id and pack_card.rip_id below. 004_uuid_ids.sql
+  -- replaces all three; what is written here is what was originally applied, and it is
+  -- left alone because migrate.mjs keys its ledger on the filename. Read them in order.
   id           bigserial     primary key,
   -- Spotify's playlist id. Text rather than uuid: base62, 22 characters, not ours.
   playlist_id  text          not null,
@@ -36,6 +39,7 @@ create index if not exists pack_rip_playlist_id_idx on pack_rip (playlist_id);
 -- thing that happened, and what was printed on it does not change afterwards when
 -- Spotify's metadata does. The playlist is a live thing being pointed at; a card is not.
 create table if not exists pack_card (
+  -- Both now uuid. See the note on pack_rip.id above and 004_uuid_ids.sql.
   id          bigserial     primary key,
   rip_id      bigint        not null references pack_rip (id) on delete cascade,
   track_uri   text          not null,
