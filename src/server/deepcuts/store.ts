@@ -2,6 +2,7 @@ import "server-only";
 import { COLLECTION_LIMIT } from "@/constants";
 import { DeepcutTier, DEEPCUT_LADDER } from "@/models";
 import type { CollectedCard, DeepcutsStats, MostOpenedPack, RarestCard } from "@/models";
+import { getIsoDateTimeUtc } from "@/oras";
 import { isEnumValue } from "@/utils/enum";
 import { hasDatabase, sql } from "@/server/db";
 
@@ -69,7 +70,7 @@ const stats = async (): Promise<DeepcutsStats> => {
         select card.title, card.artist, card.tier
         from pack_card as card
         join pack_rip as rip on rip.id = card.rip_id
-        order by card.tier_rank desc, rip.ripped_at desc
+        order by card.tier_rank desc, rip.ripped_at_iso_datetime_utc desc
         limit 1
       `,
 
@@ -135,9 +136,14 @@ const recordRip = async (args: {
 }): Promise<void> => {
   const { playlist_id, visitor_id, cards } = args;
 
+  /* THE MOMENT IS OURS TO STATE, WHICH IT WAS NOT BEFORE. The column defaulted to now()
+     until 005, so Postgres decided what time a pack was opened. One clock, named in one
+     place, is the same rule that moved the daily add cap off current_date - and the
+     column is named for the format oras produces, so there is nothing to convert on the
+     way back out. */
   const [rip] = await sql<{ id: string }>`
-    insert into pack_rip (playlist_id, visitor_id)
-    values (${playlist_id}, ${visitor_id})
+    insert into pack_rip (playlist_id, visitor_id, ripped_at_iso_datetime_utc)
+    values (${playlist_id}, ${visitor_id}, ${getIsoDateTimeUtc.now()})
     returning id
   `;
 
@@ -197,19 +203,22 @@ const cardsFor = async (args: { visitor_id: string }): Promise<CollectedCard[]> 
       tier: string;
       shiny: boolean;
       play_count: number | null;
-      /* A Date, not a string, and the driver is what decides that: @neondatabase's
-         serverless client parses timestamptz into a Date before this sees it. Declaring
-         it as a string typechecks and lies, which is the kind of lie that survives until
-         somebody calls a string method on it. */
-      ripped_at: Date;
+      /* A STRING NOW, AND THE COMMENT THAT USED TO BE HERE IS WHY. It said: a Date, not
+         a string, because the driver parses timestamptz into a Date before this sees it,
+         and declaring it a string typechecks and lies. That was true and it was the
+         symptom. 005 renamed the column for the format it is supposed to hold and made it
+         text, so the driver hands back the ISO UTC string that src/oras says is the only
+         thing ever stored or transported, and there is no conversion left to get wrong. */
+      ripped_at_iso_datetime_utc: string;
     }>`
       select
         card.id, card.track_uri, card.title, card.artist, card.album_art,
-        card.track_url, card.tier, card.shiny, card.play_count, rip.ripped_at
+        card.track_url, card.tier, card.shiny, card.play_count,
+        rip.ripped_at_iso_datetime_utc
       from pack_card as card
       join pack_rip as rip on rip.id = card.rip_id
       where rip.visitor_id = ${args.visitor_id}
-      order by card.tier_rank desc, rip.ripped_at desc, card.id desc
+      order by card.tier_rank desc, rip.ripped_at_iso_datetime_utc desc, card.id desc
       limit ${COLLECTION_LIMIT}
     `;
 
@@ -240,7 +249,9 @@ const cardsFor = async (args: { visitor_id: string }): Promise<CollectedCard[]> 
               tier: row.tier,
               shiny: row.shiny,
               plays: row.play_count,
-              pulled_at: row.ripped_at.toISOString(),
+              /* Straight through. It was `.toISOString()` on a Date until 005; the
+                 column holds exactly this string now. */
+              pulled_at: row.ripped_at_iso_datetime_utc,
             },
           ]
         : []
