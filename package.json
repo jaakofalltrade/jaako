@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:migrate": "node scripts/migrate.mjs",
+    "db:wipe-packs": "node scripts/wipe-packs.mjs",
     "token:read": "node scripts/spotify-token.mjs read",
     "token:write": "node scripts/spotify-token.mjs write",
     "token:check": "node scripts/token-scopes.mjs",
