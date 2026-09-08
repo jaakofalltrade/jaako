@@ -153,7 +153,7 @@ track URI.
 | --- | --- | --- |
 | `suggestion` | One row per add: track URI, visitor id, timestamp, and a snapshot of the track | Annotation only. A row here can describe a track and can never conjure one. |
 | `visitor` | One row per visitor: display name, and the current day's add count | The identity and the daily cap on one row. `suggestion.visitor_id` is a foreign key to it. |
-| `pack_rip`, `pack_card` | An opened deepcuts pack and the five cards out of it | See `002_deepcuts.sql`. |
+| `pack_rip`, `pack_card` | An opened deepcuts pack and the five cards out of it | One row per visitor per playlist per Manila day, with `opens` counting the re-openings. See `002_deepcuts.sql` and `006_one_pack_a_day.sql`. |
 | `schema_migration` | Which migration files have run | Created by the migrate script, not by a migration. |
 
 Removing a track in the Spotify app removes it from the queue with no code involved,
@@ -172,6 +172,15 @@ day to one row per visitor, the display name moved off every suggestion and onto
 `day` plus `adds` stayed as the current allowance bucket. The cap is still one statement
 conflicting on a primary key, so it is still race-proof; the statement now resets the
 count when the day has rolled over instead of relying on a new row missing the old key.
+
+**A pack is one row, and `opens` is how many times it was torn open.** The deepcuts draw
+is seeded on the visitor, the playlist and the Manila day, so re-opening a pack always
+dealt the same five cards. The write had no matching guarantee until `006`: a second click
+wrote a second rip and five more identical cards, and the collection showed each of them
+twice. There is now a unique key on `(visitor_id, playlist_id, day)`, and the card writes
+are keyed on `(rip_id, slot)` so a re-open is a no-op and a pack whose cards failed halfway
+repairs itself the next time it is opened. `most opened` and `total rips` read `sum(opens)`,
+so both figures still count openings exactly as they did before.
 
 **Two columns are named for their format.** `suggestion.added_at_iso_datetime_utc` and
 `pack_rip.ripped_at_iso_datetime_utc` are `text` holding an ISO 8601 instant in UTC, which
