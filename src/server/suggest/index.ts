@@ -1,7 +1,14 @@
 import "server-only";
 import { spotifyService } from "@/server/spotify";
 import { blocklist } from "./blocklist";
-import { hasStore, namesByUri, record, releaseAdd, reserveAdd } from "./store";
+import {
+  hasStore,
+  namesByUri,
+  record,
+  releaseAdd,
+  reserveAdd,
+  suggestionsFor,
+} from "./store";
 import { searchCache, searchKey, searchThrottle } from "./searchCache";
 import { validate } from "./validate";
 
@@ -42,6 +49,7 @@ export const suggestService = {
   releaseAdd,
   record,
   namesByUri,
+  suggestionsFor,
   searchCache,
   searchThrottle,
   searchKey,

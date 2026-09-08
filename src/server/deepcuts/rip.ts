@@ -22,7 +22,8 @@ import { packContents } from "./packContents";
  *
  * WHAT IS STILL NOT ENFORCED, said plainly: a visitor can rip a DIFFERENT playlist the
  * same day and get a fresh pack. The seed makes each pack stable; it does not count them.
- * A real cap wants a row per visitor per day, which is what visitor_day does for the
+ * A real cap wants a counted allowance, which is what `visitor.day` and `visitor.adds` do
+ * for the
  * suggestion box, and it is not written yet.
  *
  * UNSCOREABLE TRACKS ARE NOT IN THE POOL. A song last.fm could not match has no rung, and

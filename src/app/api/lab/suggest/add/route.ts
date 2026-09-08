@@ -116,9 +116,21 @@ export const POST = async (request: Request) => {
 
   // Reserve before writing. See the note at the top for why this order and not the
   // other one.
+  /*
+   * THE NAME IS WRITTEN HERE, NOT WITH THE SUGGESTION, as of 005. It describes the
+   * person rather than the add, and the person is a row now: `visitor`, which this
+   * upsert is the one statement that guarantees exists. That ordering is load-bearing,
+   * because `suggestion.visitor_id` is a foreign key to it - reserving before writing
+   * was already the rule for the allowance, and it is now also what makes the write
+   * possible at all.
+   */
   let allowed: boolean;
   try {
-    allowed = await suggestService.reserveAdd({ visitor_id: visitor.id, cap: DAILY_ADD_CAP });
+    allowed = await suggestService.reserveAdd({
+      visitor_id: visitor.id,
+      name,
+      cap: DAILY_ADD_CAP,
+    });
   } catch (error) {
     console.error("[suggest] reserve failed:", error);
     return fail({ failure: SuggestFailure.NotConfigured, status: HttpStatus.ServiceUnavailable });
@@ -140,19 +152,36 @@ export const POST = async (request: Request) => {
   }
 
   /*
-   * The track is on the playlist now, so losing the name is a blemish rather than a
-   * failure and is logged instead of surfaced. The row would render without an
-   * attribution, which is a far better outcome than an error on an add that worked.
+   * The track is on the playlist now, so losing this row is a blemish rather than a
+   * failure and is logged instead of surfaced. The queue would render the track without
+   * an attribution, which is a far better outcome than an error on an add that worked.
+   *
+   * THE SNAPSHOT COMES FROM THE TRACK WE ALREADY READ, not from the request body. Every
+   * field was fetched from Spotify a few lines above, for the duration check - the same
+   * reason that check does not trust the sender's number. A snapshot assembled from the
+   * body would be whatever the caller typed, recorded as history.
    */
   await suggestService
-    .record({ track_uri, name, visitor_id: visitor.id })
+    .record({
+      track_uri,
+      visitor_id: visitor.id,
+      track: {
+        track_name: track.title,
+        artist: track.artist,
+        album: track.album,
+        album_art: track.album_art,
+        track_url: track.url,
+        duration_ms: track.duration_ms,
+      },
+    })
     .catch((error) => console.error("[suggest] record failed:", error));
 
   /*
    * The server's own version of the row, so the page can replace its optimistic one
-   * rather than refetching the whole list. added_at is now: Spotify stamps the same
+   * rather than refetching the whole list. The timestamp is now: Spotify stamps the same
    * moment, and reading it back would cost another request to learn what we already
-   * know.
+   * know. It is the same instant `record` just wrote, in the same format, which is the
+   * point of having one clock.
    */
   const entry: QueueEntry = {
     ...track,
