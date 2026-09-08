@@ -169,9 +169,20 @@ export type SuggestValidation =
 
 /* ---------------- what the database holds ---------------- */
 
-/** One row of `suggestion`, named for its columns. */
+/**
+ * One row of `suggestion`, named for its columns.
+ *
+ * `id` IS A STRING AND WAS ALWAYS GOING TO BE. It is a uuid now - see 004_uuid_ids.sql -
+ * but it read back as a string long before that: the column was `bigserial`, and the
+ * driver hands int8 back as text because a bigint does not fit a JavaScript number.
+ * Declaring it `number` typechecked and lied, the same way declaring `ripped_at` a string
+ * would in the deepcuts store. Nothing in the app selects this column, which is why the
+ * lie survived; it is fixed rather than deleted because the type is the description of
+ * the table.
+ */
 export type SuggestionRow = {
-  id: number;
+  /** A uuid, defaulted by Postgres. See 004_uuid_ids.sql. */
+  id: string;
   track_uri: string;
   name: string;
   visitor_id: string;
