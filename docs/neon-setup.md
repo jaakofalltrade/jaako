@@ -143,6 +143,29 @@ There is no rollback and no generated diff, deliberately. That is what a migrati
 framework adds on top of this, and it is not worth a dependency for a schema this
 size.
 
+## Checking a migration before you run it
+
+    pnpm db:verify
+
+Applies every migration to a real Postgres and checks that it did what it says, then
+tells you it is safe to migrate. It touches no database of yours: `@electric-sql/pglite`
+is Postgres compiled to WebAssembly, so it runs in the same process with nothing to
+install and nothing to connect to.
+
+It is worth running because `pnpm db:migrate` is a one-way door pointed at rows that
+matter, and nothing else guards it. `tsc` cannot see inside a tagged template, so a
+column renamed in a migration and missed in one store typechecks perfectly and fails in
+production. The suite covers that case directly: every query is **lifted out of the store
+source** and executed, rather than copied here where the copy could drift.
+
+Six suites, each on its own fresh database: a never-migrated database, each of `004`,
+`005` and `006` applied over rows written under the schema before it, the app's own
+queries, and a deliberately broken migration that has to leave the schema untouched.
+
+Add checks for a new migration in `scripts/db-verify.mjs`, in a suite of its own that
+seeds the shape it migrates from. A migration that only works on an empty database is
+the one worth catching.
+
 ## What is in there
 
 None of these tables decides what is on the playlist. The playlist itself is the source

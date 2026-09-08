@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:migrate": "node scripts/migrate.mjs",
+    "db:verify": "node scripts/db-verify.mjs",
     "token:read": "node scripts/spotify-token.mjs read",
     "token:write": "node scripts/spotify-token.mjs write",
     "token:check": "node scripts/token-scopes.mjs",
@@ -31,6 +32,7 @@
     "server-only": "^0.0.1"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "@eslint/eslintrc": "^3.3.6",
     "@types/luxon": "^3.7.5",
     "@types/node": "^26.2.0",
