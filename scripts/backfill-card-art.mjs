@@ -1,5 +1,5 @@
-import { neon } from "@neondatabase/serverless";
 import { loadEnvLocal } from "./loadEnv.mjs";
+import { openDatabase, resolveDatabase } from "./dbClient.mjs";
 import { spotifyAccessToken } from "./spotifyShelf.mjs";
 
 /**
@@ -99,27 +99,30 @@ const chunk = (values, size) => {
 const main = async () => {
   const dry = process.argv.includes("--dry");
 
-  const databaseUrl = process.env.DATABASE_URL;
-  if (!databaseUrl) bail("DATABASE_URL is not set. See .env.local.");
+  /* No DATABASE_URL is the local database rather than an error now, so this reaches
+     whichever one the app would. Printed for the same reason wipe-packs prints it. */
+  const destination = resolveDatabase();
+  console.log(`database: ${destination.description}`);
 
-  const sql = neon(databaseUrl);
+  const database = await openDatabase(destination);
 
   /* DISTINCT, because one song pulled by five people is five rows and one lookup. On the
      development database that is 80 rows and 47 tracks. Rows whose uri is empty are a
      local file Spotify has no id for; there is nothing to ask about, so they are left
      alone rather than counted as failures. */
-  const pending = await sql`
+  const { rows: pending } = await database.query(`
     select distinct track_uri
     from pack_card
     where album_art is null and track_uri <> ''
-  `;
+  `);
 
-  const rows = await sql`
-    select count(*)::int as n from pack_card where album_art is null and track_uri <> ''
-  `;
+  const { rows } = await database.query(
+    "select count(*)::int as n from pack_card where album_art is null and track_uri <> ''"
+  );
 
   if (pending.length === 0) {
     console.log("\nNothing to backfill: every card with a uri already has its artwork.\n");
+    await database.close();
     return;
   }
 
@@ -203,13 +206,14 @@ const main = async () => {
        filled by an earlier pass, or by a rip that happened while this was running, is not
        overwritten. track_url is set in the same statement because the two columns arrived
        in the same migration and are empty in exactly the same rows. */
-    const updated = await sql`
-      update pack_card
-      set album_art = ${face.art}, track_url = ${face.url ?? ""}
-      where track_uri = ${track_uri} and album_art is null
-    `;
+    await database.query(
+      `update pack_card
+       set album_art = $1, track_url = $2
+       where track_uri = $3 and album_art is null`,
+      [face.art, face.url ?? "", track_uri]
+    );
 
-    filled += Array.isArray(updated) ? 1 : 1;
+    filled += 1;
   }
 
   console.log(dry ? "  DRY RUN, nothing written.\n" : "");
@@ -219,11 +223,13 @@ const main = async () => {
   console.log("");
 
   if (!dry) {
-    const left = await sql`
-      select count(*)::int as n from pack_card where album_art is null and track_uri <> ''
-    `;
+    const { rows: left } = await database.query(
+      "select count(*)::int as n from pack_card where album_art is null and track_uri <> ''"
+    );
     console.log(`  ${left[0].n} card${left[0].n === 1 ? "" : "s"} still without artwork.\n`);
   }
+
+  await database.close();
 };
 
 await main();

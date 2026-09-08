@@ -46,6 +46,19 @@ const SECURITY_HEADERS = [
 ];
 
 const nextConfig: NextConfig = {
+  /**
+   * PGlite is the local database, and it must not be bundled.
+   *
+   * It ships a WebAssembly Postgres plus the filesystem code to open a data directory,
+   * which Turbopack cannot inline into a server bundle. Listing it here makes the import
+   * in src/server/db/index.ts a native require at runtime instead, which is what that
+   * dynamic import wants and the only way it resolves.
+   *
+   * It stays a devDependency. Production sets DATABASE_URL and takes the neon() path, so
+   * the import is never reached there; NODE_ENV guards that in the module itself.
+   */
+  serverExternalPackages: ["@electric-sql/pglite"],
+
   headers: async () => [
     {
       source: "/:path*",

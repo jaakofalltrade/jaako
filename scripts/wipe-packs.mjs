@@ -1,5 +1,4 @@
-import { Pool } from "@neondatabase/serverless";
-import { loadEnvLocal } from "./loadEnv.mjs";
+import { openDatabase, resolveDatabase } from "./dbClient.mjs";
 
 /**
  * Empties the pack tables, so /lab/deepcuts starts from nothing again.
@@ -28,9 +27,10 @@ import { loadEnvLocal } from "./loadEnv.mjs";
  *
  * DRY BY DEFAULT. With no flag it connects, counts, prints which database it counted and
  * exits without writing, because the whole risk here is running it against the wrong one.
- * The Neon host is printed on both paths for that reason: the pooled string for main and
- * the one for a branch differ by an endpoint id in the middle of a line of noise, and the
- * time to notice is before the truncate, not after.
+ * The destination is printed on both paths for that reason, and it is the line worth
+ * reading before the flag goes on: two Neon branches of one project differ by an endpoint
+ * id in the middle of a line of noise, and the time to notice is before the truncate, not
+ * after.
  *
  * WHICH IS THE OPPOSITE WAY ROUND FROM cards:backfill, and deliberately. That script
  * writes unless it is passed --dry, because it only ever fills nulls and the worst a
@@ -38,56 +38,32 @@ import { loadEnvLocal } from "./loadEnv.mjs";
  * away does not come back, so the flag is on the side that destroys rather than the side
  * that reports.
  *
- * PER BRANCH, exactly like migrate.mjs, and the same escape hatch. An exported value wins
- * over .env.local:
+ * PER DATABASE, exactly like migrate.mjs, and it picks between them by the same one rule:
+ * no DATABASE_URL means the local Postgres in .pgdata/, and a DATABASE_URL means a Neon
+ * branch. On a laptop this is now a wipe of rows that were never anywhere else, which is
+ * what it was written for; reaching a deployment with it takes a connection string that
+ * had to be typed:
  *
  *     DATABASE_URL='<branch pooled string>' pnpm db:wipe-packs --yes
  *
- * POOL RATHER THAN THE HTTP DRIVER, for the second of the two reasons migrate.mjs gives:
- * this wants a real transaction. The count and the truncate go in one, so the number it
- * reports as deleted is the number that was there when it deleted them.
+ * A REAL TRANSACTION, for the second of the two reasons dbClient.mjs gives for not using
+ * the HTTP driver here. The count and the truncate go in one, so the number it reports as
+ * deleted is the number that was there when it deleted them.
  */
 
 /** Emptied together, and named child-first the way the truncate wants them read. */
 const TABLES = ["pack_card", "pack_rip"];
 
-/**
- * Which database this is about to touch, with the password left out of it.
- *
- * A string that will not parse says so rather than being echoed. It is the password that
- * is being left out, and a malformed value is exactly the case where printing it whole
- * would put one on the terminal, and from there into the paste of a command that broke.
- */
-const describe = (connectionString) => {
-  try {
-    const url = new URL(connectionString);
-    return `${url.hostname}${url.pathname}`;
-  } catch {
-    return "unreadable, because DATABASE_URL is not a URL";
-  }
-};
-
 const run = async () => {
-  loadEnvLocal();
-
-  const url = process.env.DATABASE_URL;
-  if (!url) {
-    console.error(
-      "DATABASE_URL is not set. Put it in .env.local, or export it before running this.\n" +
-        "See docs/neon-setup.md."
-    );
-    process.exit(1);
-  }
-
+  const destination = resolveDatabase();
   const confirmed = process.argv.slice(2).includes("--yes");
 
   /* Printed before the connection is opened rather than after it. The whole risk here is
      running this against the wrong database, so which one it is about to reach should
      survive a connection that never comes up. */
-  console.log(`database: ${describe(url)}`);
+  console.log(`database: ${destination.description}`);
 
-  const pool = new Pool({ connectionString: url });
-  const client = await pool.connect();
+  const client = await openDatabase(destination);
 
   try {
     /* A Neon branch that has never been migrated has no pack tables, and truncating a
@@ -150,9 +126,7 @@ const run = async () => {
       throw error;
     }
   } finally {
-    client.release();
-    // Without this the WebSocket keeps the process alive and the script never exits.
-    await pool.end();
+    await client.close();
   }
 };
 
