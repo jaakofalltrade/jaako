@@ -170,21 +170,75 @@ export type SuggestValidation =
 /* ---------------- what the database holds ---------------- */
 
 /**
+ * What a track was, at the moment somebody suggested it.
+ *
+ * ITS OWN TYPE BECAUSE IT CROSSES A BOUNDARY TWICE: the add route builds one from the
+ * SearchResult it already read out of Spotify, and the store writes it. Naming the group
+ * is what stops `record` growing six loose parameters that a caller can transpose.
+ *
+ * EVERY FIELD NULLABLE, and that is not defensive typing. Spotify itself reports the
+ * album and the artwork as optional, and rows written before 005 have none of these at
+ * all - the columns did not exist, so nothing recorded what those tracks were called.
+ */
+export type TrackSnapshot = {
+  /**
+   * `track_name` RATHER THAN `title`, WHICH pack_card USES for the same kind of string.
+   *
+   * They are not the same field doing the same job: a card's `title` is what was PRINTED
+   * on it, and this is what the track was CALLED when it was suggested. The names differ
+   * so that a reader comparing the two tables does not assume one is a copy of the other.
+   */
+  track_name: string | null;
+  artist: string | null;
+  album: string | null;
+  /** On Spotify's CDN, host-checked before it is stored. */
+  album_art: string | null;
+  track_url: string | null;
+  duration_ms: number | null;
+};
+
+/**
  * One row of `suggestion`, named for its columns.
  *
  * `id` IS A STRING AND WAS ALWAYS GOING TO BE. It is a uuid now - see 004_uuid_ids.sql -
  * but it read back as a string long before that: the column was `bigserial`, and the
  * driver hands int8 back as text because a bigint does not fit a JavaScript number.
- * Declaring it `number` typechecked and lied, the same way declaring `ripped_at` a string
- * would in the deepcuts store. Nothing in the app selects this column, which is why the
- * lie survived; it is fixed rather than deleted because the type is the description of
- * the table.
+ * Declaring it `number` typechecked and lied.
+ *
+ * THE NAME IS NOT HERE ANY MORE. It described the person rather than the suggestion, so
+ * 005 moved it onto `visitor` and made `visitor_id` a real foreign key. One visitor with
+ * nine suggestions used to be nine copies of the same string, and renaming yourself
+ * updated none of them.
+ *
+ * THE SNAPSHOT IS HISTORY, NOT THE SOURCE OF TRUTH, AND THE DIFFERENCE IS THE WHOLE
+ * ARGUMENT OF 005. 001 established that the playlist is what is real: the queue is built
+ * by reading it from Spotify and joining these rows on, so removing a track over there
+ * removes it from the page with no code involved and the orphaned row is invisible rather
+ * than wrong. That is still exactly how the queue renders.
+ *
+ * What these columns answer is the question the old shape could not: what did somebody
+ * suggest, and what was it called, after it left the playlist. Use them for that. Render
+ * the QUEUE from them and the property above inverts - a removed track keeps appearing,
+ * and the page starts lying.
  */
-export type SuggestionRow = {
+export type SuggestionRow = TrackSnapshot & {
   /** A uuid, defaulted by Postgres. See 004_uuid_ids.sql. */
   id: string;
   track_uri: string;
-  name: string;
+  /** A real foreign key to `visitor` as of 005, cascading on delete. */
   visitor_id: string;
-  added_at: string;
+  /**
+   * An ISO 8601 instant in UTC: "2026-09-07T14:07:05.000Z".
+   *
+   * THE COLUMN IS NAMED FOR ITS FORMAT AND IS TEXT, WHICH IS THE POINT. src/oras states
+   * the rule the whole codebase follows - a datetime is stored and transported as an ISO
+   * string in UTC, and converted to a zone only when it is rendered - and a `timestamptz`
+   * called `added_at` was two steps from that: the driver handed back a JS Date and every
+   * read had to convert it to get back to the wire format.
+   *
+   * It sorts correctly as text, because getIsoDateTimeUtc is the only writer and always
+   * emits the same fixed-width UTC shape. 005 has the argument and the check constraint
+   * that enforces it.
+   */
+  added_at_iso_datetime_utc: string;
 };

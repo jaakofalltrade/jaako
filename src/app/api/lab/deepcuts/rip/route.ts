@@ -19,11 +19,13 @@ export const dynamic = "force-dynamic";
  * did all that would be fetched by every prefetcher, link previewer and crawler that
  * ever saw the URL.
  *
- * IT IS STILL IDEMPOTENT FOR A DAY, which is the interesting part. The draw is seeded on
- * the visitor, the playlist and the date, so posting twice deals the same five cards.
- * What is not idempotent is the tally: each post writes a row. That is deliberate - a
- * second post is a second time somebody opened the pack, and "most opened" is counting
- * openings rather than distinct packs.
+ * IT IS IDEMPOTENT FOR A DAY, WRITES INCLUDED AS OF 006. The draw is seeded on the
+ * visitor, the playlist and the date, so posting twice deals the same five cards; the
+ * pack is now also one row and one set of five cards however many times it is posted.
+ * What still counts every post is the tally, and that is deliberate for the reason it
+ * always was - a second post is a second time somebody opened the pack, and "most opened"
+ * is counting openings rather than distinct packs. It is a column on the row now instead
+ * of a second row. See recordRip.
  *
  * THE PLAYLIST ID IS CHECKED AGAINST THE SHELF, exactly as the pack route does. Without
  * it this is an open proxy for reading any playlist on Spotify through jaako's token,

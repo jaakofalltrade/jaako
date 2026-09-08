@@ -20,10 +20,18 @@ import { packContents } from "./packContents";
  * same day gets the same five cards however many times they reload. Without that the cap
  * is unenforceable in the way that matters: refresh until the pull is good.
  *
+ * AND THE WRITE NOW AGREES WITH THE DRAW, WHICH IT DID NOT USED TO. The seed had always
+ * made a re-opened pack deal the same five cards; recordRip inserted anyway, so a second
+ * click wrote a second rip and five more identical cards and the collection showed
+ * everything twice. 006 gives pack_rip a unique key on exactly the triple this function
+ * seeds with, so the same pack is one row however many times it is torn open, and `opens`
+ * counts the openings the two figures at the top of the page are still counting.
+ *
  * WHAT IS STILL NOT ENFORCED, said plainly: a visitor can rip a DIFFERENT playlist the
- * same day and get a fresh pack. The seed makes each pack stable; it does not count them.
- * A real cap wants a row per visitor per day, which is what visitor_day does for the
- * suggestion box, and it is not written yet.
+ * same day and get a fresh pack. Each pack is now stable AND recorded once; nothing yet
+ * limits how many different packs one person opens in a day. A real cap wants a counted
+ * allowance, which is what `visitor.day` and `visitor.adds` do for the suggestion box, and
+ * it is not written yet.
  *
  * UNSCOREABLE TRACKS ARE NOT IN THE POOL. A song last.fm could not match has no rung, and
  * docs/lab.md settles what to do with it: leave it out rather than guess. So the pool is
@@ -92,7 +100,13 @@ export const ripPack = async (args: {
     await deepcutsStore.recordRip({
       playlist_id,
       visitor_id,
+      /* THE SAME STRING THE DRAW WAS SEEDED WITH, handed down rather than recomputed. It
+         is what 006's unique constraint keys on, so the generator and the database agree
+         about which pack this is by construction rather than by both calling the clock and
+         hoping they land on the same side of midnight. */
+      day,
       cards: cards.map((card) => ({
+        slot: card.slot,
         track_uri: card.track.uri,
         title: card.track.title,
         artist: card.track.artist,

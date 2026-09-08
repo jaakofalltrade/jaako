@@ -143,21 +143,74 @@ There is no rollback and no generated diff, deliberately. That is what a migrati
 framework adds on top of this, and it is not worth a dependency for a schema this
 size.
 
+## Checking a migration before you run it
+
+    pnpm db:verify
+
+Applies every migration to a real Postgres and checks that it did what it says, then
+tells you it is safe to migrate. It touches no database of yours: `@electric-sql/pglite`
+is Postgres compiled to WebAssembly, so it runs in the same process with nothing to
+install and nothing to connect to.
+
+It is worth running because `pnpm db:migrate` is a one-way door pointed at rows that
+matter, and nothing else guards it. `tsc` cannot see inside a tagged template, so a
+column renamed in a migration and missed in one store typechecks perfectly and fails in
+production. The suite covers that case directly: every query is **lifted out of the store
+source** and executed, rather than copied here where the copy could drift.
+
+Six suites, each on its own fresh database: a never-migrated database, each of `004`,
+`005` and `006` applied over rows written under the schema before it, the app's own
+queries, and a deliberately broken migration that has to leave the schema untouched.
+
+Add checks for a new migration in `scripts/db-verify.mjs`, in a suite of its own that
+seeds the shape it migrates from. A migration that only works on an empty database is
+the one worth catching.
+
 ## What is in there
 
-Two tables, and neither of them decides what is on the playlist. The playlist itself
-is the source of truth: the page is built by reading it from Spotify and joining these
-rows on by track URI.
+None of these tables decides what is on the playlist. The playlist itself is the source
+of truth: the queue is built by reading it from Spotify and joining these rows on by
+track URI.
 
 | Table | Holds | Notes |
 | --- | --- | --- |
-| `suggestion` | One row per add: track URI, display name, visitor id, timestamp | Annotation only. A row here can describe a track and can never conjure one. |
-| `visitor_day` | One row per visitor per day, with a count | The daily cap. The composite primary key is what the conditional upsert conflicts against. |
+| `suggestion` | One row per add: track URI, visitor id, timestamp, and a snapshot of the track | Annotation only. A row here can describe a track and can never conjure one. |
+| `visitor` | One row per visitor: display name, and the current day's add count | The identity and the daily cap on one row. `suggestion.visitor_id` is a foreign key to it. |
+| `pack_rip`, `pack_card` | An opened deepcuts pack and the five cards out of it | One row per visitor per playlist per Manila day, with `opens` counting the re-openings. See `002_deepcuts.sql` and `006_one_pack_a_day.sql`. |
 | `schema_migration` | Which migration files have run | Created by the migrate script, not by a migration. |
 
-Removing a track in the Spotify app removes it from the page with no code involved,
+Removing a track in the Spotify app removes it from the queue with no code involved,
 and leaves an orphaned `suggestion` row that is invisible rather than wrong. Nothing
 prunes those; delete them by hand if you ever care.
+
+**The snapshot columns on `suggestion` are history, not the source of truth.** `005`
+added `track_name`, `artist`, `album`, `album_art`, `track_url` and `duration_ms` so
+that a suggestion still says something readable after its track leaves the playlist.
+The queue must keep rendering from the Spotify join. If anything ever renders the list
+out of these columns instead, a removed track stops leaving the page and the page starts
+lying, which is the exact property `001` was written to protect.
+
+**`visitor_day` became `visitor` in `005`.** The grain moved from one row per visitor per
+day to one row per visitor, the display name moved off every suggestion and onto it, and
+`day` plus `adds` stayed as the current allowance bucket. The cap is still one statement
+conflicting on a primary key, so it is still race-proof; the statement now resets the
+count when the day has rolled over instead of relying on a new row missing the old key.
+
+**A pack is one row, and `opens` is how many times it was torn open.** The deepcuts draw
+is seeded on the visitor, the playlist and the Manila day, so re-opening a pack always
+dealt the same five cards. The write had no matching guarantee until `006`: a second click
+wrote a second rip and five more identical cards, and the collection showed each of them
+twice. There is now a unique key on `(visitor_id, playlist_id, day)`, and the card writes
+are keyed on `(rip_id, slot)` so a re-open is a no-op and a pack whose cards failed halfway
+repairs itself the next time it is opened. `most opened` and `total rips` read `sum(opens)`,
+so both figures still count openings exactly as they did before.
+
+**Two columns are named for their format.** `suggestion.added_at_iso_datetime_utc` and
+`pack_rip.ripped_at_iso_datetime_utc` are `text` holding an ISO 8601 instant in UTC, which
+is what `src/oras` says is the only thing this codebase ever stores or transports. They
+sort correctly as text because the writer always emits the same fixed-width shape, and a
+check constraint refuses anything else. Neither has a default any more: the application
+decides what time it is, not Postgres.
 
 ## When something is wrong
 
