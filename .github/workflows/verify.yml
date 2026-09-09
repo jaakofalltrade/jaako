@@ -31,7 +31,7 @@ jobs:
       # No version pinned here on purpose. The action reads "packageManager" out of
       # package.json, which is also where Vercel looks, so the two builds cannot end up
       # on different pnpm. It must come before setup-node, whose pnpm cache needs it.
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
       - uses: actions/setup-node@v5
         with:
@@ -51,7 +51,7 @@ jobs:
       # Next shares a cache between builds in .next/cache. Without this the build is
       # cold every time and Next says so in the log.
       - name: Restore the Next build cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .next/cache
           key: next-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('src/**', 'next.config.ts') }}
