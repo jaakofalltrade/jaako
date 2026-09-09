@@ -1,0 +1,67 @@
+# The gate. Lint, tests and a real production build.
+#
+# Called two ways, which is the whole point of it being its own file: directly on a
+# pull request, and by the two deploy workflows through `workflow_call`. The checks
+# that guard a pull request are therefore the same checks that guard a tag, and they
+# cannot drift apart, because there is only one copy of them.
+#
+# NO `env:` BLOCK, AND THAT IS DELIBERATE. `pnpm build` completes with every secret
+# unset: the Neon client is constructed lazily, every data route is force-dynamic, and
+# the one prerendered dynamic route reads a local constant. So this job runs with an
+# empty environment and there is nothing here to leak.
+
+name: Verify
+
+on:
+  pull_request:
+  workflow_call:
+
+concurrency:
+  # Per ref, so pushing again to a pull request replaces the run in flight rather than
+  # queueing behind it. Safe to cancel: this job deploys nothing.
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # No version pinned here on purpose. The action reads "packageManager" out of
+      # package.json, which is also where Vercel looks, so the two builds cannot end up
+      # on different pnpm. It must come before setup-node, whose pnpm cache needs it.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          # KEEP THIS IN STEP WITH VERCEL: Project Settings, Node.js Version. A build
+          # that passes here on one major and ships on another is the classic works on
+          # my machine, one level up.
+          #
+          # An engines.node field in package.json would let both read one value, and it
+          # was tried: pnpm then prints an unsupported engine warning on every local
+          # command, because this repo is developed on a newer Node than Vercel offers.
+          # Four pinned lines beat a warning on every install.
+          node-version: "22.x"
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Next shares a cache between builds in .next/cache. Without this the build is
+      # cold every time and Next says so in the log.
+      - name: Restore the Next build cache
+        uses: actions/cache@v4
+        with:
+          path: .next/cache
+          key: next-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('src/**', 'next.config.ts') }}
+          restore-keys: |
+            next-${{ hashFiles('pnpm-lock.yaml') }}-
+
+      - run: pnpm lint
+
+      - run: pnpm test
+
+      # Also the type check. There is no separate tsc script because `next build`
+      # type-checks the whole project, tests included.
+      - run: pnpm build

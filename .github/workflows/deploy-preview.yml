@@ -1,0 +1,45 @@
+# Keeps master reachable at a URL without cutting a release.
+#
+# This is what replaces the preview deployment Vercel's Git integration would have made
+# for you. It deploys to the PREVIEW environment, so it reads the Preview scope of the
+# project's variables: point SPOTIFY_PLAYLIST_ID there at a throwaway playlist and a
+# suggestion made against this URL never lands on the real one.
+#
+# Optional. Delete this file if the only deployments you want are tagged ones.
+
+name: Deploy preview
+
+on:
+  push:
+    branches: [master]
+
+concurrency:
+  group: preview
+  # Unlike production, cancelling is fine here. The newest master is the only one worth
+  # having a URL for.
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22.x"   # keep in step with Vercel Project Settings, Node.js Version
+
+      - run: npm install --global vercel@latest
+
+      - run: vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
+
+      - run: vercel build --token="$VERCEL_TOKEN"
+
+      - name: Deploy
+        run: |
+          url="$(vercel deploy --prebuilt --token="$VERCEL_TOKEN" | tail -n 1)"
+          echo "Preview of \`$GITHUB_SHA\` at $url" >> "$GITHUB_STEP_SUMMARY"

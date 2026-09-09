@@ -1,0 +1,77 @@
+# The only path to production. A version tag, nothing else.
+#
+# Pushing to master does not deploy production, and neither does merging a pull
+# request. That is the point: shipping is a separate, deliberate act from merging.
+#
+#     git tag v0.1.0 && git push origin v0.1.0
+#
+# THIS ASSUMES VERCEL'S OWN GIT INTEGRATION IS OFF. If the project is connected to
+# GitHub in the Vercel dashboard, Vercel deploys production on every push to master and
+# this gate is decoration. vercel.json in the repo root turns it off; see that file.
+
+name: Deploy to production
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+concurrency:
+  group: production
+  # Never cancel a deploy that is already talking to Vercel. Two tags pushed close
+  # together queue instead, and the later one wins by finishing last.
+  cancel-in-progress: false
+
+jobs:
+  # Same lint, tests and build a pull request gets. A tag whose commit failed CI on the
+  # branch fails here too, rather than shipping.
+  verify:
+    uses: ./.github/workflows/verify.yml
+
+  deploy:
+    needs: verify
+    runs-on: ubuntu-latest
+    environment:
+      # Records the deployment against the repo and puts the live URL on the run.
+      name: production
+      url: ${{ steps.deploy.outputs.url }}
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # The guard below compares against origin/master, which only exists in the
+          # checkout when the full history is fetched.
+          fetch-depth: 0
+
+      # Git tags do not care about branches: `git tag v9.9.9` on a feature branch and a
+      # push would otherwise deploy that branch to production. An ancestor check is
+      # exact where a grep over branch names is not.
+      - name: Refuse a tag that is not on master
+        run: |
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/master; then
+            echo "::error::$GITHUB_REF_NAME points at a commit that is not on master. Nothing deployed."
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22.x"   # keep in step with Vercel Project Settings, Node.js Version
+
+      - run: npm install --global vercel@latest
+
+      # Fetches the project's production environment into .vercel/, which is what the
+      # build below reads. The Spotify tokens and the Neon string live in the Vercel
+      # project, never in GitHub, and this is the step that collects them.
+      - run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+
+      - run: vercel build --prod --token="$VERCEL_TOKEN"
+
+      # --prebuilt uploads what was just built rather than asking Vercel to build it
+      # again, so what ships is exactly what this workflow produced.
+      - id: deploy
+        run: |
+          url="$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN" | tail -n 1)"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Shipped **$GITHUB_REF_NAME** to $url" >> "$GITHUB_STEP_SUMMARY"

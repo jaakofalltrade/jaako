@@ -1,0 +1,52 @@
+# Migrations, run by hand. Never by a deploy.
+#
+# TWO REASONS THIS IS NOT PART OF THE TAG WORKFLOW, even though scripts/migrate.mjs is
+# safe to run repeatedly and every statement in the migrations is written
+# `if not exists`.
+#
+#   1. It is the only thing that would put a database credential in GitHub. Keeping it
+#      here means the deploy path holds three Vercel secrets and nothing else, and the
+#      one workflow that can write to Neon is the one you have to go and click.
+#
+#   2. A migration and a deploy fail differently. A failed deploy leaves the previous
+#      deployment serving. A failed migration leaves a schema, and you want to be
+#      watching when that happens.
+#
+# The migration ledger lives inside the database it describes, so this migrates
+# whichever branch DATABASE_URL points at. Set that secret on the GitHub environment of
+# the same name: Settings, Environments, staging and production.
+
+name: Migrate database
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Which database to migrate
+        type: choice
+        options: [staging, production]
+        default: staging
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.target }}
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22.x"   # keep in step with Vercel Project Settings, Node.js Version
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm db:migrate
+
+      # Reads the schema back and reports on it, so a green run says what shape the
+      # database is in rather than only that the script exited zero.
+      - run: pnpm db:verify
