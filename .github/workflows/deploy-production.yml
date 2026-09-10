@@ -62,7 +62,7 @@ jobs:
 
       - uses: actions/setup-node@v5
         with:
-          node-version: "22.x"   # keep in step with Vercel Project Settings, Node.js Version
+          node-version: "24.x"   # keep in step with Vercel Project Settings, Node.js Version
 
       - run: npm install --global vercel@latest
 

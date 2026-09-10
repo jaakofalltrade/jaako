@@ -35,15 +35,19 @@ jobs:
 
       - uses: actions/setup-node@v5
         with:
-          # KEEP THIS IN STEP WITH VERCEL: Project Settings, Node.js Version. A build
-          # that passes here on one major and ships on another is the classic works on
-          # my machine, one level up.
+          # KEEP THIS IN STEP WITH VERCEL: Project Settings, Node.js Version.
           #
-          # An engines.node field in package.json would let both read one value, and it
-          # was tried: pnpm then prints an unsupported engine warning on every local
-          # command, because this repo is developed on a newer Node than Vercel offers.
-          # Four pinned lines beat a warning on every install.
-          node-version: "22.x"
+          # 24.x because that is the newest Vercel offers and the default for a new
+          # project, so this matches without anyone changing a setting. Vercel has three
+          # majors, 24, 22 and 20, and 20 goes away on 2026-10-01. Local development is
+          # on 26, which Vercel does not run at all: `vercel build` happens on this
+          # runner but the functions execute on Vercel's Node, so building a major ahead
+          # of the runtime is how you ship code the runtime cannot run.
+          #
+          # An engines.node field would let this and Vercel read one value, and it was
+          # tried: pnpm then warns about an unsupported engine on every local command,
+          # since 26 satisfies no range that also names what Vercel runs.
+          node-version: "24.x"
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
