@@ -1,0 +1,62 @@
+# Migrations, run by hand. Never by a deploy.
+#
+# TWO REASONS THIS IS NOT PART OF THE TAG WORKFLOW, even though scripts/migrate.mjs is
+# safe to run repeatedly and every statement in the migrations is written
+# `if not exists`.
+#
+#   1. It is the only thing that would put a database credential in GitHub. Keeping it
+#      here means the deploy path holds three Vercel secrets and nothing else, and the
+#      one workflow that can write to Neon is the one you have to go and click.
+#
+#   2. A migration and a deploy fail differently. A failed deploy leaves the previous
+#      deployment serving. A failed migration leaves a schema, and you want to be
+#      watching when that happens.
+#
+# The migration ledger lives inside the database it describes, so this migrates
+# whichever branch DATABASE_URL points at. Set that secret on the GitHub environment of
+# the same name: Settings, Environments, staging and production.
+
+name: Migrate database
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Which database to migrate
+        type: choice
+        options: [staging, production]
+        default: staging
+
+concurrency:
+  # Two dispatches at the same target would compute the same pending list and race to
+  # apply it. The per-file transaction and the ledger's primary key mean the loser fails
+  # red rather than corrupting anything, but that rests on every migration staying
+  # idempotent. Queueing them makes it structural instead of a property to maintain.
+  group: migrate-${{ inputs.target }}
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.target }}
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24.x"   # keep in step with Vercel Project Settings, Node.js Version
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # BEFORE the migration, not after. db:verify applies every migration to a fresh
+      # PGlite and asserts it did what it says; it never opens DATABASE_URL, so running
+      # it afterwards would prove nothing about the database just written to. Its own
+      # header says it: "it is the thing you run immediately before it".
+      - run: pnpm db:verify
+
+      - run: pnpm db:migrate

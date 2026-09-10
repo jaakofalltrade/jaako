@@ -1,0 +1,58 @@
+# A real URL for a pull request, before merging it makes that code production.
+#
+# This used to deploy master, back when only a version tag shipped and master needed
+# somewhere to live. Master is production now, so the useful preview moved one step
+# earlier: the last chance to look at a change is while it is still a pull request.
+#
+# It deploys to the PREVIEW environment, so it reads the Preview scope of the project's
+# variables. Point SPOTIFY_PLAYLIST_ID and DATABASE_URL there at a throwaway playlist
+# and a Neon branch, and a suggestion or a pack rip made against this URL never touches
+# the real ones.
+#
+# Delete this file if you would rather only master ever reach Vercel. Nothing else
+# depends on it.
+
+name: Deploy preview
+
+on:
+  pull_request:
+
+concurrency:
+  group: preview-${{ github.ref }}
+  # Only the newest push to a pull request is worth a URL.
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    # A pull request from a fork gets no secrets, so this job could only fail there.
+    # Skipping it keeps the check green rather than red for a reason nobody can fix.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+    steps:
+      - uses: actions/checkout@v5
+
+      # `vercel build` installs with the manager it detects from pnpm-lock.yaml, and the
+      # runner has no pnpm of its own. Same reason as deploy-production.yml.
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24.x"   # keep in step with Vercel Project Settings, Node.js Version
+
+      - run: npm install --global vercel@latest
+
+      - run: vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
+
+      - run: vercel build --token="$VERCEL_TOKEN"
+
+      # shell: bash for pipefail, so a rejected deploy fails the run instead of
+      # reporting an empty URL. See the same step in deploy-production.yml.
+      - name: Deploy
+        shell: bash
+        run: |
+          url="$(vercel deploy --prebuilt --token="$VERCEL_TOKEN" | tail -n 1)"
+          echo "Preview of this pull request at $url" >> "$GITHUB_STEP_SUMMARY"
