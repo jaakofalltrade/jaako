@@ -18,9 +18,15 @@ on:
 
 concurrency:
   # Per ref, so pushing again to a pull request replaces the run in flight rather than
-  # queueing behind it. Safe to cancel: this job deploys nothing.
+  # queueing behind it. Safe to cancel there: nothing is waiting on it.
+  #
+  # NOT safe to cancel on master, which is why this is an expression rather than `true`.
+  # Called from the deploy workflow, a cancelled verify fails the deploy that needed it,
+  # so two pushes in quick succession would turn the first one red for a reason that has
+  # nothing to do with the code. In a called workflow `github.event_name` is the
+  # caller's event, so this reads `push` on master and `pull_request` on a branch.
   group: verify-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   verify:

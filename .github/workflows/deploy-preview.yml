@@ -1,26 +1,32 @@
-# Keeps master reachable at a URL without cutting a release.
+# A real URL for a pull request, before merging it makes that code production.
 #
-# This is what replaces the preview deployment Vercel's Git integration would have made
-# for you. It deploys to the PREVIEW environment, so it reads the Preview scope of the
-# project's variables: point SPOTIFY_PLAYLIST_ID there at a throwaway playlist and a
-# suggestion made against this URL never lands on the real one.
+# This used to deploy master, back when only a version tag shipped and master needed
+# somewhere to live. Master is production now, so the useful preview moved one step
+# earlier: the last chance to look at a change is while it is still a pull request.
 #
-# Optional. Delete this file if the only deployments you want are tagged ones.
+# It deploys to the PREVIEW environment, so it reads the Preview scope of the project's
+# variables. Point SPOTIFY_PLAYLIST_ID and DATABASE_URL there at a throwaway playlist
+# and a Neon branch, and a suggestion or a pack rip made against this URL never touches
+# the real ones.
+#
+# Delete this file if you would rather only master ever reach Vercel. Nothing else
+# depends on it.
 
 name: Deploy preview
 
 on:
-  push:
-    branches: [master]
+  pull_request:
 
 concurrency:
-  group: preview
-  # Unlike production, cancelling is fine here. The newest master is the only one worth
-  # having a URL for.
+  group: preview-${{ github.ref }}
+  # Only the newest push to a pull request is worth a URL.
   cancel-in-progress: true
 
 jobs:
   preview:
+    # A pull request from a fork gets no secrets, so this job could only fail there.
+    # Skipping it keeps the check green rather than red for a reason nobody can fix.
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -49,4 +55,4 @@ jobs:
         shell: bash
         run: |
           url="$(vercel deploy --prebuilt --token="$VERCEL_TOKEN" | tail -n 1)"
-          echo "Preview of \`$GITHUB_SHA\` at $url" >> "$GITHUB_STEP_SUMMARY"
+          echo "Preview of this pull request at $url" >> "$GITHUB_STEP_SUMMARY"

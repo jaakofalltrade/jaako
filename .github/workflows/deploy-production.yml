@@ -1,29 +1,34 @@
-# The only path to production. A version tag, nothing else.
+# Production. Every push to master ships.
 #
-# Pushing to master does not deploy production, and neither does merging a pull
-# request. That is the point: shipping is a separate, deliberate act from merging.
+# This replaced a version tag gate, and the trade is worth writing down. The gate
+# bought control over the MOMENT of shipping, not safety: verify runs on this path and
+# on every pull request either way, so the quality bar never depended on it. What it
+# cost was an extra step per release and drift, master carrying merged commits that
+# were not live.
 #
-#     git tag v0.1.0 && git push origin v0.1.0
+# THE ONE THING THE GATE WAS ACTUALLY LOAD BEARING FOR IS MIGRATIONS, and that ordering
+# is now yours to keep by hand: run db-migrate BEFORE merging a change that depends on
+# a new column, never after. A merge is a deploy now, so there is no window between the
+# two in which to catch up.
 #
 # THIS ASSUMES VERCEL'S OWN GIT INTEGRATION IS OFF. If the project is connected to
-# GitHub in the Vercel dashboard, Vercel deploys production on every push to master and
-# this gate is decoration. vercel.json in the repo root turns it off; see that file.
+# GitHub in the dashboard, Vercel deploys on every push as well and you get two
+# deployments racing for the same alias. vercel.json in the repo root turns it off.
 
 name: Deploy to production
 
 on:
   push:
-    tags: ["v*.*.*"]
+    branches: [master]
 
 concurrency:
   group: production
-  # Never cancel a deploy that is already talking to Vercel. Two tags pushed close
-  # together queue instead, and the later one wins by finishing last.
+  # Never cancel a deploy that is already talking to Vercel. Pushes queue instead, and
+  # the later one wins by finishing last.
   cancel-in-progress: false
 
 jobs:
-  # Same lint, tests and build a pull request gets. A tag whose commit failed CI on the
-  # branch fails here too, rather than shipping.
+  # The same lint, tests and build a pull request gets. A red master does not deploy.
   verify:
     uses: ./.github/workflows/verify.yml
 
@@ -40,20 +45,6 @@ jobs:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
     steps:
       - uses: actions/checkout@v5
-        with:
-          # The guard below compares against origin/master, which only exists in the
-          # checkout when the full history is fetched.
-          fetch-depth: 0
-
-      # Git tags do not care about branches: `git tag v9.9.9` on a feature branch and a
-      # push would otherwise deploy that branch to production. An ancestor check is
-      # exact where a grep over branch names is not.
-      - name: Refuse a tag that is not on master
-        run: |
-          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/master; then
-            echo "::error::$GITHUB_REF_NAME points at a commit that is not on master. Nothing deployed."
-            exit 1
-          fi
 
       # `vercel build` runs its own install using the manager it detects from
       # pnpm-lock.yaml, and off Vercel's own build image that means resolving pnpm from
@@ -85,4 +76,4 @@ jobs:
         run: |
           url="$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN" | tail -n 1)"
           echo "url=$url" >> "$GITHUB_OUTPUT"
-          echo "Shipped **$GITHUB_REF_NAME** to $url" >> "$GITHUB_STEP_SUMMARY"
+          echo "Shipped \`${GITHUB_SHA:0:7}\` to $url" >> "$GITHUB_STEP_SUMMARY"
