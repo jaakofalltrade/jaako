@@ -29,6 +29,10 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # `vercel build` installs with the manager it detects from pnpm-lock.yaml, and the
+      # runner has no pnpm of its own. Same reason as deploy-production.yml.
+      - uses: pnpm/action-setup@v6
+
       - uses: actions/setup-node@v5
         with:
           node-version: "22.x"   # keep in step with Vercel Project Settings, Node.js Version
@@ -39,7 +43,10 @@ jobs:
 
       - run: vercel build --token="$VERCEL_TOKEN"
 
+      # shell: bash for pipefail, so a rejected deploy fails the run instead of
+      # reporting an empty URL. See the same step in deploy-production.yml.
       - name: Deploy
+        shell: bash
         run: |
           url="$(vercel deploy --prebuilt --token="$VERCEL_TOKEN" | tail -n 1)"
           echo "Preview of \`$GITHUB_SHA\` at $url" >> "$GITHUB_STEP_SUMMARY"

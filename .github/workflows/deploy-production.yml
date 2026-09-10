@@ -55,6 +55,11 @@ jobs:
             exit 1
           fi
 
+      # `vercel build` runs its own install using the manager it detects from
+      # pnpm-lock.yaml, and off Vercel's own build image that means resolving pnpm from
+      # PATH. The runner does not ship one, so without this the build step fails.
+      - uses: pnpm/action-setup@v6
+
       - uses: actions/setup-node@v5
         with:
           node-version: "22.x"   # keep in step with Vercel Project Settings, Node.js Version
@@ -70,7 +75,13 @@ jobs:
 
       # --prebuilt uploads what was just built rather than asking Vercel to build it
       # again, so what ships is exactly what this workflow produced.
+      #
+      # `shell: bash` rather than the default, and it is load bearing: an unqualified
+      # `run` gets `bash -e`, which in a pipeline only sees the exit status of `tail`.
+      # A rejected deploy would exit non-zero, print nothing, and still pass, leaving a
+      # green run that says it shipped a blank URL. Naming the shell adds pipefail.
       - id: deploy
+        shell: bash
         run: |
           url="$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN" | tail -n 1)"
           echo "url=$url" >> "$GITHUB_OUTPUT"

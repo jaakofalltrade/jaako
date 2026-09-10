@@ -27,6 +27,14 @@ on:
         options: [staging, production]
         default: staging
 
+concurrency:
+  # Two dispatches at the same target would compute the same pending list and race to
+  # apply it. The per-file transaction and the ledger's primary key mean the loser fails
+  # red rather than corrupting anything, but that rests on every migration staying
+  # idempotent. Queueing them makes it structural instead of a property to maintain.
+  group: migrate-${{ inputs.target }}
+  cancel-in-progress: false
+
 jobs:
   migrate:
     runs-on: ubuntu-latest
@@ -45,8 +53,10 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - run: pnpm db:migrate
-
-      # Reads the schema back and reports on it, so a green run says what shape the
-      # database is in rather than only that the script exited zero.
+      # BEFORE the migration, not after. db:verify applies every migration to a fresh
+      # PGlite and asserts it did what it says; it never opens DATABASE_URL, so running
+      # it afterwards would prove nothing about the database just written to. Its own
+      # header says it: "it is the thing you run immediately before it".
       - run: pnpm db:verify
+
+      - run: pnpm db:migrate
