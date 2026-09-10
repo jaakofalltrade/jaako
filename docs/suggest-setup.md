@@ -147,7 +147,7 @@ host overrides both by setting a real environment variable.
 | `ENV` | `.env`, and the host | Falls back to `LOCAL`. In production that means the visitor cookie goes out **without `Secure`** — see below. |
 | `SPOTIFY_PLAYLIST_ID` | `.env`, optional | Defaults to the real lab playlist. Set it only to point a deployment elsewhere. |
 | `SPOTIFY_WRITE_REFRESH_TOKEN` | `.env.local` and the host | Reads work, adds refuse with a 503. |
-| `DATABASE_URL` | `.env.local` and the host | List renders without names, adds refuse. See `docs/neon-setup.md`. |
+| `DATABASE_URL` | **the host only** | Locally: nothing, the database is `.pgdata/` and needs no variable. In production: list renders without names, adds refuse. See `docs/neon-setup.md`. |
 
 ### `ENV` is not decorative
 

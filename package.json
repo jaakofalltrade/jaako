@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:migrate": "node scripts/migrate.mjs",
+    "db:which": "node scripts/db-which.mjs",
     "db:verify": "node scripts/db-verify.mjs",
     "db:wipe-packs": "node scripts/wipe-packs.mjs",
     "token:read": "node scripts/spotify-token.mjs read",

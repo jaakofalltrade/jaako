@@ -39,6 +39,19 @@ yarn-error.log*
 !.env.example
 !.env
 
+# the local database
+#
+# PGlite writes a whole Postgres data directory here when DATABASE_URL is unset, which is
+# every clone of this repo until somebody deliberately points one at Neon. It is
+# disposable by design: delete it and `pnpm db:migrate` builds it again from the
+# migrations, which is also how you throw away a week of test suggestions.
+.pgdata/
+
+# Which process currently has that directory open. PGlite will not enforce this itself -
+# two processes in one data directory silently lose one side's writes - so the pid lives
+# beside the directory and whoever finds it live refuses. Machine-local by definition.
+.pgdata.lock
+
 # vercel
 .vercel
 

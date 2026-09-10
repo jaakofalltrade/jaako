@@ -46,6 +46,40 @@ const SECURITY_HEADERS = [
 ];
 
 const nextConfig: NextConfig = {
+  /**
+   * PGlite is the local database, and it must not be bundled.
+   *
+   * It ships a WebAssembly Postgres plus the filesystem code to open a data directory,
+   * which Turbopack cannot inline into a server bundle. Listing it here makes the import
+   * in src/server/db/index.ts a native require at runtime instead, which is what that
+   * dynamic import wants and the only way it resolves.
+   *
+   * It stays a devDependency. Production sets DATABASE_URL and takes the neon() path, so
+   * the import is never reached there; NODE_ENV guards that in the module itself.
+   */
+  serverExternalPackages: ["@electric-sql/pglite"],
+
+  /**
+   * ...and having kept it out of the bundle, keep it out of the deployment too.
+   *
+   * serverExternalPackages only says "require this at runtime rather than inline it". The
+   * file tracer still sees the dynamic import in src/server/db/index.ts and copies the
+   * package into the output of every route that reaches it. Measured on this build, with
+   * the exclusion removed and put back: 175 files and 20.1MB added to the trace of a
+   * single route - a WebAssembly Postgres shipped to a host that takes the neon() path on
+   * every request and can never execute the branch that would load it. It also makes the
+   * production build depend on a devDependency being installed, so an install with --prod
+   * has an external it cannot resolve.
+   *
+   * Excluded for every route rather than a named one, because the import is in a module
+   * any server route can pull in. The NODE_ENV gate in src/server/db/index.ts is what
+   * guarantees the branch is unreachable in production; this is what stops us paying for
+   * it anyway.
+   */
+  outputFileTracingExcludes: {
+    "/*": ["node_modules/@electric-sql/pglite/**"],
+  },
+
   headers: async () => [
     {
       source: "/:path*",

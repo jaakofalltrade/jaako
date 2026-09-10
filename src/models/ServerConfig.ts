@@ -49,7 +49,9 @@ export type ServerConfig = {
   // jaako actually listens to. See docs/suggest-setup.md.
   spotify_playlist_id: string;
 
-  // neon postgres, shared by the lab apps — see docs/neon-setup.md
+  // The database, and the local/production switch with it — see docs/neon-setup.md.
+  // Empty means the local Postgres in .pgdata/; set means a Neon branch, which is only
+  // ever a deployment. It is the one entry here that is meant to be blank on a laptop.
   database_url: string;
 
   // resend / contact form — see docs/contact-setup.md
