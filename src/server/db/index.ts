@@ -1,6 +1,10 @@
 import "server-only";
-import { join } from "node:path";
 import { neon } from "@neondatabase/serverless";
+import {
+  LOCAL_DATA_DIRECTORY,
+  claimLocalDataDirectory,
+  hasLocalCluster,
+} from "@/server/db/localDataDirectory";
 import { serverConfig } from "@/server/serverConfig";
 
 /**
@@ -37,14 +41,17 @@ import { serverConfig } from "@/server/serverConfig";
  * Neon. For a schema of text, uuid, check constraints and `on conflict` that gap is
  * narrow, and db:verify keeps running every migration against it either way.
  *
+ * WHAT IT ALSO COSTS is that a container would have given us mutual exclusion for free
+ * and PGlite gives us none: it does not lock its data directory, and two processes in one
+ * directory silently lose one side's writes. localDataDirectory.ts is the lock that buys
+ * that back, and it is the reason `pnpm db:migrate` asks you to stop the dev server
+ * rather than quietly doing nothing.
+ *
  * IT IS A DEV DEPENDENCY, so `NODE_ENV === "production"` is a hard gate on the import
  * below rather than a preference: a production build is exactly the case where the
  * package may not be installed, and taking that branch there should be impossible rather
  * than unlikely.
  */
-
-/** Where the local Postgres lives. Gitignored, disposable, and safe to delete. */
-const LOCAL_DATA_DIRECTORY = join(process.cwd(), ".pgdata");
 
 /**
  * True when this process may fall back to the local database.
@@ -87,14 +94,21 @@ type Driver = <T>(
  * - a suggestion box that silently swallows suggestions is worse than one that admits it
  * is off.
  *
- * LOCALLY THIS IS NOW ALWAYS TRUE, which is the change worth noticing. A fresh clone used
- * to have no database at all until somebody pasted a connection string into .env.local,
- * so every lab page came up in its degraded state and the degraded state was the only one
- * most clones ever showed. `pnpm db:migrate` is now the whole of that setup and it needs
- * no credential.
+ * LOCALLY IT ASKS THE DISK, and it has to. A fresh clone used to have no database at all
+ * until somebody pasted a connection string into .env.local, so every lab page came up
+ * degraded. `pnpm db:migrate` is now the whole of that setup and needs no credential -
+ * but between the clone and that command there is a window this function has to be honest
+ * about. PGlite creates an empty cluster on first open, so "a database is reachable" and
+ * "a database has our tables" are different facts, and answering the first when a caller
+ * meant the second is what turns a clean 503 into `relation "visitor" does not exist` and
+ * a 500. hasLocalCluster() is the second fact.
+ *
+ * The check is a stat per call in development and none in production, where the first
+ * operand short-circuits. Nothing opens the database to answer it, which is what keeps
+ * the answer from creating the thing it was asked about.
  */
 export const hasDatabase = (): boolean =>
-  Boolean(serverConfig.database_url) || canUseLocalDatabase;
+  Boolean(serverConfig.database_url) || (canUseLocalDatabase && hasLocalCluster());
 
 /**
  * Turns the template pieces into `select ... where x = $1`, which is the only shape
@@ -117,6 +131,11 @@ const createNeonDriver = (): Driver => {
 };
 
 const createLocalDriver = async (): Promise<Driver> => {
+  // Before the directory is opened, and before it is created. PGlite will not stop a
+  // second process from opening this same directory and silently eating one side's
+  // writes, so the refusal has to happen here. See localDataDirectory.ts.
+  claimLocalDataDirectory({ as: "the dev server" });
+
   // Dynamic, so the package name never appears in a static import a production build
   // would have to resolve. next.config.ts also lists it in serverExternalPackages, which
   // keeps Turbopack from trying to bundle a WebAssembly payload it cannot inline.
@@ -135,17 +154,52 @@ const createLocalDriver = async (): Promise<Driver> => {
  *
  * Opening the local database is asynchronous, and a cold server answers several requests
  * at once. Storing the resolved value would let every one of those start its own PGlite
- * on the same directory, and PGlite holds a single exclusive connection to it. Storing
- * the promise means the second caller waits on the first one's open.
+ * on the same directory, which nothing below this module would stop. Storing the promise
+ * means the second caller waits on the first one's open.
+ *
+ * A FAILED OPEN IS NOT KEPT. Only a fulfilled promise is worth memoising: a rejection
+ * cached here would outlive whatever caused it, so a data directory that was briefly held
+ * by a script, or an unwritable folder fixed a second later, would keep answering with
+ * the same stale error until the server was restarted. Clearing it costs one extra open
+ * attempt and buys a dev server that recovers on the next request.
  */
 let driver: Promise<Driver> | null = null;
 
 const getDriver = (): Promise<Driver> => {
-  if (!driver) {
-    driver = serverConfig.database_url
-      ? Promise.resolve(createNeonDriver())
-      : createLocalDriver();
+  if (driver) return driver;
+
+  if (serverConfig.database_url) {
+    driver = Promise.resolve(createNeonDriver());
+    return driver;
   }
+
+  /**
+   * The gate the module header promises, and until now did not have.
+   *
+   * PGlite is a devDependency, so on a production host with a forgotten DATABASE_URL the
+   * local branch does not degrade - it dynamic-imports a package that is not installed
+   * and fails with MODULE_NOT_FOUND, or boots a 24MB WebAssembly Postgres nobody asked
+   * for. Callers that ask hasDatabase() first never arrive here; this is for the ones
+   * that do not, and it refuses in the language of the actual problem.
+   *
+   * Not memoised, because it is not a driver and there is nothing to reuse. The condition
+   * is permanent anyway: whoever fixes it is restarting the process.
+   */
+  if (!canUseLocalDatabase) {
+    return Promise.reject(
+      new Error(
+        "DATABASE_URL is unset and this is a production build, where the local " +
+          "database is not available. Set DATABASE_URL to a Neon connection string."
+      )
+    );
+  }
+
+  const opening = createLocalDriver().catch((cause: unknown) => {
+    if (driver === opening) driver = null;
+    throw cause;
+  });
+
+  driver = opening;
   return driver;
 };
 

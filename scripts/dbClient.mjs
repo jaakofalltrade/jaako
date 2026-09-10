@@ -1,6 +1,10 @@
-import { join } from "node:path";
 import { Pool } from "@neondatabase/serverless";
 import { loadEnvLocal } from "./loadEnv.mjs";
+import {
+  LOCAL_DATA_DIRECTORY,
+  claimLocalDataDirectory,
+  releaseLocalDataDirectory,
+} from "./pgdataLock.mjs";
 
 /**
  * Opens whichever database this command is meant to be talking to, and says which.
@@ -40,9 +44,6 @@ import { loadEnvLocal } from "./loadEnv.mjs";
  * that grows a fifth is on its way to being a driver of its own. query, exec, close, and
  * a description to print before any of them run.
  */
-
-/** Where the local Postgres lives. The same directory src/server/db/index.ts opens. */
-const LOCAL_DATA_DIRECTORY = join(process.cwd(), ".pgdata");
 
 /**
  * Which database this is about to touch, with the password left out of it.
@@ -92,7 +93,11 @@ const openRemote = async (url) => {
   };
 };
 
-const openLocal = async () => {
+const openLocal = async (as) => {
+  // Before PGlite is asked for the directory, because PGlite will not refuse it. If the
+  // dev server holds it, this is where the script stops - loudly, and with the pid.
+  claimLocalDataDirectory({ as });
+
   const { PGlite } = await import("@electric-sql/pglite");
   const database = new PGlite(LOCAL_DATA_DIRECTORY);
   await database.waitReady;
@@ -102,7 +107,12 @@ const openLocal = async () => {
     // exec rather than query, because PGlite draws the line the HTTP driver draws: query
     // is one statement with parameters, exec is a script of them with none.
     exec: (text) => database.exec(text),
-    close: () => database.close(),
+    close: async () => {
+      await database.close();
+      // Given up here rather than only at exit, so the dev server can be restarted the
+      // moment the script is done rather than whenever this process happens to end.
+      releaseLocalDataDirectory();
+    },
   };
 };
 
@@ -111,6 +121,12 @@ const openLocal = async () => {
  *
  * Pass the resolved destination in rather than resolving again, so the thing a script
  * printed and the thing it opened cannot drift apart between the two calls.
+ *
+ * The `as` argument names this command in the error another process gets if it tries to
+ * open the local database while this one holds it, so pass what a reader would
+ * recognise: "pnpm db:migrate".
  */
-export const openDatabase = (destination) =>
-  destination.isRemote ? openRemote(destination.url) : openLocal();
+export const openDatabase = (destination, args) =>
+  destination.isRemote
+    ? openRemote(destination.url)
+    : openLocal(args?.as ?? "another script");

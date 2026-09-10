@@ -47,6 +47,11 @@ yarn-error.log*
 # migrations, which is also how you throw away a week of test suggestions.
 .pgdata/
 
+# Which process currently has that directory open. PGlite will not enforce this itself -
+# two processes in one data directory silently lose one side's writes - so the pid lives
+# beside the directory and whoever finds it live refuses. Machine-local by definition.
+.pgdata.lock
+
 # vercel
 .vercel
 

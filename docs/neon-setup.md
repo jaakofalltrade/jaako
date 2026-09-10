@@ -24,6 +24,27 @@ trusted with a heavier job than holding your test data.
 `.pgdata/` is gitignored and disposable. Delete it and run `pnpm db:migrate` again for a
 clean slate, which is also how you throw away a week of test suggestions.
 
+### One process at a time
+
+PGlite does not lock its data directory, and this is the one sharp edge in the whole
+arrangement. Two node processes will both open `.pgdata/` without complaint, both report
+their writes committed, and leave only one side's behind. A container would have given us
+mutual exclusion for free; this is what it costs not to have one.
+
+So the repo locks it. Whoever opens the directory writes its pid to `.pgdata.lock`, and
+anyone who finds that file belonging to a live process refuses:
+
+```
+The local database at .../.pgdata is already open in another process
+(pid 41234, the dev server). PGlite gives no protection here: opening one
+data directory twice silently discards one side's writes. Stop that
+process and try again.
+```
+
+The dev server holds the lock for as long as it is up, so **stop `pnpm dev` before running
+a db script**, and start it again after. A lock left behind by a crash is not a problem: the
+next command sees a dead pid and takes over.
+
 ## The one rule
 
 ```
@@ -175,7 +196,8 @@ do.
 
 ## Adding a migration
 
-Add a numbered `.sql` file to `src/server/db/migrations` and run `pnpm db:migrate`.
+Add a numbered `.sql` file to `src/server/db/migrations`, stop the dev server, and run
+`pnpm db:migrate`.
 
 - **Zero-pad the number.** `002`, not `2`, or the tenth migration sorts before the second
   and the files apply in the wrong order.
@@ -264,6 +286,9 @@ what time it is, not Postgres.
 | --- | --- |
 | `refusing: DATABASE_URL is set` from `pnpm db:migrate` | Working as intended. A deployment is a deliberate target: add `--yes`, or unset the variable to migrate `.pgdata/`. |
 | `relation "suggestion" does not exist` locally | `.pgdata/` was never migrated. Run `pnpm db:migrate`. |
+| `is already open in another process` from a db script | The dev server has `.pgdata/`. Stop it, run the script, start it again. |
+| A db script says a migration applied but the app disagrees | Only possible on a build predating the lock. Re-run `pnpm db:migrate` with the dev server stopped. |
+| The lab pages are degraded and `pnpm db:which` says no local database | Expected before the first migrate. Run `pnpm db:migrate`. |
 | Local data vanished | `.pgdata/` was deleted, which is a supported thing to do. Run `pnpm db:migrate`. |
 | `Cannot find module '@electric-sql/pglite'` | devDependencies were skipped. It is a devDependency on purpose; production never takes that path. Run `pnpm install`. |
 | `cannot insert multiple commands into a prepared statement` | A migration was run through the HTTP driver. `scripts/dbClient.mjs` uses `Pool` for exactly this reason; see its header. |

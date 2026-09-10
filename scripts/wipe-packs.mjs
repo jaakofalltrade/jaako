@@ -63,7 +63,7 @@ const run = async () => {
      survive a connection that never comes up. */
   console.log(`database: ${destination.description}`);
 
-  const client = await openDatabase(destination);
+  const client = await openDatabase(destination, { as: "pnpm db:wipe-packs" });
 
   try {
     /* A Neon branch that has never been migrated has no pack tables, and truncating a
