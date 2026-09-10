@@ -2,6 +2,7 @@ import { readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { openDatabase, resolveDatabase } from "./dbClient.mjs";
+import { hasLocalCluster } from "./pgdataLock.mjs";
 
 /**
  * Says which database you are on and what is in it.
@@ -20,6 +21,12 @@ import { openDatabase, resolveDatabase } from "./dbClient.mjs";
  * not sure what you are about to do. No transaction, no writes, and the ledger table is
  * probed rather than assumed so a never-migrated database is an answer rather than a
  * stack trace.
+ *
+ * WHICH INCLUDES NOT CREATING THE THING IT REPORTS ON. Opening a local directory that is
+ * not there is not a read: PGlite runs initdb and leaves a whole cluster behind, so the
+ * script that promised to only look would answer "never migrated" and then make that
+ * false. On a fresh clone the honest answer needs no database open at all, so it does not
+ * open one.
  */
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -37,13 +44,19 @@ const run = async () => {
       : "          no DATABASE_URL, so nothing outside this folder can be reached.\n"
   );
 
-  const database = await openDatabase(destination);
+  const onDisk = readdirSync(migrations)
+    .filter((file) => file.endsWith(".sql"))
+    .sort();
+
+  if (!destination.isRemote && !hasLocalCluster()) {
+    console.log(`migrations: 0 of ${onDisk.length} applied.`);
+    console.log("            There is no local database yet. Run pnpm db:migrate.");
+    return;
+  }
+
+  const database = await openDatabase(destination, { as: "pnpm db:which" });
 
   try {
-    const onDisk = readdirSync(migrations)
-      .filter((file) => file.endsWith(".sql"))
-      .sort();
-
     /* to_regclass answers null instead of throwing, which is the one way to ask Postgres
        whether a table exists without a failed statement to recover from. */
     const { rows: ledgerRows } = await database.query(

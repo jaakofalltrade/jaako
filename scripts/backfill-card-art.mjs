@@ -104,132 +104,141 @@ const main = async () => {
   const destination = resolveDatabase();
   console.log(`database: ${destination.description}`);
 
-  const database = await openDatabase(destination);
+  const database = await openDatabase(destination, { as: "pnpm cards:backfill" });
 
-  /* DISTINCT, because one song pulled by five people is five rows and one lookup. On the
-     development database that is 80 rows and 47 tracks. Rows whose uri is empty are a
-     local file Spotify has no id for; there is nothing to ask about, so they are left
-     alone rather than counted as failures. */
-  const { rows: pending } = await database.query(`
-    select distinct track_uri
-    from pack_card
-    where album_art is null and track_uri <> ''
-  `);
+  /* try/finally so the handle is given up on every path that unwinds, not just the two
+     that reach the end. spotifyAccessToken() throws on a clone with no credentials, which
+     is now a likely shape - a working local database and no Spotify - and that used to
+     exit on an unhandled rejection with the database still open. wipe-packs.mjs and
+     db-which.mjs are both already written this way.
 
-  const { rows } = await database.query(
-    "select count(*)::int as n from pack_card where album_art is null and track_uri <> ''"
-  );
+     bail() is the one path this does NOT cover, because process.exit runs no finally. The
+     exit hook in pgdataLock.mjs is what releases the lock there; the handle goes with the
+     process. */
+  try {
+    /* DISTINCT, because one song pulled by five people is five rows and one lookup. On the
+       development database that is 80 rows and 47 tracks. Rows whose uri is empty are a
+       local file Spotify has no id for; there is nothing to ask about, so they are left
+       alone rather than counted as failures. */
+    const { rows: pending } = await database.query(`
+      select distinct track_uri
+      from pack_card
+      where album_art is null and track_uri <> ''
+    `);
 
-  if (pending.length === 0) {
-    console.log("\nNothing to backfill: every card with a uri already has its artwork.\n");
-    await database.close();
-    return;
-  }
-
-  console.log(
-    `\n${rows[0].n} card${rows[0].n === 1 ? "" : "s"} with no artwork, across ` +
-      `${pending.length} distinct track${pending.length === 1 ? "" : "s"}.\n`
-  );
-
-  const token = await spotifyAccessToken();
-
-  /* `spotify:track:<id>` down to the id, which is the form /v1/tracks wants. Anything
-     that is not that shape is skipped rather than sent: a malformed id in a batch of
-     fifty fails the whole batch. */
-  const ids = pending
-    .map((row) => /^spotify:track:([A-Za-z0-9]{22})$/.exec(row.track_uri)?.[1])
-    .filter(Boolean);
-
-  const skipped = pending.length - ids.length;
-  if (skipped) console.log(`  ${skipped} skipped: not a Spotify track uri.\n`);
-
-  const found = new Map();
-  let refused = 0;
-
-  for (const batch of chunk(ids, LOOKUP_CONCURRENCY)) {
-    await Promise.all(
-      batch.map(async (id) => {
-        const response = await fetch(`https://api.spotify.com/v1/tracks/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        /* A deleted or region-locked track is a 404 on this endpoint rather than an
-           error worth stopping for, so one bad row does not cost the whole run. A 401 is
-           different: the token is wrong and every remaining request will fail the same
-           way, so that one bails. */
-        if (response.status === 401) bail("401 from Spotify. Re-mint with: pnpm token:read");
-        if (!response.ok) {
-          refused += 1;
-          return;
-        }
-
-        const track = await response.json();
-        if (!track?.uri) return;
-
-        found.set(track.uri, {
-          art: pickArt(track.album?.images),
-          url: fromHost(track.external_urls?.spotify, LINK_HOST),
-        });
-      })
-    );
-  }
-
-  if (refused) console.log(`  ${refused} refused by Spotify.
-`);
-
-  let filled = 0;
-  let artless = 0;
-  let missing = 0;
-
-  for (const { track_uri } of pending) {
-    const face = found.get(track_uri);
-
-    if (!face) {
-      missing += 1;
-      continue;
-    }
-
-    /* A track Spotify has but which genuinely has no cover. Writing null would leave the
-       row indistinguishable from one this script has never seen, so it is counted and
-       left for a later run to try again - the cost of that is one lookup. */
-    if (!face.art) {
-      artless += 1;
-      continue;
-    }
-
-    if (dry) {
-      filled += 1;
-      continue;
-    }
-
-    /* `album_art is null` is the guard that makes this idempotent and re-runnable: a row
-       filled by an earlier pass, or by a rip that happened while this was running, is not
-       overwritten. track_url is set in the same statement because the two columns arrived
-       in the same migration and are empty in exactly the same rows. */
-    await database.query(
-      `update pack_card
-       set album_art = $1, track_url = $2
-       where track_uri = $3 and album_art is null`,
-      [face.art, face.url ?? "", track_uri]
-    );
-
-    filled += 1;
-  }
-
-  console.log(dry ? "  DRY RUN, nothing written.\n" : "");
-  console.log(`  ${filled} track${filled === 1 ? "" : "s"} ${dry ? "would be" : ""} filled`);
-  if (artless) console.log(`  ${artless} known to Spotify but with no cover`);
-  if (missing) console.log(`  ${missing} Spotify would not return`);
-  console.log("");
-
-  if (!dry) {
-    const { rows: left } = await database.query(
+    const { rows } = await database.query(
       "select count(*)::int as n from pack_card where album_art is null and track_uri <> ''"
     );
-    console.log(`  ${left[0].n} card${left[0].n === 1 ? "" : "s"} still without artwork.\n`);
-  }
 
-  await database.close();
+    if (pending.length === 0) {
+      console.log("\nNothing to backfill: every card with a uri already has its artwork.\n");
+      return;
+    }
+
+    console.log(
+      `\n${rows[0].n} card${rows[0].n === 1 ? "" : "s"} with no artwork, across ` +
+        `${pending.length} distinct track${pending.length === 1 ? "" : "s"}.\n`
+    );
+
+    const token = await spotifyAccessToken();
+
+    /* `spotify:track:<id>` down to the id, which is the form /v1/tracks wants. Anything
+       that is not that shape is skipped rather than sent: a malformed id in a batch of
+       fifty fails the whole batch. */
+    const ids = pending
+      .map((row) => /^spotify:track:([A-Za-z0-9]{22})$/.exec(row.track_uri)?.[1])
+      .filter(Boolean);
+
+    const skipped = pending.length - ids.length;
+    if (skipped) console.log(`  ${skipped} skipped: not a Spotify track uri.\n`);
+
+    const found = new Map();
+    let refused = 0;
+
+    for (const batch of chunk(ids, LOOKUP_CONCURRENCY)) {
+      await Promise.all(
+        batch.map(async (id) => {
+          const response = await fetch(`https://api.spotify.com/v1/tracks/${id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          /* A deleted or region-locked track is a 404 on this endpoint rather than an
+             error worth stopping for, so one bad row does not cost the whole run. A 401 is
+             different: the token is wrong and every remaining request will fail the same
+             way, so that one bails. */
+          if (response.status === 401) bail("401 from Spotify. Re-mint with: pnpm token:read");
+          if (!response.ok) {
+            refused += 1;
+            return;
+          }
+
+          const track = await response.json();
+          if (!track?.uri) return;
+
+          found.set(track.uri, {
+            art: pickArt(track.album?.images),
+            url: fromHost(track.external_urls?.spotify, LINK_HOST),
+          });
+        })
+      );
+    }
+
+    if (refused) console.log(`  ${refused} refused by Spotify.\n`);
+
+    let filled = 0;
+    let artless = 0;
+    let missing = 0;
+
+    for (const { track_uri } of pending) {
+      const face = found.get(track_uri);
+
+      if (!face) {
+        missing += 1;
+        continue;
+      }
+
+      /* A track Spotify has but which genuinely has no cover. Writing null would leave the
+         row indistinguishable from one this script has never seen, so it is counted and
+         left for a later run to try again - the cost of that is one lookup. */
+      if (!face.art) {
+        artless += 1;
+        continue;
+      }
+
+      if (dry) {
+        filled += 1;
+        continue;
+      }
+
+      /* `album_art is null` is the guard that makes this idempotent and re-runnable: a row
+         filled by an earlier pass, or by a rip that happened while this was running, is not
+         overwritten. track_url is set in the same statement because the two columns arrived
+         in the same migration and are empty in exactly the same rows. */
+      await database.query(
+        `update pack_card
+         set album_art = $1, track_url = $2
+         where track_uri = $3 and album_art is null`,
+        [face.art, face.url ?? "", track_uri]
+      );
+
+      filled += 1;
+    }
+
+    console.log(dry ? "  DRY RUN, nothing written.\n" : "");
+    console.log(`  ${filled} track${filled === 1 ? "" : "s"} ${dry ? "would be" : ""} filled`);
+    if (artless) console.log(`  ${artless} known to Spotify but with no cover`);
+    if (missing) console.log(`  ${missing} Spotify would not return`);
+    console.log("");
+
+    if (!dry) {
+      const { rows: left } = await database.query(
+        "select count(*)::int as n from pack_card where album_art is null and track_uri <> ''"
+      );
+      console.log(`  ${left[0].n} card${left[0].n === 1 ? "" : "s"} still without artwork.\n`);
+    }
+  } finally {
+    await database.close();
+  }
 };
 
 await main();
