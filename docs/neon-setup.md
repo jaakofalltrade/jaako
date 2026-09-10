@@ -45,6 +45,27 @@ The dev server holds the lock for as long as it is up, so **stop `pnpm dev` befo
 a db script**, and start it again after. A lock left behind by a crash is not a problem: the
 next command sees a dead pid and takes over.
 
+`pnpm db:which` is the exception, and deliberately so. It is the script you reach for when
+you are not sure what is going on, which is exactly when the dev server is likely to be
+running, so it never fails on a held lock: it reports who has the database and what is on
+disk, and stops there rather than exiting non-zero.
+
+### Only db:migrate creates it
+
+PGlite runs initdb on a directory that is not there, which means any script that opens
+`.pgdata/` could bring an empty cluster into being just by looking. Only `pnpm db:migrate`
+is allowed to. Every other script, and the app itself, refuses:
+
+```
+There is no local database at .../.pgdata yet. Run pnpm db:migrate.
+```
+
+That matters more than it sounds. `hasDatabase()` in `src/server/db/index.ts` answers on
+whether the cluster exists, and the lab pages degrade politely when it says no. A read
+that conjured an empty cluster would flip that answer to yes permanently, and every write
+after it would hit `relation "visitor" does not exist` and a 500 instead of an honest 503.
+So the app degrades on a missing database rather than creating one.
+
 ## The one rule
 
 ```
@@ -286,7 +307,9 @@ what time it is, not Postgres.
 | --- | --- |
 | `refusing: DATABASE_URL is set` from `pnpm db:migrate` | Working as intended. A deployment is a deliberate target: add `--yes`, or unset the variable to migrate `.pgdata/`. |
 | `relation "suggestion" does not exist` locally | `.pgdata/` was never migrated. Run `pnpm db:migrate`. |
-| `is already open in another process` from a db script | The dev server has `.pgdata/`. Stop it, run the script, start it again. |
+| `is already open in another process` from a db script | The dev server has `.pgdata/`. Stop it, run the script, start it again. `pnpm db:which` will say which pid without failing. |
+| `There is no local database yet` from a db script | Only `pnpm db:migrate` creates one. Run that first. |
+| `db:which` says a migration is applied but the app cannot see it | Only possible on a build predating the lock, where two processes shared the directory. Re-run `pnpm db:migrate` with the dev server stopped. |
 | A db script says a migration applied but the app disagrees | Only possible on a build predating the lock. Re-run `pnpm db:migrate` with the dev server stopped. |
 | The lab pages are degraded and `pnpm db:which` says no local database | Expected before the first migrate. Run `pnpm db:migrate`. |
 | Local data vanished | `.pgdata/` was deleted, which is a supported thing to do. Run `pnpm db:migrate`. |

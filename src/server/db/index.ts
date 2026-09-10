@@ -131,9 +131,31 @@ const createNeonDriver = (): Driver => {
 };
 
 const createLocalDriver = async (): Promise<Driver> => {
-  // Before the directory is opened, and before it is created. PGlite will not stop a
-  // second process from opening this same directory and silently eating one side's
-  // writes, so the refusal has to happen here. See localDataDirectory.ts.
+  /**
+   * THE APP NEVER RUNS initdb. `pnpm db:migrate` is the only thing allowed to bring a
+   * local database into being, and this refusal is what makes that true.
+   *
+   * Opening a directory that is not there is not a read: PGlite creates a whole cluster,
+   * and one created here would be empty. That is worse than no database at all, because
+   * hasDatabase() above answers on PG_VERSION - so the first query to slip past it would
+   * conjure the file that makes it answer "yes" forever, and every write after that would
+   * hit `relation "visitor" does not exist` and a 500 instead of the honest 503 the whole
+   * check exists to produce. A read that has no guard of its own - namesByUri is the one -
+   * is exactly how that gets reached on a fresh clone.
+   *
+   * So the app degrades on a missing database rather than papering over it, which is what
+   * it already did when the only database was a connection string somebody had not pasted
+   * in yet.
+   */
+  if (!hasLocalCluster()) {
+    throw new Error(
+      `There is no local database at ${LOCAL_DATA_DIRECTORY} yet. Run pnpm db:migrate.`
+    );
+  }
+
+  // Before the directory is opened. PGlite will not stop a second process from opening
+  // this same directory and silently eating one side's writes, so the refusal has to
+  // happen here. See localDataDirectory.ts.
   claimLocalDataDirectory({ as: "the dev server" });
 
   // Dynamic, so the package name never appears in a static import a production build
@@ -162,15 +184,28 @@ const createLocalDriver = async (): Promise<Driver> => {
  * by a script, or an unwritable folder fixed a second later, would keep answering with
  * the same stale error until the server was restarted. Clearing it costs one extra open
  * attempt and buys a dev server that recovers on the next request.
+ *
+ * ON globalThis RATHER THAN IN THIS MODULE, which is the part that actually keeps the
+ * local database intact. Module state is per module INSTANCE, and one `next dev` process
+ * holds several instances of this graph - the RSC layer and the route-handler layer are
+ * compiled separately, and an edit re-evaluates the chain. A module-scoped memo would
+ * therefore let one process open PGlite two or three times over on the same directory,
+ * and two PGlite instances on one directory diverge exactly as two processes do: measured,
+ * the first never sees the second's committed row and the last writer's view is what
+ * lands. The .pgdata lock cannot catch it, because every one of those opens has the same
+ * pid. One memo per process is what makes one instance per process.
  */
-let driver: Promise<Driver> | null = null;
+const driverState = globalThis as typeof globalThis & {
+  __jaakoDbDriver?: Promise<Driver> | null;
+};
 
 const getDriver = (): Promise<Driver> => {
+  const driver = driverState.__jaakoDbDriver;
   if (driver) return driver;
 
   if (serverConfig.database_url) {
-    driver = Promise.resolve(createNeonDriver());
-    return driver;
+    driverState.__jaakoDbDriver = Promise.resolve(createNeonDriver());
+    return driverState.__jaakoDbDriver;
   }
 
   /**
@@ -195,12 +230,12 @@ const getDriver = (): Promise<Driver> => {
   }
 
   const opening = createLocalDriver().catch((cause: unknown) => {
-    if (driver === opening) driver = null;
+    if (driverState.__jaakoDbDriver === opening) driverState.__jaakoDbDriver = null;
     throw cause;
   });
 
-  driver = opening;
-  return driver;
+  driverState.__jaakoDbDriver = opening;
+  return opening;
 };
 
 /**

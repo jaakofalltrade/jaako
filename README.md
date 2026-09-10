@@ -24,7 +24,9 @@ That's the whole thing. No `.env.local`, no signing up for anything, no Docker.
 
 `pnpm db:migrate` builds a real Postgres in `.pgdata/` and applies every migration to it. It's PGlite, which is Postgres compiled to WebAssembly, so it runs inside the node process and there's no server to install or port to fight over. The folder is gitignored and disposable: delete it and run the command again to get a clean slate.
 
-**One process at a time.** PGlite doesn't lock its own data directory, and two processes sharing one will each think they've written to it while one of them silently loses everything it did. So the repo locks it: the dev server takes `.pgdata` while it's up, and any db script that finds it held refuses and tells you which pid has it. In practice that means stop `pnpm dev` before `pnpm db:migrate`, then start it again.
+**One process at a time.** PGlite doesn't lock its own data directory, and two processes sharing one will each think they've written to it while one of them silently loses everything it did. So the repo locks it: the dev server takes `.pgdata` while it's up, and any db script that finds it held refuses and tells you which pid has it. In practice that means stop `pnpm dev` before `pnpm db:migrate`, then start it again. `pnpm db:which` is the exception and never fails on a held lock, since it's the one you run when you're not sure what's going on.
+
+`pnpm db:migrate` is also the only thing that creates the database. Everything else, the app included, refuses a `.pgdata/` that isn't there rather than quietly making an empty one.
 
 The site comes up with the lab apps fully working against that database. What you *won't* have is anything that needs a third party, which is the next section.
 

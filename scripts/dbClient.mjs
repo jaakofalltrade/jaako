@@ -3,6 +3,7 @@ import { loadEnvLocal } from "./loadEnv.mjs";
 import {
   LOCAL_DATA_DIRECTORY,
   claimLocalDataDirectory,
+  hasLocalCluster,
   releaseLocalDataDirectory,
 } from "./pgdataLock.mjs";
 
@@ -93,7 +94,18 @@ const openRemote = async (url) => {
   };
 };
 
-const openLocal = async (as) => {
+const openLocal = async (as, create) => {
+  /* ONLY db:migrate MAY CREATE IT. PGlite runs initdb on a directory that is not there,
+     so every other script would quietly conjure an empty cluster and then report on it -
+     wipe-packs announcing "no pack tables here", backfill dying on `relation "pack_card"
+     does not exist` - and leave the app believing a database exists. src/server/db makes
+     the same refusal for the same reason; see the note on createLocalDriver. */
+  if (!create && !hasLocalCluster()) {
+    throw new Error(
+      `There is no local database at ${LOCAL_DATA_DIRECTORY} yet. Run pnpm db:migrate.`
+    );
+  }
+
   // Before PGlite is asked for the directory, because PGlite will not refuse it. If the
   // dev server holds it, this is where the script stops - loudly, and with the pid.
   claimLocalDataDirectory({ as });
@@ -125,8 +137,12 @@ const openLocal = async (as) => {
  * The `as` argument names this command in the error another process gets if it tries to
  * open the local database while this one holds it, so pass what a reader would
  * recognise: "pnpm db:migrate".
+ *
+ * `create` is db:migrate's alone. Everything else refuses a local database that is not
+ * there rather than making an empty one, because a script that creates what it was asked
+ * to look at leaves the app worse than it found it.
  */
 export const openDatabase = (destination, args) =>
   destination.isRemote
     ? openRemote(destination.url)
-    : openLocal(args?.as ?? "another script");
+    : openLocal(args?.as ?? "another script", args?.create ?? false);

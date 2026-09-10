@@ -64,6 +64,19 @@ const readHolder = () => {
   }
 };
 
+/**
+ * Who has the directory, without trying to take it.
+ *
+ * A script that only reads wants to say "the dev server has this, stop it" rather than
+ * fail, and it cannot learn that from a function whose only outcomes are success and a
+ * throw. Returns null when the lock is free or stale.
+ */
+export const localDataDirectoryHolder = () => {
+  const holder = readHolder();
+  return holder && holder.pid !== process.pid && isRunning(holder.pid) ? holder : null;
+};
+
+/** Per process, for the same reason src/server/db/localDataDirectory.ts says. */
 let held = false;
 
 const release = () => {

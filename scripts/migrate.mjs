@@ -58,7 +58,7 @@ const run = async () => {
     process.exit(1);
   }
 
-  const database = await openDatabase(destination, { as: "pnpm db:migrate" });
+  const database = await openDatabase(destination, { as: "pnpm db:migrate", create: true });
 
   try {
     // The ledger. Created by this script rather than by a migration, because a migration

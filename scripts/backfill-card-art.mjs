@@ -241,4 +241,10 @@ const main = async () => {
   }
 };
 
-await main();
+/* The message, not the stack. The same ending wipe-packs.mjs and db-which.mjs have, and
+   it matters more now that "there is no local database yet" is an ordinary thing for this
+   script to say to somebody on a fresh clone. */
+main().catch((error) => {
+  console.error("backfill failed:", error.message);
+  process.exit(1);
+});

@@ -2,7 +2,7 @@ import { readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { openDatabase, resolveDatabase } from "./dbClient.mjs";
-import { hasLocalCluster } from "./pgdataLock.mjs";
+import { hasLocalCluster, localDataDirectoryHolder } from "./pgdataLock.mjs";
 
 /**
  * Says which database you are on and what is in it.
@@ -51,6 +51,24 @@ const run = async () => {
   if (!destination.isRemote && !hasLocalCluster()) {
     console.log(`migrations: 0 of ${onDisk.length} applied.`);
     console.log("            There is no local database yet. Run pnpm db:migrate.");
+    return;
+  }
+
+  /* AND IT STILL DOES NOT FAIL WHEN SOMETHING ELSE HAS THE DIRECTORY, which is the whole
+     point of the script. PGlite cannot share a data directory, so the row counts below
+     genuinely cannot be read while the dev server is up - but "the dev server has it" is
+     itself the answer to "where am I", and a script whose header promises it is the one
+     safe to run when you are unsure must not exit 1 in the state you are most likely to
+     be unsure in. So it prints what it knows without opening anything and stops there. */
+  const holder = !destination.isRemote && localDataDirectoryHolder();
+
+  if (holder) {
+    console.log(`migrations: not read, and neither were the rows.`);
+    console.log(`            ${holder.description} (pid ${holder.pid}) has the database.`);
+    console.log("            PGlite allows one process at a time. Stop it to see more.");
+    console.log("");
+    console.log(`on disk:    ${onDisk.length} migration file(s).`);
+    for (const file of onDisk) console.log(`            ${file}`);
     return;
   }
 

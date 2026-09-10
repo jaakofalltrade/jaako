@@ -29,7 +29,16 @@ import { join } from "node:path";
  * makes for the DATABASE_URL rule.
  */
 
-/** Where the local Postgres lives. Gitignored, disposable, and safe to delete. */
+/**
+ * Where the local Postgres lives. Gitignored, disposable, and safe to delete.
+ *
+ * FROM THE CWD, and the lock's whole guarantee rests on this landing on the same absolute
+ * path as the join in scripts/pgdataLock.mjs, which anchors on its own file instead. Next
+ * runs with the project root as its cwd - `next dev` and `next start` are both started
+ * from the directory holding next.config.ts, and Next resolves its own config, env files
+ * and app directory the same way - so the two agree. A script cannot make that assumption
+ * because it can be invoked from anywhere, which is why that side anchors on the file.
+ */
 export const LOCAL_DATA_DIRECTORY = join(process.cwd(), ".pgdata");
 
 /**
@@ -80,11 +89,25 @@ const readHolder = (): Holder | null => {
   }
 };
 
-let held = false;
+/**
+ * ON globalThis RATHER THAN IN THIS MODULE, and the same reason applies to the driver
+ * memo in index.ts.
+ *
+ * Module state is per module INSTANCE, and one Node process running `next dev` has
+ * several instances of this graph: the RSC layer and the route-handler layer are compiled
+ * separately, and an edit re-evaluates the chain. Module-scoped state would therefore give
+ * each of them its own idea of whether the lock is held, and each would register its own
+ * exit listener - ten reloads, ten listeners, and a MaxListenersExceededWarning.
+ *
+ * globalThis is per PROCESS, which is the unit the lock is actually about.
+ */
+const processState = globalThis as typeof globalThis & {
+  __jaakoPgdataHeld?: boolean;
+};
 
 const release = (): void => {
-  if (!held) return;
-  held = false;
+  if (!processState.__jaakoPgdataHeld) return;
+  processState.__jaakoPgdataHeld = false;
 
   try {
     // Only if it is still ours. A lock we already lost is not ours to delete.
@@ -122,8 +145,16 @@ export const claimLocalDataDirectory = (args: { as: string }): void => {
   if (!take()) {
     const holder = readHolder();
 
-    // Our own pid means this module was re-evaluated in a process that already holds the
-    // lock, which is what an HMR reload of the dev server looks like.
+    /* Our own pid means this process already holds the lock and is asking again - a
+       release whose unlink failed, or a script that closed and reopened.
+
+       THIS EXEMPTION CANNOT PROTECT AGAINST ITSELF, which is worth being plain about. A
+       lock keyed on a pid is blind to two opens inside one process, and two PGlite
+       instances on one directory diverge exactly as two processes do: measured, instance
+       A never sees instance B's committed row, and the last writer's view is what lands.
+       Nothing here can catch that. What prevents it is that both callers memoise their
+       instance on globalThis - processState above, and the driver promise in index.ts -
+       so a process opens the directory once and hands the same handle out thereafter. */
     if (holder && holder.pid !== process.pid && isRunning(holder.pid)) {
       throw new Error(
         `The local database at ${LOCAL_DATA_DIRECTORY} is already open in another ` +
@@ -150,8 +181,8 @@ export const claimLocalDataDirectory = (args: { as: string }): void => {
     }
   }
 
-  if (!held) {
-    held = true;
+  if (!processState.__jaakoPgdataHeld) {
+    processState.__jaakoPgdataHeld = true;
     // Only the synchronous exit hook, because that is the one that runs on a normal exit
     // and on an uncaught throw. A stale file left by a kill -9 costs nothing: the next
     // claim finds a dead pid and takes over.
